@@ -5,6 +5,7 @@ import { User, Bell, Zap, Mail, Save, CreditCard } from 'lucide-react';
 import type { Database } from '../types/database';
 import ImageUploader from '../components/ImageUploader';
 import StorageQuotaDisplay from '../components/StorageQuotaDisplay';
+import ApiKeysStatus from '../components/ApiKeysStatus';
 import { uploadFile, STORAGE_BUCKETS, ALLOWED_IMAGE_TYPES } from '../lib/storage';
 import toast from 'react-hot-toast';
 
@@ -171,6 +172,8 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-6">
+        <ApiKeysStatus />
+
         <StorageQuotaDisplay />
 
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">

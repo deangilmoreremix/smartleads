@@ -46,6 +46,33 @@ Deno.serve(async (req: Request) => {
       throw new Error('No active Gmail accounts found. Please connect a Gmail account first.');
     }
 
+    const now = new Date();
+    const accountsToReset = gmailAccounts.filter(account => {
+      if (!account.last_reset_at) return true;
+      const lastReset = new Date(account.last_reset_at);
+      const daysSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 60 * 60 * 24);
+      return daysSinceReset >= 1;
+    });
+
+    if (accountsToReset.length > 0) {
+      console.log(`Resetting daily counters for ${accountsToReset.length} accounts`);
+      const resetIds = accountsToReset.map(acc => acc.id);
+      await supabaseClient
+        .from('gmail_accounts')
+        .update({
+          emails_sent_today: 0,
+          last_reset_at: now.toISOString(),
+        })
+        .in('id', resetIds);
+
+      gmailAccounts.forEach(account => {
+        if (resetIds.includes(account.id)) {
+          account.emails_sent_today = 0;
+          account.last_reset_at = now.toISOString();
+        }
+      });
+    }
+
     const unipileAccounts = gmailAccounts.filter(acc => acc.unipile_account_id);
     if (unipileAccounts.length === 0) {
       throw new Error('No Unipile-connected accounts found. Please connect your Gmail via Unipile.');
