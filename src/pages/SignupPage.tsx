@@ -61,27 +61,27 @@ export default function SignupPage() {
   return (
     <>
       <SEOHead title="Sign Up - Smart Leads" description="Create a free Smart Leads account and start automating your outreach today" />
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center px-4">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center space-x-2 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">SL</span>
               </div>
-              <span className="text-white font-bold text-2xl">Smart Leads</span>
+              <span className="text-stone-800 font-bold text-2xl">Smart Leads</span>
             </Link>
-            <h1 className="text-3xl font-bold text-white mb-2">Create your account</h1>
-            <p className="text-slate-400">Start automating your outreach today</p>
+            <h1 className="text-3xl font-bold text-stone-800 mb-2">Create your account</h1>
+            <p className="text-stone-500">Start automating your outreach today</p>
           </div>
 
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8">
+          <div className="bg-white/80 backdrop-blur-sm border border-amber-200 rounded-2xl p-8 shadow-lg">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-slate-300 mb-2">
+                <label htmlFor="fullName" className="block text-sm font-medium text-stone-700 mb-2">
                   Full name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                   <input
                     id="fullName"
                     type="text"
@@ -91,7 +91,7 @@ export default function SignupPage() {
                     disabled={loading}
                     minLength={2}
                     maxLength={100}
-                    className="w-full bg-slate-900/50 text-white placeholder-slate-500 border border-slate-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-amber-50/50 text-stone-800 placeholder-stone-400 border border-amber-200 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="John Doe"
                     autoComplete="name"
                   />
@@ -99,11 +99,11 @@ export default function SignupPage() {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-stone-700 mb-2">
                   Email address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                   <input
                     id="email"
                     type="email"
@@ -111,7 +111,7 @@ export default function SignupPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={loading}
-                    className="w-full bg-slate-900/50 text-white placeholder-slate-500 border border-slate-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-amber-50/50 text-stone-800 placeholder-stone-400 border border-amber-200 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="you@example.com"
                     autoComplete="email"
                   />
@@ -119,11 +119,11 @@ export default function SignupPage() {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-stone-700 mb-2">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                   <input
                     id="password"
                     type="password"
@@ -132,38 +132,38 @@ export default function SignupPage() {
                     required
                     disabled={loading}
                     minLength={MIN_PASSWORD_LENGTH}
-                    className="w-full bg-slate-900/50 text-white placeholder-slate-500 border border-slate-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-amber-50/50 text-stone-800 placeholder-stone-400 border border-amber-200 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="••••••••"
                     autoComplete="new-password"
                   />
                 </div>
-                <p className="mt-2 text-xs text-slate-400">Must be at least {MIN_PASSWORD_LENGTH} characters</p>
+                <p className="mt-2 text-xs text-stone-500">Must be at least {MIN_PASSWORD_LENGTH} characters</p>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-medium py-3 rounded-lg hover:shadow-lg hover:shadow-blue-500/50 transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full bg-gradient-to-r from-amber-400 to-orange-500 text-white font-medium py-3 rounded-lg hover:shadow-lg hover:shadow-orange-500/30 transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {loading ? 'Creating account...' : 'Create account'}
               </button>
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-slate-400 text-sm">
+              <p className="text-stone-500 text-sm">
                 Already have an account?{' '}
-                <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium transition">
+                <Link to="/login" className="text-orange-500 hover:text-orange-600 font-medium transition">
                   Sign in
                 </Link>
               </p>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-slate-700">
-              <p className="text-xs text-slate-500 text-center">
+            <div className="mt-6 pt-6 border-t border-amber-200">
+              <p className="text-xs text-stone-500 text-center">
                 By signing up, you agree to our{' '}
-                <Link to="/terms" className="text-slate-400 hover:text-white transition">Terms of Service</Link>
+                <Link to="/terms" className="text-stone-600 hover:text-stone-800 transition">Terms of Service</Link>
                 {' '}and{' '}
-                <Link to="/privacy" className="text-slate-400 hover:text-white transition">Privacy Policy</Link>
+                <Link to="/privacy" className="text-stone-600 hover:text-stone-800 transition">Privacy Policy</Link>
               </p>
             </div>
           </div>

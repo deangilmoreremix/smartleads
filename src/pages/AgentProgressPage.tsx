@@ -198,7 +198,7 @@ export default function AgentProgressPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-amber-50/30">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -206,12 +206,12 @@ export default function AgentProgressPage() {
 
   if (!job) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 bg-amber-50/30 min-h-screen">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Job Not Found</h1>
+          <h1 className="text-2xl font-bold text-stone-800 mb-4">Job Not Found</h1>
           <button
             onClick={() => navigate('/campaigns')}
-            className="text-blue-600 hover:text-blue-700"
+            className="text-orange-500 hover:text-orange-600"
           >
             Return to Campaigns
           </button>
@@ -223,21 +223,21 @@ export default function AgentProgressPage() {
   const isComplete = job.status === 'completed';
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+    <div className="min-h-screen bg-amber-50/30 pb-12">
+      <div className="bg-white border-b border-amber-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button
               onClick={handleBackToCampaign}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="flex items-center space-x-2 text-stone-600 hover:text-stone-800 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Back to Campaign</span>
             </button>
 
             <div className="text-center flex-1">
-              <h1 className="text-xl font-bold text-gray-900">AI Agent Progress</h1>
-              <p className="text-sm text-gray-600">
+              <h1 className="text-xl font-bold text-stone-800">AI Agent Progress</h1>
+              <p className="text-sm text-stone-500">
                 {job.result_data?.campaign_name || 'Processing Campaign'}
               </p>
             </div>
@@ -259,16 +259,16 @@ export default function AgentProgressPage() {
       </div>
 
       {showSuccessBanner && isComplete && (
-        <div className="bg-gradient-to-r from-green-50 to-green-100 border-b border-green-200">
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200">
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="bg-green-500 p-3 rounded-full">
+                <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-3 rounded-full">
                   <Mail className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-green-900">Ready to Send Emails!</h2>
-                  <p className="text-green-700 mt-1">
+                  <h2 className="text-xl font-bold text-stone-800">Ready to Send Emails!</h2>
+                  <p className="text-stone-600 mt-1">
                     Your SmartLeads AI agent has successfully found {job.result_data?.leadsFound || 0} leads and collected their contact information. You're now ready to start your email campaign.
                   </p>
                 </div>
@@ -278,14 +278,14 @@ export default function AgentProgressPage() {
                   <>
                     <button
                       onClick={handleViewLeads}
-                      className="px-6 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center space-x-2"
+                      className="px-6 py-3 bg-stone-800 text-white rounded-lg font-medium hover:bg-stone-700 transition-colors flex items-center space-x-2"
                     >
                       <Users className="w-5 h-5" />
                       <span>View All Leads</span>
                     </button>
                     <button
                       onClick={handleStartSending}
-                      className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-medium hover:from-orange-600 hover:to-orange-700 transition-colors flex items-center space-x-2 shadow-lg"
+                      className="px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg font-medium hover:from-amber-500 hover:to-orange-600 transition-colors flex items-center space-x-2 shadow-lg"
                     >
                       <Mail className="w-5 h-5" />
                       <span>Start Sending Your Emails</span>
@@ -294,7 +294,7 @@ export default function AgentProgressPage() {
                 )}
               </div>
             </div>
-            <p className="text-sm text-green-600 mt-4">
+            <p className="text-sm text-stone-500 mt-4">
               You can review your leads and customize your email template before sending.
             </p>
           </div>

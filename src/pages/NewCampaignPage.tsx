@@ -138,21 +138,21 @@ export default function NewCampaignPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto bg-amber-50/30 min-h-screen">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Create New Campaign</h1>
-        <p className="text-slate-400">Use AI to generate your campaign or create manually</p>
+        <h1 className="text-3xl font-bold text-stone-800 mb-2">Create New Campaign</h1>
+        <p className="text-stone-500">Use AI to generate your campaign or create manually</p>
       </div>
 
       {step === 'prompt' ? (
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8">
+        <div className="bg-white border border-amber-200 rounded-2xl p-8 shadow-sm">
           <div className="flex items-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">AI Campaign Generator</h2>
-              <p className="text-slate-400 text-sm">Describe your outreach goal in plain English</p>
+              <h2 className="text-xl font-bold text-stone-800">AI Campaign Generator</h2>
+              <p className="text-stone-500 text-sm">Describe your outreach goal in plain English</p>
             </div>
           </div>
 
@@ -162,29 +162,29 @@ export default function NewCampaignPage() {
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
                 placeholder="Example: Email restaurant founders in NYC about delivery optimization software"
-                className="w-full bg-slate-900/50 text-white placeholder-slate-500 border border-slate-600 rounded-lg px-4 py-4 pr-16 focus:outline-none focus:border-blue-500 transition min-h-[120px] resize-none"
+                className="w-full bg-amber-50/50 text-stone-800 placeholder-stone-400 border border-amber-200 rounded-lg px-4 py-4 pr-16 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition min-h-[120px] resize-none"
               />
               <button
                 onClick={handleAIPrompt}
                 disabled={!aiPrompt.trim()}
-                className="absolute right-3 bottom-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-2 rounded-lg hover:shadow-lg hover:shadow-blue-500/50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="absolute right-3 bottom-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white p-2 rounded-lg hover:shadow-lg hover:shadow-orange-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Wand2 className="w-5 h-5" />
               </button>
             </div>
-            <p className="mt-2 text-xs text-slate-400">
+            <p className="mt-2 text-xs text-stone-500">
               Include your target niche, location, and what you're offering for best results
             </p>
           </div>
 
           <div className="mb-6">
-            <h3 className="text-sm font-medium text-slate-300 mb-3">Example prompts:</h3>
+            <h3 className="text-sm font-medium text-stone-700 mb-3">Example prompts:</h3>
             <div className="space-y-2">
               {examplePrompts.map((prompt, i) => (
                 <button
                   key={i}
                   onClick={() => setAiPrompt(prompt)}
-                  className="block w-full text-left text-sm text-slate-400 hover:text-white bg-slate-700/50 hover:bg-slate-700 px-4 py-3 rounded-lg border border-slate-600 hover:border-blue-500/50 transition"
+                  className="block w-full text-left text-sm text-stone-600 hover:text-stone-800 bg-amber-50 hover:bg-amber-100 px-4 py-3 rounded-lg border border-amber-200 hover:border-orange-300 transition"
                 >
                   {prompt}
                 </button>
@@ -193,14 +193,14 @@ export default function NewCampaignPage() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="flex-1 border-t border-slate-600"></div>
-            <span className="text-slate-500 text-sm">or</span>
-            <div className="flex-1 border-t border-slate-600"></div>
+            <div className="flex-1 border-t border-amber-200"></div>
+            <span className="text-stone-400 text-sm">or</span>
+            <div className="flex-1 border-t border-amber-200"></div>
           </div>
 
           <button
             onClick={() => setStep('details')}
-            className="mt-6 w-full bg-slate-700 hover:bg-slate-600 text-white px-6 py-3 rounded-lg font-medium transition"
+            className="mt-6 w-full bg-stone-100 hover:bg-stone-200 text-stone-700 px-6 py-3 rounded-lg font-medium transition border border-stone-200"
           >
             Create Manually
           </button>
@@ -208,17 +208,17 @@ export default function NewCampaignPage() {
       ) : (
         <form onSubmit={handleCreateCampaign} className="space-y-6">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-400 text-sm">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600 text-sm">
               {error}
             </div>
           )}
 
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8">
-            <h2 className="text-xl font-bold text-white mb-6">Campaign Details</h2>
+          <div className="bg-white border border-amber-200 rounded-2xl p-8 shadow-sm">
+            <h2 className="text-xl font-bold text-stone-800 mb-6">Campaign Details</h2>
 
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-stone-700 mb-2">
                   Campaign Name
                 </label>
                 <input
@@ -227,14 +227,14 @@ export default function NewCampaignPage() {
                   onChange={(e) => setCampaignName(e.target.value)}
                   required
                   placeholder="My Outreach Campaign"
-                  className="w-full bg-slate-900/50 text-white placeholder-slate-500 border border-slate-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition"
+                  className="w-full bg-amber-50/50 text-stone-800 placeholder-stone-400 border border-amber-200 rounded-lg px-4 py-3 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    <Target className="w-4 h-4 inline mr-2" />
+                  <label className="block text-sm font-medium text-stone-700 mb-2">
+                    <Target className="w-4 h-4 inline mr-2 text-stone-500" />
                     Target Niche
                   </label>
                   <input
@@ -243,13 +243,13 @@ export default function NewCampaignPage() {
                     onChange={(e) => setNiche(e.target.value)}
                     required
                     placeholder="e.g., Restaurants, Gyms, Real Estate"
-                    className="w-full bg-slate-900/50 text-white placeholder-slate-500 border border-slate-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition"
+                    className="w-full bg-amber-50/50 text-stone-800 placeholder-stone-400 border border-amber-200 rounded-lg px-4 py-3 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    <MapPin className="w-4 h-4 inline mr-2" />
+                  <label className="block text-sm font-medium text-stone-700 mb-2">
+                    <MapPin className="w-4 h-4 inline mr-2 text-stone-500" />
                     Location
                   </label>
                   <input
@@ -258,14 +258,14 @@ export default function NewCampaignPage() {
                     onChange={(e) => setLocation(e.target.value)}
                     required
                     placeholder="e.g., New York, NY"
-                    className="w-full bg-slate-900/50 text-white placeholder-slate-500 border border-slate-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition"
+                    className="w-full bg-amber-50/50 text-stone-800 placeholder-stone-400 border border-amber-200 rounded-lg px-4 py-3 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  <Mail className="w-4 h-4 inline mr-2" />
+                <label className="block text-sm font-medium text-stone-700 mb-2">
+                  <Mail className="w-4 h-4 inline mr-2 text-stone-500" />
                   Email Template (Optional)
                 </label>
                 <textarea
@@ -276,9 +276,9 @@ export default function NewCampaignPage() {
 I noticed {businessName} and wanted to reach out...
 
 Variables: {firstName}, {businessName}, {location}"
-                  className="w-full bg-slate-900/50 text-white placeholder-slate-500 border border-slate-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition min-h-[200px] resize-none"
+                  className="w-full bg-amber-50/50 text-stone-800 placeholder-stone-400 border border-amber-200 rounded-lg px-4 py-3 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition min-h-[200px] resize-none"
                 />
-                <p className="mt-2 text-xs text-slate-400">
+                <p className="mt-2 text-xs text-stone-500">
                   Leave empty to let AI generate personalized emails for each prospect
                 </p>
               </div>
@@ -291,12 +291,12 @@ Variables: {firstName}, {businessName}, {location}"
           />
 
           {aiPrompt && (
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <div className="flex items-start space-x-3">
-                <Sparkles className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                <Sparkles className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="text-sm font-medium text-blue-400 mb-1">AI Prompt</h3>
-                  <p className="text-sm text-slate-300">{aiPrompt}</p>
+                  <h3 className="text-sm font-medium text-amber-700 mb-1">AI Prompt</h3>
+                  <p className="text-sm text-stone-600">{aiPrompt}</p>
                 </div>
               </div>
             </div>
@@ -306,14 +306,14 @@ Variables: {firstName}, {businessName}, {location}"
             <button
               type="button"
               onClick={() => setStep('prompt')}
-              className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition"
+              className="px-6 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg font-medium transition border border-stone-200"
             >
               Back
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-blue-500/50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center space-x-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-orange-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span>{loading ? 'Creating...' : 'Create Campaign'}</span>
               {!loading && <ArrowRight className="w-5 h-5" />}
