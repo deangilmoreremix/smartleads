@@ -77,9 +77,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-50">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
-            <span className="text-gray-900 font-bold text-sm">N</span>
+            <span className="text-gray-900 font-bold text-sm">S</span>
           </div>
-          <span className="text-gray-900 font-bold text-xl">NotiQ</span>
+          <span className="text-gray-900 font-bold text-xl">SmartLeads</span>
         </div>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -98,9 +98,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="h-full flex flex-col">
             <div className="hidden lg:flex items-center space-x-2 px-6 py-5 border-b border-gray-200">
               <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
-                <span className="text-gray-900 font-bold text-sm">N</span>
+                <span className="text-gray-900 font-bold text-sm">S</span>
               </div>
-              <span className="text-gray-900 font-bold text-xl">NotiQ</span>
+              <span className="text-gray-900 font-bold text-xl">SmartLeads</span>
             </div>
 
             <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">

@@ -269,7 +269,7 @@ export default function AgentProgressPage() {
                 <div>
                   <h2 className="text-xl font-bold text-green-900">Ready to Send Emails!</h2>
                   <p className="text-green-700 mt-1">
-                    Your NotiQ AI agent has successfully found {job.result_data?.leadsFound || 0} leads and collected their contact information. You're now ready to start your email campaign.
+                    Your SmartLeads AI agent has successfully found {job.result_data?.leadsFound || 0} leads and collected their contact information. You're now ready to start your email campaign.
                   </p>
                 </div>
               </div>

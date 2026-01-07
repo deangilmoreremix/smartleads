@@ -64,7 +64,7 @@ export default function AgentStatusCard({
       </div>
 
       <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">
-        {isComplete && 'NotiQ AI Agent Completed!'}
+        {isComplete && 'SmartLeads AI Agent Completed!'}
         {isFailed && 'Agent Failed'}
         {isRunning && 'AI Agent Working...'}
       </h2>
