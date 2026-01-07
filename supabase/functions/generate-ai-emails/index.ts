@@ -1,6 +1,29 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient, SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import OpenAI from 'npm:openai@4';
-import { logProgress } from '../_shared/progress-logger.ts';
+
+async function logProgress(
+  supabase: SupabaseClient,
+  jobId: string,
+  options: {
+    level?: 'info' | 'success' | 'warning' | 'error' | 'loading';
+    icon?: string;
+    message: string;
+    metadata?: Record<string, unknown>;
+  }
+): Promise<void> {
+  const { level = 'info', icon = '💡', message, metadata = {} } = options;
+  try {
+    await supabase.from('agent_progress_logs').insert({
+      job_id: jobId,
+      log_level: level,
+      icon,
+      message,
+      metadata,
+    });
+  } catch (error) {
+    console.error('Failed to log progress:', error);
+  }
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -159,7 +182,7 @@ Deno.serve(async (req: Request) => {
     await logProgress(supabaseClient, jobId, {
       level: 'loading',
       icon: '✍️',
-      message: 'Generating personalized emails with GPT-5.2...'
+      message: 'Generating personalized emails with AI...'
     });
 
     for (let i = 0; i < leads.length; i++) {
@@ -388,13 +411,13 @@ async function generatePersonalizedEmail(
     };
   }
 
-  const aiModel = userPrefs?.ai_model || 'gpt-5.2';
+  const aiModel = userPrefs?.ai_model || 'gpt-4o';
   const creativityLevel = userPrefs?.creativity_level || 0.75;
   const brandVoice = userPrefs?.brand_voice || '';
   const avoidPhrases = userPrefs?.avoid_phrases || [];
   const customInstructions = userPrefs?.custom_instructions || '';
 
-  let systemPrompt = `You are an expert cold email writer specializing in B2B outreach powered by GPT-5.2's advanced reasoning.
+  let systemPrompt = `You are an expert cold email writer specializing in B2B outreach.
 
 Before writing, analyze the business data to identify key personalization opportunities. Consider:
 - What makes this business unique based on their reviews and rating?
@@ -446,9 +469,11 @@ Target Audience: ${template.target_audience || 'business owners'}`;
     userPrompt = `First, analyze this business and identify specific personalization angles:\n\nBusiness: ${businessName}\nIndustry: ${campaign.niche}\nLocation: ${location}\nDecision Maker: ${capitalizedName}\n${rating > 0 ? `Rating: ${rating} stars (${reviewCount} reviews)` : ''}\n${reviewInsight ? `Recent review mentions: "${reviewInsight}"` : ''}\n\nBased on your analysis, write a personalized cold email that acknowledges their ${rating > 0 ? 'strong reputation' : 'business'} and offers value specifically relevant to their situation.`;
   }
 
+  const modelToUse = aiModel === 'gpt-4o' ? 'gpt-4o' : 'gpt-4o-mini';
+
   try {
     const completion = await openai.chat.completions.create({
-      model: aiModel === 'gpt-5.2' ? 'gpt-5-2025-12' : 'gpt-4o-mini',
+      model: modelToUse,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
@@ -460,7 +485,7 @@ Target Audience: ${template.target_audience || 'business owners'}`;
     const generatedBody = completion.choices[0]?.message?.content?.trim() || '';
 
     const subjectCompletion = await openai.chat.completions.create({
-      model: aiModel === 'gpt-5.2' ? 'gpt-5-2025-12' : 'gpt-4o-mini',
+      model: modelToUse,
       messages: [
         {
           role: 'system',
@@ -479,10 +504,10 @@ Target Audience: ${template.target_audience || 'business owners'}`;
       `Quick question about ${businessName}`;
 
     let qualityScore;
-    if (aiModel === 'gpt-5.2') {
+    if (aiModel === 'gpt-4o') {
       try {
         const qualityCompletion = await openai.chat.completions.create({
-          model: 'gpt-5-2025-12',
+          model: 'gpt-4o',
           messages: [
             {
               role: 'system',

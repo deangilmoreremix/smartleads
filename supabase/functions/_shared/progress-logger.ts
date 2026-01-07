@@ -123,3 +123,28 @@ export async function createAgentJob(
 
   return jobId;
 }
+
+export async function logProgress(
+  supabase: SupabaseClient,
+  jobId: string,
+  options: {
+    level?: 'info' | 'success' | 'warning' | 'error' | 'loading';
+    icon?: string;
+    message: string;
+    metadata?: Record<string, unknown>;
+  }
+): Promise<void> {
+  const { level = 'info', icon = '💡', message, metadata = {} } = options;
+
+  try {
+    await supabase.from('agent_progress_logs').insert({
+      job_id: jobId,
+      log_level: level,
+      icon,
+      message,
+      metadata,
+    });
+  } catch (error) {
+    console.error('Failed to log progress:', error);
+  }
+}
