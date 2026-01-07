@@ -27,8 +27,46 @@ Deno.serve(async (req: Request) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // Authenticate the user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing Authorization header" }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
+    // Verify the user's token
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Invalid or expired token" }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
+    // Use service role key for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { batchSize = 50 } = await req.json().catch(() => ({}));
 
@@ -39,7 +77,7 @@ Deno.serve(async (req: Request) => {
         lead_id,
         current_step,
         next_send_date,
-        leads (
+        leads!inner (
           id,
           campaign_id,
           email,
@@ -53,6 +91,7 @@ Deno.serve(async (req: Request) => {
         )
       `)
       .eq("is_paused", false)
+      .eq("leads.user_id", user.id)
       .is("completed_at", null)
       .lte("next_send_date", new Date().toISOString())
       .limit(batchSize);
@@ -188,17 +227,32 @@ Deno.serve(async (req: Request) => {
   }
 });
 
+function sanitizeValue(value: string): string {
+  if (!value) return "";
+
+  // Remove potentially dangerous characters and scripts
+  return value
+    .replace(/[<>]/g, "") // Remove HTML tags
+    .replace(/javascript:/gi, "") // Remove javascript: protocol
+    .replace(/on\w+=/gi, "") // Remove event handlers
+    .trim();
+}
+
 function personalizeContent(content: string, leadDetails: any): string {
   let personalized = content;
 
-  personalized = personalized.replace(/\{\{business_name\}\}/g, leadDetails.business_name || "");
-  personalized = personalized.replace(/\{\{email\}\}/g, leadDetails.email || "");
-  personalized = personalized.replace(
-    /\{\{first_name\}\}/g,
-    leadDetails.decision_maker_name?.split(" ")[0] || ""
-  );
-  personalized = personalized.replace(/\{\{website\}\}/g, leadDetails.website || "");
-  personalized = personalized.replace(/\{\{phone\}\}/g, leadDetails.phone || "");
+  // Sanitize all values before replacement
+  const businessName = sanitizeValue(leadDetails.business_name || "");
+  const email = sanitizeValue(leadDetails.email || "");
+  const firstName = sanitizeValue(leadDetails.decision_maker_name?.split(" ")[0] || "");
+  const website = sanitizeValue(leadDetails.website || "");
+  const phone = sanitizeValue(leadDetails.phone || "");
+
+  personalized = personalized.replace(/\{\{business_name\}\}/g, businessName);
+  personalized = personalized.replace(/\{\{email\}\}/g, email);
+  personalized = personalized.replace(/\{\{first_name\}\}/g, firstName);
+  personalized = personalized.replace(/\{\{website\}\}/g, website);
+  personalized = personalized.replace(/\{\{phone\}\}/g, phone);
 
   return personalized;
 }

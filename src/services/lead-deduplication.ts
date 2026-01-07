@@ -102,43 +102,66 @@ export async function removeDuplicatesFromCampaign(
 ): Promise<{
   removedCount: number;
   keptCount: number;
+  errors: string[];
 }> {
   const { duplicates } = await findDuplicatesInCampaign(campaignId);
 
   let removedCount = 0;
   let keptCount = 0;
+  const errors: string[] = [];
 
+  // Process duplicates sequentially to avoid race conditions
   for (const duplicate of duplicates) {
-    const { data: leads, error } = await supabase
-      .from('leads')
-      .select('id, created_at')
-      .in('id', duplicate.leadIds)
-      .order('created_at', { ascending: keepStrategy === 'first' });
+    try {
+      // Re-fetch leads to ensure we have current data
+      const { data: leads, error } = await supabase
+        .from('leads')
+        .select('id, created_at, email')
+        .in('id', duplicate.leadIds)
+        .eq('campaign_id', campaignId) // Ensure they still belong to this campaign
+        .order('created_at', { ascending: keepStrategy === 'first' });
 
-    if (error || !leads) {
-      continue;
-    }
+      if (error) {
+        errors.push(`Failed to fetch duplicate leads for ${duplicate.email}: ${error.message}`);
+        continue;
+      }
 
-    const toKeep = leads[0];
-    const toRemove = leads.slice(1);
+      if (!leads || leads.length <= 1) {
+        // No longer duplicates, skip
+        continue;
+      }
 
-    if (toRemove.length > 0) {
+      const toKeep = leads[0];
+      const toRemove = leads.slice(1);
+      const idsToRemove = toRemove.map((l) => l.id);
+
+      // Delete duplicate leads
       const { error: deleteError } = await supabase
         .from('leads')
         .delete()
-        .in(
-          'id',
-          toRemove.map((l) => l.id)
-        );
+        .in('id', idsToRemove);
 
-      if (!deleteError) {
-        removedCount += toRemove.length;
-        keptCount += 1;
+      if (deleteError) {
+        errors.push(
+          `Failed to remove duplicates for ${duplicate.email}: ${deleteError.message}`
+        );
+        continue;
       }
+
+      removedCount += toRemove.length;
+      keptCount += 1;
+
+      console.log(
+        `Removed ${toRemove.length} duplicate(s) for ${duplicate.email}, kept lead ${toKeep.id}`
+      );
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      errors.push(`Error processing duplicate ${duplicate.email}: ${errorMsg}`);
+      console.error(`Error processing duplicate ${duplicate.email}:`, err);
     }
   }
 
-  return { removedCount, keptCount };
+  return { removedCount, keptCount, errors };
 }
 
 export async function shouldSkipLead(
@@ -184,44 +207,81 @@ export async function shouldSkipLead(
 export async function mergeDuplicateLeadData(
   keepLeadId: string,
   mergeLeadId: string
-): Promise<boolean> {
-  const { data: keepLead } = await supabase
-    .from('leads')
-    .select('*')
-    .eq('id', keepLeadId)
-    .maybeSingle();
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Fetch both leads
+    const { data: keepLead, error: keepError } = await supabase
+      .from('leads')
+      .select('*')
+      .eq('id', keepLeadId)
+      .maybeSingle();
 
-  const { data: mergeLead } = await supabase
-    .from('leads')
-    .select('*')
-    .eq('id', mergeLeadId)
-    .maybeSingle();
+    if (keepError) {
+      return { success: false, error: `Failed to fetch keep lead: ${keepError.message}` };
+    }
 
-  if (!keepLead || !mergeLead) {
-    return false;
+    const { data: mergeLead, error: mergeError } = await supabase
+      .from('leads')
+      .select('*')
+      .eq('id', mergeLeadId)
+      .maybeSingle();
+
+    if (mergeError) {
+      return { success: false, error: `Failed to fetch merge lead: ${mergeError.message}` };
+    }
+
+    if (!keepLead || !mergeLead) {
+      return { success: false, error: 'One or both leads not found' };
+    }
+
+    // Verify they belong to the same user
+    if (keepLead.user_id !== mergeLead.user_id) {
+      return { success: false, error: 'Cannot merge leads from different users' };
+    }
+
+    // Build update object with data from mergeLead
+    const updatedData: any = {};
+
+    if (!keepLead.phone && mergeLead.phone) {
+      updatedData.phone = mergeLead.phone;
+    }
+    if (!keepLead.website && mergeLead.website) {
+      updatedData.website = mergeLead.website;
+    }
+    if (!keepLead.decision_maker_name && mergeLead.decision_maker_name) {
+      updatedData.decision_maker_name = mergeLead.decision_maker_name;
+    }
+    if ((mergeLead.review_count || 0) > (keepLead.review_count || 0)) {
+      updatedData.review_count = mergeLead.review_count;
+      updatedData.rating = mergeLead.rating;
+    }
+
+    // Update keepLead if there's data to merge
+    if (Object.keys(updatedData).length > 0) {
+      const { error: updateError } = await supabase
+        .from('leads')
+        .update(updatedData)
+        .eq('id', keepLeadId);
+
+      if (updateError) {
+        return { success: false, error: `Failed to update lead: ${updateError.message}` };
+      }
+    }
+
+    // Delete the merge lead
+    const { error: deleteError } = await supabase
+      .from('leads')
+      .delete()
+      .eq('id', mergeLeadId);
+
+    if (deleteError) {
+      return { success: false, error: `Failed to delete merge lead: ${deleteError.message}` };
+    }
+
+    console.log(`Successfully merged lead ${mergeLeadId} into ${keepLeadId}`);
+    return { success: true };
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    return { success: false, error: errorMsg };
   }
-
-  const updatedData: any = {};
-
-  if (!keepLead.phone && mergeLead.phone) {
-    updatedData.phone = mergeLead.phone;
-  }
-  if (!keepLead.website && mergeLead.website) {
-    updatedData.website = mergeLead.website;
-  }
-  if (!keepLead.decision_maker_name && mergeLead.decision_maker_name) {
-    updatedData.decision_maker_name = mergeLead.decision_maker_name;
-  }
-  if ((mergeLead.review_count || 0) > (keepLead.review_count || 0)) {
-    updatedData.review_count = mergeLead.review_count;
-    updatedData.rating = mergeLead.rating;
-  }
-
-  if (Object.keys(updatedData).length > 0) {
-    await supabase.from('leads').update(updatedData).eq('id', keepLeadId);
-  }
-
-  await supabase.from('leads').delete().eq('id', mergeLeadId);
-
-  return true;
 }

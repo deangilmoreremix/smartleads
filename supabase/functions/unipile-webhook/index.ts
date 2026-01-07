@@ -38,14 +38,59 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Get raw body for signature verification
+    const rawBody = await req.text();
+    const event: WebhookEvent = JSON.parse(rawBody);
+
+    // Verify webhook signature if DSN is configured
     if (unipileDsn) {
       const signature = req.headers.get("X-Unipile-Signature");
       if (!signature) {
-        throw new Error("Missing webhook signature");
+        return new Response(
+          JSON.stringify({ error: "Missing webhook signature" }),
+          {
+            status: 401,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+
+      // Verify the signature using HMAC-SHA256
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(unipileDsn),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+      );
+
+      const signatureBuffer = await crypto.subtle.sign(
+        "HMAC",
+        key,
+        encoder.encode(rawBody)
+      );
+
+      const computedSignature = Array.from(new Uint8Array(signatureBuffer))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      if (signature !== computedSignature) {
+        return new Response(
+          JSON.stringify({ error: "Invalid webhook signature" }),
+          {
+            status: 401,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          }
+        );
       }
     }
-
-    const event: WebhookEvent = await req.json();
     console.log("Received webhook event:", event);
 
     const { data: email } = await supabase

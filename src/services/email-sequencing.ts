@@ -28,7 +28,17 @@ export async function createSequenceForCampaign(
     subject: string;
     body: string;
   }>
-): Promise<{ success: boolean; message: string }> {
+): Promise<{ success: boolean; message: string; errors?: string[] }> {
+  // Validate steps
+  const validation = validateSequenceSteps(steps);
+  if (!validation.isValid) {
+    return {
+      success: false,
+      message: 'Invalid sequence configuration',
+      errors: validation.errors,
+    };
+  }
+
   const { error: deleteError } = await supabase
     .from('email_sequence_steps')
     .delete()
@@ -42,8 +52,8 @@ export async function createSequenceForCampaign(
     campaign_id: campaignId,
     step_number: step.step_number,
     delay_days: step.delay_days,
-    subject: step.subject,
-    body: step.body,
+    subject: step.subject.trim(),
+    body: step.body.trim(),
     is_active: true,
   }));
 
@@ -56,6 +66,85 @@ export async function createSequenceForCampaign(
   }
 
   return { success: true, message: 'Sequence created successfully' };
+}
+
+function validateSequenceSteps(
+  steps: Array<{
+    step_number: number;
+    delay_days: number;
+    subject: string;
+    body: string;
+  }>
+): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  // Check if steps array is empty
+  if (!steps || steps.length === 0) {
+    errors.push('Sequence must have at least one step');
+    return { isValid: false, errors };
+  }
+
+  // Check maximum number of steps
+  if (steps.length > 10) {
+    errors.push('Sequence cannot have more than 10 steps');
+  }
+
+  // Validate each step
+  const stepNumbers = new Set<number>();
+
+  steps.forEach((step, index) => {
+    // Check step number
+    if (!Number.isInteger(step.step_number) || step.step_number < 1) {
+      errors.push(`Step ${index + 1}: Step number must be a positive integer`);
+    }
+
+    // Check for duplicate step numbers
+    if (stepNumbers.has(step.step_number)) {
+      errors.push(`Step ${index + 1}: Duplicate step number ${step.step_number}`);
+    }
+    stepNumbers.add(step.step_number);
+
+    // Check delay_days
+    if (!Number.isInteger(step.delay_days) || step.delay_days < 0) {
+      errors.push(`Step ${index + 1}: Delay days must be a non-negative integer`);
+    }
+
+    if (step.delay_days > 365) {
+      errors.push(`Step ${index + 1}: Delay days cannot exceed 365 days`);
+    }
+
+    // Check subject
+    if (!step.subject || step.subject.trim().length === 0) {
+      errors.push(`Step ${index + 1}: Subject cannot be empty`);
+    }
+
+    if (step.subject && step.subject.length > 200) {
+      errors.push(`Step ${index + 1}: Subject cannot exceed 200 characters`);
+    }
+
+    // Check body
+    if (!step.body || step.body.trim().length === 0) {
+      errors.push(`Step ${index + 1}: Body cannot be empty`);
+    }
+
+    if (step.body && step.body.length > 10000) {
+      errors.push(`Step ${index + 1}: Body cannot exceed 10,000 characters`);
+    }
+  });
+
+  // Check that step numbers are sequential starting from 1
+  const sortedNumbers = Array.from(stepNumbers).sort((a, b) => a - b);
+  for (let i = 0; i < sortedNumbers.length; i++) {
+    if (sortedNumbers[i] !== i + 1) {
+      errors.push(`Step numbers must be sequential starting from 1`);
+      break;
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
 }
 
 export async function initializeLeadSequence(
@@ -259,17 +348,32 @@ export async function sendSequenceEmail(
   return { success: true, message: 'Email queued successfully' };
 }
 
+function sanitizeValue(value: string): string {
+  if (!value) return '';
+
+  // Remove potentially dangerous characters and scripts
+  return value
+    .replace(/[<>]/g, '') // Remove HTML tags
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+=/gi, '') // Remove event handlers
+    .trim();
+}
+
 function personalizeContent(content: string, leadDetails: any): string {
   let personalized = content;
 
-  personalized = personalized.replace(/\{\{business_name\}\}/g, leadDetails.business_name || '');
-  personalized = personalized.replace(/\{\{email\}\}/g, leadDetails.email || '');
-  personalized = personalized.replace(
-    /\{\{first_name\}\}/g,
-    leadDetails.decision_maker_name?.split(' ')[0] || ''
-  );
-  personalized = personalized.replace(/\{\{website\}\}/g, leadDetails.website || '');
-  personalized = personalized.replace(/\{\{phone\}\}/g, leadDetails.phone || '');
+  // Sanitize all values before replacement
+  const businessName = sanitizeValue(leadDetails.business_name || '');
+  const email = sanitizeValue(leadDetails.email || '');
+  const firstName = sanitizeValue(leadDetails.decision_maker_name?.split(' ')[0] || '');
+  const website = sanitizeValue(leadDetails.website || '');
+  const phone = sanitizeValue(leadDetails.phone || '');
+
+  personalized = personalized.replace(/\{\{business_name\}\}/g, businessName);
+  personalized = personalized.replace(/\{\{email\}\}/g, email);
+  personalized = personalized.replace(/\{\{first_name\}\}/g, firstName);
+  personalized = personalized.replace(/\{\{website\}\}/g, website);
+  personalized = personalized.replace(/\{\{phone\}\}/g, phone);
 
   return personalized;
 }

@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 
 const DISPOSABLE_EMAIL_DOMAINS = [
+  // Common disposable email services
   'tempmail.com',
   'guerrillamail.com',
   'mailinator.com',
@@ -8,6 +9,46 @@ const DISPOSABLE_EMAIL_DOMAINS = [
   'throwaway.email',
   'temp-mail.org',
   'yopmail.com',
+  'maildrop.cc',
+  'trashmail.com',
+  'getnada.com',
+  'fakeinbox.com',
+  'dispostable.com',
+  'mailcatch.com',
+  'mintemail.com',
+  'emailondeck.com',
+  'guerrillamailblock.com',
+  'sharklasers.com',
+  'grr.la',
+  'pokemail.net',
+  'spam4.me',
+  'mailnesia.com',
+  'tempinbox.com',
+  'burnermail.io',
+  'moakt.com',
+  'mohmal.com',
+  'crazymailing.com',
+  'dropmail.me',
+  'getairmail.com',
+  'mailtemporaire.fr',
+  'mytemp.email',
+  'tempr.email',
+  'tmpmail.net',
+  'spamgourmet.com',
+  'mailforspam.com',
+  'throwawaymail.com',
+  'armyspy.com',
+  'cuvox.de',
+  'dayrep.com',
+  'einrot.com',
+  'fleckens.hu',
+  'gustr.com',
+  'jourrapide.com',
+  'rhyta.com',
+  'teleworm.us',
+  'superrito.com',
+  'wegwerfmail.de',
+  'jetable.org',
 ];
 
 interface EmailVerificationResult {
@@ -116,12 +157,21 @@ function isGenericEmail(email: string): boolean {
 
 async function checkMXRecords(domain: string): Promise<boolean> {
   try {
-    const response = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`);
+    const response = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`, {
+      signal: AbortSignal.timeout(5000), // 5 second timeout
+    });
+
+    if (!response.ok) {
+      console.error(`MX record check failed for ${domain}: HTTP ${response.status}`);
+      return false;
+    }
+
     const data = await response.json();
     return data.Answer && data.Answer.length > 0;
   } catch (error) {
-    console.error('Error checking MX records:', error);
-    return true;
+    // Log the error but return false (invalid) for safety
+    console.error(`Error checking MX records for ${domain}:`, error);
+    return false;
   }
 }
 
@@ -151,12 +201,17 @@ export async function verifyLeadEmail(leadId: string): Promise<EmailVerification
   return result;
 }
 
-export async function verifyAllCampaignLeads(campaignId: string): Promise<{
+export async function verifyAllCampaignLeads(
+  campaignId: string,
+  options: { batchSize?: number; delayMs?: number } = {}
+): Promise<{
   total: number;
   verified: number;
   invalid: number;
   risky: number;
 }> {
+  const { batchSize = 10, delayMs = 1000 } = options;
+
   const { data: leads, error } = await supabase
     .from('leads')
     .select('id, email')
@@ -171,18 +226,35 @@ export async function verifyAllCampaignLeads(campaignId: string): Promise<{
   let invalid = 0;
   let risky = 0;
 
-  for (const lead of leads) {
-    const result = await verifyLeadEmail(lead.id);
+  // Process in batches to implement rate limiting
+  for (let i = 0; i < leads.length; i += batchSize) {
+    const batch = leads.slice(i, i + batchSize);
 
-    if (result.status === 'valid') {
-      verified++;
-    } else if (result.status === 'invalid') {
-      invalid++;
-    } else if (result.status === 'risky') {
-      risky++;
+    // Process batch in parallel
+    const results = await Promise.all(
+      batch.map((lead) => verifyLeadEmail(lead.id).catch((err) => {
+        console.error(`Failed to verify lead ${lead.id}:`, err);
+        return null;
+      }))
+    );
+
+    // Count results
+    for (const result of results) {
+      if (!result) continue;
+
+      if (result.status === 'valid') {
+        verified++;
+      } else if (result.status === 'invalid') {
+        invalid++;
+      } else if (result.status === 'risky') {
+        risky++;
+      }
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    // Rate limit: wait between batches (except for the last batch)
+    if (i + batchSize < leads.length) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
   }
 
   return {
