@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Zap, Target, Bot, ChevronDown, Mail, Linkedin } from 'lucide-react';
 import { useState } from 'react';
+import GoogleMapsBackground from '../components/GoogleMapsBackground';
 
 export default function LandingPage() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
@@ -46,32 +47,33 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <nav className="fixed top-0 w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-700 z-50">
+    <div className="min-h-screen bg-[#F5F1E8] relative">
+      <GoogleMapsBackground />
+      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md border-b border-gray-200 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">SL</span>
+              <div className="w-8 h-8 bg-[#FFD666] rounded-lg flex items-center justify-center">
+                <span className="text-gray-900 font-bold text-sm">SL</span>
               </div>
-              <span className="text-white font-bold text-xl">Smart Leads</span>
+              <span className="text-gray-900 font-bold text-xl">Smart Leads</span>
             </div>
 
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-slate-300 hover:text-white transition">Features</a>
-              <a href="#demo" className="text-slate-300 hover:text-white transition">Demo</a>
-              <a href="#faq" className="text-slate-300 hover:text-white transition">FAQ</a>
-              <Link to="/pricing" className="text-slate-300 hover:text-white transition">Pricing</Link>
-              <Link to="/affiliate" className="text-slate-300 hover:text-white transition">Affiliate</Link>
+              <a href="#features" className="text-gray-700 hover:text-gray-900 transition">Features</a>
+              <a href="#demo" className="text-gray-700 hover:text-gray-900 transition">Demo</a>
+              <a href="#faq" className="text-gray-700 hover:text-gray-900 transition">FAQ</a>
+              <Link to="/pricing" className="text-gray-700 hover:text-gray-900 transition">Pricing</Link>
+              <Link to="/affiliate" className="text-gray-700 hover:text-gray-900 transition">Affiliate</Link>
             </div>
 
             <div className="flex items-center space-x-4">
-              <Link to="/dashboard" className="text-slate-300 hover:text-white transition">
+              <Link to="/dashboard" className="text-gray-700 hover:text-gray-900 transition">
                 Dashboard
               </Link>
               <Link
                 to="/dashboard/campaigns/new"
-                className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-blue-500/50 transition transform hover:scale-105"
+                className="bg-[#FFD666] text-gray-900 px-6 py-2 rounded-lg font-semibold hover:bg-[#FFC233] hover:shadow-lg transition transform hover:scale-105"
               >
                 Start for Free
               </Link>
@@ -80,29 +82,37 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
+            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-4">
               The Google Maps
               <br />
-              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-[#FFD666] drop-shadow-lg" style={{ WebkitTextStroke: '2px #1A1A1A', paintOrder: 'stroke fill' }}>
                 AI Outreach Agent
               </span>
             </h1>
-            <p className="text-xl text-slate-300 mb-12 max-w-3xl mx-auto">
+            <div className="flex justify-center mb-6">
+              <div className="bg-white rounded-2xl p-4 shadow-lg">
+                <svg className="w-16 h-16" viewBox="0 0 24 24" fill="none">
+                  <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z" fill="#EA4335"/>
+                </svg>
+              </div>
+            </div>
+            <p className="text-xl text-gray-700 mb-12 max-w-3xl mx-auto">
               Smart Leads is the simplest way for businesses to find, target, and reach local prospects on Google Maps. Now with just a prompt.
             </p>
 
             <div className="relative max-w-2xl mx-auto">
-              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 shadow-2xl">
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-2xl">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="flex items-center space-x-2 bg-slate-700/50 px-3 py-1 rounded-lg">
-                    <span className="text-slate-400 text-sm">Public</span>
+                  <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-lg">
+                    <div className="w-2 h-2 bg-[#FFD666] rounded-full"></div>
+                    <span className="text-gray-600 text-sm font-medium">Public</span>
                   </div>
-                  <div className="flex items-center space-x-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 px-3 py-1 rounded-lg border border-blue-500/30">
-                    <Zap className="w-4 h-4 text-cyan-400" />
-                    <span className="text-cyan-400 text-sm font-medium">GPT-5</span>
+                  <div className="flex items-center space-x-2 bg-gray-900 px-3 py-1 rounded-lg">
+                    <Zap className="w-4 h-4 text-[#FFD666]" />
+                    <span className="text-white text-sm font-medium">GPT-5</span>
                   </div>
                 </div>
                 <div className="relative">
@@ -111,14 +121,14 @@ export default function LandingPage() {
                     value={promptInput}
                     onChange={(e) => setPromptInput(e.target.value)}
                     placeholder={prompts[0]}
-                    className="w-full bg-slate-900/50 text-white placeholder-slate-500 border border-slate-600 rounded-lg px-4 py-4 pr-12 focus:outline-none focus:border-blue-500 transition"
+                    className="w-full bg-gray-50 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-lg px-4 py-4 pr-14 focus:outline-none focus:border-[#FFD666] focus:ring-2 focus:ring-[#FFD666]/20 transition"
                   />
                   <Link
                     to="/dashboard/campaigns/new"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-2 rounded-lg hover:shadow-lg hover:shadow-blue-500/50 transition"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-[#FFD666] text-gray-900 p-2 rounded-lg hover:bg-[#FFC233] hover:shadow-lg transition"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                   </Link>
                 </div>
@@ -127,7 +137,7 @@ export default function LandingPage() {
                     <button
                       key={i}
                       onClick={() => setPromptInput(prompt)}
-                      className="text-sm text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700/50 px-3 py-1.5 rounded-lg border border-slate-700 hover:border-blue-500/50 transition"
+                      className="text-sm text-gray-700 hover:text-gray-900 bg-white hover:bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-300 hover:border-[#FFD666] transition"
                     >
                       {prompt}
                     </button>
@@ -139,44 +149,44 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
+      <section id="features" className="relative py-20 px-4 sm:px-6 lg:px-8 bg-[#F0EBE0]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Why choose <span className="text-cyan-400">Smart Leads</span>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Why choose <span className="text-[#FFD666]" style={{ WebkitTextStroke: '1px #1A1A1A', paintOrder: 'stroke fill' }}>Smart Leads</span>
             </h2>
-            <p className="text-slate-300 text-lg">
+            <p className="text-gray-700 text-lg">
               The most powerful Google Maps AI outreach Agent in the market
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 hover:border-blue-500/50 transition group">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                <Target className="w-8 h-8 text-cyan-400" />
+            <div className="bg-white border border-gray-200 rounded-2xl p-8 hover:border-[#FFD666] hover:shadow-xl transition group">
+              <div className="w-16 h-16 bg-[#FFD666]/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                <Target className="w-8 h-8 text-gray-900" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Find decision-makers instantly</h3>
-              <p className="text-slate-300 leading-relaxed">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Find decision-makers instantly</h3>
+              <p className="text-gray-700 leading-relaxed">
                 We scrape local businesses in your niche and target cities, then filter to only personal emails (firstname@gmail.com or name@company.com). These convert far better than generic ones, giving you higher open and reply rates.
               </p>
             </div>
 
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 hover:border-blue-500/50 transition group">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                <Zap className="w-8 h-8 text-cyan-400" />
+            <div className="bg-white border border-gray-200 rounded-2xl p-8 hover:border-[#FFD666] hover:shadow-xl transition group">
+              <div className="w-16 h-16 bg-[#FFD666]/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                <Zap className="w-8 h-8 text-gray-900" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Personalized cold emails at scale</h3>
-              <p className="text-slate-300 leading-relaxed">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Personalized cold emails at scale</h3>
+              <p className="text-gray-700 leading-relaxed">
                 We use Google Maps reviews with GPT-5 to craft unique, hyper-relevant emails for each prospect. This improves deliverability, avoids spam filters, and gets you more replies than generic templates.
               </p>
             </div>
 
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 hover:border-blue-500/50 transition group">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                <Bot className="w-8 h-8 text-cyan-400" />
+            <div className="bg-white border border-gray-200 rounded-2xl p-8 hover:border-[#FFD666] hover:shadow-xl transition group">
+              <div className="w-16 h-16 bg-[#FFD666]/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                <Bot className="w-8 h-8 text-gray-900" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Fully automated outreach campaigns</h3>
-              <p className="text-slate-300 leading-relaxed">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Fully automated outreach campaigns</h3>
+              <p className="text-gray-700 leading-relaxed">
                 From scraping leads to sending personalized unique emails, your Outreach Agent works 24/7 on autopilot. You just set your niche and a city, it handles research, writing, and sending for you with multiple gmail inboxes.
               </p>
             </div>
@@ -184,55 +194,55 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="demo" className="py-20 px-4 sm:px-6 lg:px-8">
+      <section id="demo" className="relative py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             See Smart Leads in Action
           </h2>
-          <p className="text-slate-300 text-lg mb-12">
+          <p className="text-gray-700 text-lg mb-12">
             Watch how our AI agent transforms Google Maps into clients
           </p>
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-12 aspect-video flex items-center justify-center">
+          <div className="bg-white border border-gray-200 rounded-2xl p-12 aspect-video flex items-center justify-center shadow-lg">
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <div className="w-20 h-20 bg-[#FFD666] rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-10 h-10 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
               </div>
-              <p className="text-slate-400">Demo Video Coming Soon</p>
+              <p className="text-gray-600">Demo Video Coming Soon</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
+      <section id="faq" className="relative py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Frequently Asked <span className="text-cyan-400">Questions</span>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Frequently Asked <span className="text-[#FFD666]" style={{ WebkitTextStroke: '1px #1A1A1A', paintOrder: 'stroke fill' }}>Questions</span>
             </h2>
-            <p className="text-slate-300 text-lg">
+            <p className="text-gray-700 text-lg">
               Everything you need to know about Smart Leads and how it works
             </p>
           </div>
 
           <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <div key={index} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl overflow-hidden">
+              <div key={index} className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden hover:border-[#FFD666] transition">
                 <button
                   onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-slate-700/30 transition"
+                  className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-gray-100 transition"
                 >
                   <div className="flex items-center space-x-4">
-                    <span className="text-cyan-400 font-bold text-lg">{index + 1}</span>
-                    <span className="text-white font-semibold">{faq.question}</span>
+                    <span className="text-[#FFD666] font-bold text-lg" style={{ WebkitTextStroke: '0.5px #1A1A1A' }}>{index + 1}</span>
+                    <span className="text-gray-900 font-semibold">{faq.question}</span>
                   </div>
                   <ChevronDown
-                    className={`w-5 h-5 text-slate-400 transition-transform ${expandedFaq === index ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 text-gray-600 transition-transform ${expandedFaq === index ? 'rotate-180' : ''}`}
                   />
                 </button>
                 {expandedFaq === index && (
-                  <div className="px-6 pb-5 text-slate-300 leading-relaxed">
+                  <div className="px-6 pb-5 text-gray-700 leading-relaxed">
                     {faq.answer}
                   </div>
                 )}
@@ -242,13 +252,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="bg-slate-900 border-t border-slate-800 py-12 px-4 sm:px-6 lg:px-8">
+      <footer className="relative bg-slate-900 border-t border-slate-800 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-12 mb-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">SL</span>
+                <div className="w-8 h-8 bg-[#FFD666] rounded-lg flex items-center justify-center">
+                  <span className="text-gray-900 font-bold text-sm">SL</span>
                 </div>
                 <span className="text-white font-bold text-xl">Smart Leads</span>
               </div>
