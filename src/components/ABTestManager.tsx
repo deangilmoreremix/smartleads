@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
   FlaskConical,
@@ -16,10 +17,12 @@ import { calculateABTestStats, type ABTest } from '../services/ab-testing';
 
 interface Props {
   sequenceId: string;
+  campaignId: string;
   stepNumber?: number;
 }
 
-export default function ABTestManager({ sequenceId, stepNumber = 1 }: Props) {
+export default function ABTestManager({ sequenceId, campaignId, stepNumber = 1 }: Props) {
+  const { user } = useAuth();
   const [tests, setTests] = useState<ABTest[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -58,8 +61,15 @@ export default function ABTestManager({ sequenceId, stepNumber = 1 }: Props) {
       return;
     }
 
+    if (!user) {
+      toast.error('You must be logged in');
+      return;
+    }
+
     try {
       const { error } = await supabase.from('sequence_ab_tests').insert({
+        user_id: user.id,
+        campaign_id: campaignId,
         sequence_id: sequenceId,
         step_number: stepNumber,
         variant_a_subject: formData.variantASubject,

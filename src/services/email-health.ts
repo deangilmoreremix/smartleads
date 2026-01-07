@@ -72,16 +72,20 @@ export async function calculateHealthScore(gmailAccountId: string): Promise<numb
 
   if (!account) throw new Error('Account not found');
 
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
   const { data: emails } = await supabase
     .from('emails')
     .select('status')
-    .eq('status', 'sent')
-    .gte('sent_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+    .eq('user_id', account.user_id)
+    .gte('created_at', thirtyDaysAgo)
+    .in('status', ['sent', 'opened', 'replied', 'bounced']);
 
-  const totalSent = emails?.length || 0;
-  const bounced = emails?.filter((e: any) => e.status === 'bounced').length || 0;
-  const opened = emails?.filter((e: any) => e.status === 'opened').length || 0;
-  const replied = emails?.filter((e: any) => e.status === 'replied').length || 0;
+  const allEmails = emails || [];
+  const totalSent = allEmails.length;
+  const bounced = allEmails.filter((e: any) => e.status === 'bounced').length;
+  const opened = allEmails.filter((e: any) => e.status === 'opened').length;
+  const replied = allEmails.filter((e: any) => e.status === 'replied').length;
 
   const bounceRate = totalSent > 0 ? (bounced / totalSent) * 100 : 0;
   const openRate = totalSent > 0 ? (opened / totalSent) * 100 : 0;

@@ -123,30 +123,35 @@ export async function getCampaignComparison(userId: string): Promise<CampaignCom
     .limit(10);
 
   if (error) throw error;
+  if (!campaigns || campaigns.length === 0) return [];
 
-  return (campaigns || []).map(c => {
-    const openRate = c.emails_sent > 0 ? (c.emails_opened / c.emails_sent) * 100 : 0;
-    const replyRate = c.emails_sent > 0 ? (c.emails_replied / c.emails_sent) * 100 : 0;
+  const comparisons = await Promise.all(
+    campaigns.map(async (c) => {
+      const openRate = c.emails_sent > 0 ? (c.emails_opened / c.emails_sent) * 100 : 0;
+      const replyRate = c.emails_sent > 0 ? (c.emails_replied / c.emails_sent) * 100 : 0;
 
-    const { data: convertedLeads } = supabase
-      .from('leads')
-      .select('id')
-      .eq('campaign_id', c.id)
-      .eq('pipeline_stage', 'converted');
+      const { count: convertedCount } = await supabase
+        .from('leads')
+        .select('id', { count: 'exact', head: true })
+        .eq('campaign_id', c.id)
+        .eq('pipeline_stage', 'converted');
 
-    const conversionRate = c.total_leads > 0 ? 0 : 0;
+      const conversionRate = c.total_leads > 0 ? ((convertedCount || 0) / c.total_leads) * 100 : 0;
 
-    return {
-      campaignId: c.id,
-      campaignName: c.name,
-      leadsScraped: c.total_leads,
-      emailsSent: c.emails_sent,
-      openRate: Math.round(openRate * 10) / 10,
-      replyRate: Math.round(replyRate * 10) / 10,
-      conversionRate,
-      costPerLead: c.cost_per_lead || 0,
-    };
-  });
+      return {
+        campaignId: c.id,
+        campaignName: c.name,
+        leadsScraped: c.total_leads || 0,
+        emailsSent: c.emails_sent || 0,
+        openRate: Math.round(openRate * 10) / 10,
+        replyRate: Math.round(replyRate * 10) / 10,
+        conversionRate: Math.round(conversionRate * 10) / 10,
+        costPerLead: c.cost_per_lead || 0,
+      };
+    })
+  );
+
+  return comparisons;
 }
 
 export async function getFunnelOverTime(

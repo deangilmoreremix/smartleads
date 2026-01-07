@@ -2,6 +2,8 @@ import { supabase } from '../lib/supabase';
 
 export interface ABTest {
   id: string;
+  user_id: string;
+  campaign_id: string | null;
   sequence_id: string;
   step_number: number;
   variant_a_subject: string | null;
@@ -43,6 +45,8 @@ export interface ABTestStats {
 }
 
 export async function createABTest(
+  userId: string,
+  campaignId: string,
   sequenceId: string,
   stepNumber: number,
   variantASubject: string,
@@ -54,6 +58,8 @@ export async function createABTest(
   const { data, error } = await supabase
     .from('sequence_ab_tests')
     .insert({
+      user_id: userId,
+      campaign_id: campaignId,
       sequence_id: sequenceId,
       step_number: stepNumber,
       variant_a_subject: variantASubject,
@@ -87,6 +93,23 @@ export async function getABTestsForSequence(sequenceId: string): Promise<ABTest[
     .select('*')
     .eq('sequence_id', sequenceId)
     .order('step_number', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getABTestsForUser(userId: string, campaignId?: string): Promise<ABTest[]> {
+  let query = supabase
+    .from('sequence_ab_tests')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (campaignId) {
+    query = query.eq('campaign_id', campaignId);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
   return data || [];
