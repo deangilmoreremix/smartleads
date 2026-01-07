@@ -182,7 +182,7 @@ Deno.serve(async (req: Request) => {
     await logProgress(supabaseClient, jobId, {
       level: 'loading',
       icon: '✍️',
-      message: 'Generating personalized emails with GPT-5...'
+      message: 'Generating personalized emails with GPT-5.2...'
     });
 
     for (let i = 0; i < leads.length; i++) {
@@ -411,7 +411,7 @@ async function generatePersonalizedEmail(
     };
   }
 
-  const aiModel = userPrefs?.ai_model || 'gpt-5';
+  const aiModel = userPrefs?.ai_model || 'gpt-5.2';
   const creativityLevel = userPrefs?.creativity_level || 0.75;
   const brandVoice = userPrefs?.brand_voice || '';
   const avoidPhrases = userPrefs?.avoid_phrases || [];
@@ -469,7 +469,7 @@ Target Audience: ${template.target_audience || 'business owners'}`;
     userPrompt = `First, analyze this business and identify specific personalization angles:\n\nBusiness: ${businessName}\nIndustry: ${campaign.niche}\nLocation: ${location}\nDecision Maker: ${capitalizedName}\n${rating > 0 ? `Rating: ${rating} stars (${reviewCount} reviews)` : ''}\n${reviewInsight ? `Recent review mentions: "${reviewInsight}"` : ''}\n\nBased on your analysis, write a personalized cold email that acknowledges their ${rating > 0 ? 'strong reputation' : 'business'} and offers value specifically relevant to their situation.`;
   }
 
-  const modelToUse = aiModel === 'gpt-5' ? 'gpt-5' : 'gpt-5-mini';
+  const modelToUse = aiModel === 'gpt-5.2' ? 'gpt-5.2' : 'gpt-5-mini';
 
   try {
     const completion = await openai.chat.completions.create({
@@ -504,10 +504,10 @@ Target Audience: ${template.target_audience || 'business owners'}`;
       `Quick question about ${businessName}`;
 
     let qualityScore;
-    if (aiModel === 'gpt-5') {
+    if (aiModel === 'gpt-5.2') {
       try {
         const qualityCompletion = await openai.chat.completions.create({
-          model: 'gpt-5',
+          model: 'gpt-5.2',
           messages: [
             {
               role: 'system',
