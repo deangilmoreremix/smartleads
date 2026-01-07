@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Plus, BarChart3, Gift, Mail } from 'lucide-react';
+import { Plus, BarChart3, Gift, Mail, Zap } from 'lucide-react';
 
 export default function Dashboard() {
 
@@ -27,6 +27,24 @@ export default function Dashboard() {
               className="block w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-center px-6 py-4 rounded-xl font-semibold hover:shadow-lg hover:shadow-orange-500/30 transition"
             >
               Start New Campaign
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition">
+            <div className="flex items-start justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Autopilot</h2>
+              <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                <Zap className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <p className="text-gray-600 mb-8 leading-relaxed">
+              Run your outreach on autopilot 24/7. Automatically scrape leads, generate AI emails, and send them.
+            </p>
+            <Link
+              to="/dashboard/autopilot"
+              className="block w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-center px-6 py-4 rounded-xl font-semibold hover:shadow-lg hover:shadow-orange-500/30 transition"
+            >
+              Autopilot Dashboard
             </Link>
           </div>
 
