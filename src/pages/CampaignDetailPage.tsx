@@ -109,7 +109,7 @@ export default function CampaignDetailPage() {
     if (!campaign) return;
 
     setIsAutomating(true);
-    setAutomationStatus('Scraping Google Maps for local businesses...');
+    setAutomationStatus('Starting AI agent...');
 
     try {
       const result = await scrapeGoogleMapsLeads({
@@ -119,18 +119,15 @@ export default function CampaignDetailPage() {
         apifySettings: campaign.apify_settings || undefined,
       });
 
-      const successMessage = `Found ${result.leadsFound} leads` +
-        (result.contactsFound ? `, ${result.contactsFound} employee contacts` : '') +
-        (result.socialProfilesFound ? `, ${result.socialProfilesFound} social profiles` : '') +
-        (result.reviewsScraped ? `, ${result.reviewsScraped} reviews` : '') +
-        (result.imagesScraped ? `, ${result.imagesScraped} images` : '');
-
-      toast.success(successMessage);
-      await loadCampaignDetails();
+      if (result.jobId) {
+        toast.success('AI Agent started! Redirecting to progress tracker...');
+        setTimeout(() => {
+          navigate(`/agent/progress/${result.jobId}?campaign_id=${campaign.id}`);
+        }, 500);
+      }
     } catch (error: any) {
       console.error('Scraping error:', error);
-      toast.error(error.message || 'Failed to scrape leads');
-    } finally {
+      toast.error(error.message || 'Failed to start lead scraping');
       setIsAutomating(false);
       setAutomationStatus('');
     }
@@ -140,18 +137,22 @@ export default function CampaignDetailPage() {
     if (!campaign) return;
 
     setIsAutomating(true);
-    setAutomationStatus('Generating personalized emails with AI...');
+    setAutomationStatus('Starting AI agent...');
 
     try {
       const result = await generateAIEmails({
         campaignId: campaign.id,
       });
 
-      toast.success(`Generated ${result.emailsGenerated} personalized emails!`);
+      if (result.jobId) {
+        toast.success('AI Agent started! Redirecting to progress tracker...');
+        setTimeout(() => {
+          navigate(`/agent/progress/${result.jobId}?campaign_id=${campaign.id}`);
+        }, 500);
+      }
     } catch (error: any) {
       console.error('Email generation error:', error);
-      toast.error(error.message || 'Failed to generate emails');
-    } finally {
+      toast.error(error.message || 'Failed to start email generation');
       setIsAutomating(false);
       setAutomationStatus('');
     }
@@ -161,7 +162,7 @@ export default function CampaignDetailPage() {
     if (!campaign) return;
 
     setIsAutomating(true);
-    setAutomationStatus('Sending emails to prospects...');
+    setAutomationStatus('Starting AI agent...');
 
     try {
       const result = await sendEmails({
@@ -169,12 +170,15 @@ export default function CampaignDetailPage() {
         sendImmediately: false,
       });
 
-      toast.success(`Sent ${result.emailsSent} emails successfully!`);
-      await loadCampaignDetails();
+      if (result.jobId) {
+        toast.success('AI Agent started! Redirecting to progress tracker...');
+        setTimeout(() => {
+          navigate(`/agent/progress/${result.jobId}?campaign_id=${campaign.id}`);
+        }, 500);
+      }
     } catch (error: any) {
       console.error('Email sending error:', error);
-      toast.error(error.message || 'Failed to send emails');
-    } finally {
+      toast.error(error.message || 'Failed to start sending emails');
       setIsAutomating(false);
       setAutomationStatus('');
     }

@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { logProgress } from '../_shared/progress-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -133,8 +134,11 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
+  let supabaseClient: any;
+  let jobId: string | undefined;
+
   try {
-    const supabaseClient = createClient(
+    supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
@@ -152,22 +156,67 @@ Deno.serve(async (req: Request) => {
 
     const { campaignId, niche, location, apifySettings }: ScrapeRequest = await req.json();
 
-    const jobId = crypto.randomUUID();
-    await supabaseClient.from('campaign_jobs').insert({
+    const { data: campaign } = await supabaseClient
+      .from('campaigns')
+      .select('name')
+      .eq('id', campaignId)
+      .single();
+
+    jobId = crypto.randomUUID();
+    await supabaseClient.from('agent_jobs').insert({
       id: jobId,
       campaign_id: campaignId,
       user_id: user.id,
-      job_type: 'scrape_leads',
-      status: 'processing',
-      total_items: apifySettings?.maxCrawledPlacesPerSearch || 50,
-      processed_items: 0,
+      job_type: 'lead_scraping',
+      status: 'initializing',
+      progress_percentage: 0,
+      total_steps: 4,
+      completed_steps: 0,
+      result_data: {
+        campaign_name: campaign?.name || 'Campaign'
+      }
     });
 
-    const places = await scrapeGoogleMapsWithApify(niche, location, apifySettings || {});
+    await logProgress(supabaseClient, jobId, {
+      level: 'info',
+      icon: '🤖',
+      message: 'Agent initialized successfully'
+    });
+
+    await supabaseClient.from('agent_jobs').update({
+      status: 'running',
+      progress_percentage: 25,
+      completed_steps: 1
+    }).eq('id', jobId);
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'loading',
+      icon: '🔍',
+      message: `Starting Google Maps search for ${niche} in ${location}`
+    });
+
+    const places = await scrapeGoogleMapsWithApify(niche, location, apifySettings || {}, supabaseClient, jobId);
 
     if (places.length === 0) {
       throw new Error('No leads found. Please try different search criteria.');
     }
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'success',
+      icon: '✅',
+      message: `Found ${places.length} businesses from Google Maps`
+    });
+
+    await supabaseClient.from('agent_jobs').update({
+      progress_percentage: 50,
+      completed_steps: 2
+    }).eq('id', jobId);
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'loading',
+      icon: '📧',
+      message: 'Extracting contact information and enriching data...'
+    });
 
     let totalLeadsInserted = 0;
     let totalContactsInserted = 0;
@@ -384,6 +433,28 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    await logProgress(supabaseClient, jobId, {
+      level: 'success',
+      icon: '💾',
+      message: `Successfully saved ${totalLeadsInserted} leads to database`
+    });
+
+    if (totalContactsInserted > 0) {
+      await logProgress(supabaseClient, jobId, {
+        level: 'info',
+        icon: '👥',
+        message: `Found ${totalContactsInserted} employee contacts`
+      });
+    }
+
+    if (totalSocialProfilesInserted > 0) {
+      await logProgress(supabaseClient, jobId, {
+        level: 'info',
+        icon: '🔗',
+        message: `Enriched ${totalSocialProfilesInserted} social media profiles`
+      });
+    }
+
     await supabaseClient
       .from('campaigns')
       .update({
@@ -392,22 +463,39 @@ Deno.serve(async (req: Request) => {
       })
       .eq('id', campaignId);
 
+    await supabaseClient.from('agent_jobs').update({
+      progress_percentage: 75,
+      completed_steps: 3
+    }).eq('id', jobId);
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'loading',
+      icon: '🎯',
+      message: 'Preparing leads for email outreach...'
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     await supabaseClient
-      .from('campaign_jobs')
+      .from('agent_jobs')
       .update({
         status: 'completed',
-        progress: 100,
-        processed_items: totalLeadsInserted,
-        completed_at: new Date().toISOString(),
+        progress_percentage: 100,
+        completed_steps: 4,
         result_data: {
-          leads_found: totalLeadsInserted,
-          contacts_found: totalContactsInserted,
-          social_profiles_found: totalSocialProfilesInserted,
-          reviews_scraped: totalReviewsInserted,
-          images_scraped: totalImagesInserted,
+          campaign_name: campaign?.name || 'Campaign',
+          leadsFound: totalLeadsInserted,
+          emailsGenerated: 0,
+          emailsSent: 0
         },
       })
       .eq('id', jobId);
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'success',
+      icon: '🎉',
+      message: `Agent completed successfully! ${totalLeadsInserted} leads ready for outreach`
+    });
 
     return new Response(
       JSON.stringify({
@@ -423,6 +511,23 @@ Deno.serve(async (req: Request) => {
     );
   } catch (error: any) {
     console.error('Scraping error:', error);
+
+    if (supabaseClient && jobId) {
+      await supabaseClient
+        .from('agent_jobs')
+        .update({
+          status: 'failed',
+          error_message: error.message || 'Failed to scrape leads'
+        })
+        .eq('id', jobId);
+
+      await logProgress(supabaseClient, jobId, {
+        level: 'error',
+        icon: '❌',
+        message: `Error: ${error.message || 'Failed to scrape leads'}`
+      });
+    }
+
     return new Response(
       JSON.stringify({ error: error.message || 'Failed to scrape leads' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -433,7 +538,9 @@ Deno.serve(async (req: Request) => {
 async function scrapeGoogleMapsWithApify(
   niche: string,
   location: string,
-  settings: ApifySettings
+  settings: ApifySettings,
+  supabaseClient: any,
+  jobId: string
 ): Promise<ApifyPlace[]> {
   const apiToken = Deno.env.get('APIFY_API_TOKEN');
   if (!apiToken) {
@@ -488,6 +595,12 @@ async function scrapeGoogleMapsWithApify(
 
   console.log('Starting Apify actor run with settings:', JSON.stringify(input, null, 2));
 
+  await logProgress(supabaseClient, jobId, {
+    level: 'info',
+    icon: '🚀',
+    message: 'Launching Apify Google Maps crawler...'
+  });
+
   const startResponse = await fetch(`https://api.apify.com/v2/acts/${actorId}/runs?token=${apiToken}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -505,6 +618,12 @@ async function scrapeGoogleMapsWithApify(
 
   console.log(`Actor run started with ID: ${runId}`);
 
+  await logProgress(supabaseClient, jobId, {
+    level: 'loading',
+    icon: '⏳',
+    message: 'Crawler is running, searching Google Maps...'
+  });
+
   let status = 'RUNNING';
   let attempts = 0;
   const maxAttempts = 120;
@@ -521,6 +640,14 @@ async function scrapeGoogleMapsWithApify(
     const statusData = await statusResponse.json();
     status = statusData.data.status;
     attempts++;
+
+    if (attempts % 4 === 0) {
+      await logProgress(supabaseClient, jobId, {
+        level: 'info',
+        icon: '🔄',
+        message: `Still searching... (${attempts * 5} seconds elapsed)`
+      });
+    }
 
     console.log(`Run status: ${status} (attempt ${attempts}/${maxAttempts})`);
   }

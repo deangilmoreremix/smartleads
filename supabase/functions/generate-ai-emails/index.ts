@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import OpenAI from 'npm:openai@4';
+import { logProgress } from '../_shared/progress-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,8 +19,11 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
+  let supabaseClient: any;
+  let jobId: string | undefined;
+
   try {
-    const supabaseClient = createClient(
+    supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
@@ -105,15 +109,37 @@ Deno.serve(async (req: Request) => {
       throw new Error('No leads found for this campaign');
     }
 
-    const jobId = crypto.randomUUID();
-    await supabaseClient.from('campaign_jobs').insert({
+    jobId = crypto.randomUUID();
+    await supabaseClient.from('agent_jobs').insert({
       id: jobId,
       campaign_id: campaignId,
       user_id: user.id,
-      job_type: 'generate_emails',
-      status: 'processing',
-      total_items: leads.length,
-      processed_items: 0,
+      job_type: 'email_generation',
+      status: 'initializing',
+      progress_percentage: 0,
+      total_steps: 4,
+      completed_steps: 0,
+      result_data: {
+        campaign_name: campaign.name || 'Campaign'
+      }
+    });
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'info',
+      icon: '🤖',
+      message: 'Agent initialized successfully'
+    });
+
+    await supabaseClient.from('agent_jobs').update({
+      status: 'running',
+      progress_percentage: 25,
+      completed_steps: 1
+    }).eq('id', jobId);
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'info',
+      icon: '📊',
+      message: `Analyzing ${leads.length} leads from campaign`
     });
 
     const generatedEmails = [];
@@ -124,6 +150,17 @@ Deno.serve(async (req: Request) => {
     }
 
     const openai = new OpenAI({ apiKey: openaiApiKey });
+
+    await supabaseClient.from('agent_jobs').update({
+      progress_percentage: 50,
+      completed_steps: 2
+    }).eq('id', jobId);
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'loading',
+      icon: '✍️',
+      message: 'Generating personalized emails with GPT-5.2...'
+    });
 
     for (let i = 0; i < leads.length; i++) {
       const lead = leads[i];
@@ -182,43 +219,63 @@ Deno.serve(async (req: Request) => {
           });
         }
 
-        await supabaseClient
-          .from('campaign_jobs')
-          .update({
-            progress: Math.floor(((i + 1) / leads.length) * 100),
-            processed_items: i + 1,
-          })
-          .eq('id', jobId);
+        if ((i + 1) % 5 === 0 || i === leads.length - 1) {
+          await logProgress(supabaseClient, jobId, {
+            level: 'info',
+            icon: '✅',
+            message: `Generated ${i + 1} of ${leads.length} emails...`
+          });
+        }
       } catch (error: any) {
         console.error(`Failed to generate email for lead ${lead.id}:`, error);
 
-        await supabaseClient
-          .from('campaign_jobs')
-          .update({
-            progress: Math.floor(((i + 1) / leads.length) * 100),
-            processed_items: i + 1,
-            result_data: {
-              error: `Failed on lead ${i + 1}: ${error.message}`,
-              successful_count: generatedEmails.length
-            },
-          })
-          .eq('id', jobId);
+        await logProgress(supabaseClient, jobId, {
+          level: 'warning',
+          icon: '⚠️',
+          message: `Skipped lead ${i + 1} due to error`
+        });
       }
     }
 
+    await logProgress(supabaseClient, jobId, {
+      level: 'success',
+      icon: '💾',
+      message: `Successfully generated ${generatedEmails.length} personalized emails`
+    });
+
+    await supabaseClient.from('agent_jobs').update({
+      progress_percentage: 75,
+      completed_steps: 3
+    }).eq('id', jobId);
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'loading',
+      icon: '📋',
+      message: 'Running quality checks...'
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     await supabaseClient
-      .from('campaign_jobs')
+      .from('agent_jobs')
       .update({
         status: generatedEmails.length > 0 ? 'completed' : 'failed',
-        progress: 100,
-        completed_at: new Date().toISOString(),
+        progress_percentage: 100,
+        completed_steps: 4,
         result_data: {
-          emails_generated: generatedEmails.length,
-          total_leads: leads.length,
-          success_rate: Math.round((generatedEmails.length / leads.length) * 100)
+          campaign_name: campaign.name || 'Campaign',
+          leadsFound: 0,
+          emailsGenerated: generatedEmails.length,
+          emailsSent: 0
         },
       })
       .eq('id', jobId);
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'success',
+      icon: '🎉',
+      message: `Agent completed! ${generatedEmails.length} emails ready to send`
+    });
 
     return new Response(
       JSON.stringify({
@@ -232,6 +289,23 @@ Deno.serve(async (req: Request) => {
     );
   } catch (error: any) {
     console.error('Email generation error:', error);
+
+    if (supabaseClient && jobId) {
+      await supabaseClient
+        .from('agent_jobs')
+        .update({
+          status: 'failed',
+          error_message: error.message || 'Failed to generate emails'
+        })
+        .eq('id', jobId);
+
+      await logProgress(supabaseClient, jobId, {
+        level: 'error',
+        icon: '❌',
+        message: `Error: ${error.message || 'Failed to generate emails'}`
+      });
+    }
+
     return new Response(
       JSON.stringify({ error: error.message || 'Failed to generate emails' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

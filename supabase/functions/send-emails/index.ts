@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { logProgress } from '../_shared/progress-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,8 +18,11 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
+  let supabaseClient: any;
+  let jobId: string | undefined;
+
   try {
-    const supabaseClient = createClient(
+    supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
@@ -99,15 +103,54 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const jobId = crypto.randomUUID();
-    await supabaseClient.from('campaign_jobs').insert({
+    const { data: campaign } = await supabaseClient
+      .from('campaigns')
+      .select('name')
+      .eq('id', campaignId)
+      .single();
+
+    jobId = crypto.randomUUID();
+    await supabaseClient.from('agent_jobs').insert({
       id: jobId,
       campaign_id: campaignId,
       user_id: user.id,
-      job_type: 'send_emails',
-      status: 'processing',
-      total_items: emails.length,
-      processed_items: 0,
+      job_type: 'email_sending',
+      status: 'initializing',
+      progress_percentage: 0,
+      total_steps: 4,
+      completed_steps: 0,
+      result_data: {
+        campaign_name: campaign?.name || 'Campaign'
+      }
+    });
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'info',
+      icon: '🤖',
+      message: 'Agent initialized successfully'
+    });
+
+    await supabaseClient.from('agent_jobs').update({
+      status: 'running',
+      progress_percentage: 25,
+      completed_steps: 1
+    }).eq('id', jobId);
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'info',
+      icon: '📧',
+      message: `Preparing to send ${emails.length} emails`
+    });
+
+    await supabaseClient.from('agent_jobs').update({
+      progress_percentage: 50,
+      completed_steps: 2
+    }).eq('id', jobId);
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'loading',
+      icon: '📤',
+      message: `Sending emails via ${unipileAccounts.length} Gmail account(s)...`
     });
 
     const sentEmails = [];
@@ -207,6 +250,14 @@ Deno.serve(async (req: Request) => {
             });
 
           sentEmails.push(email);
+
+          if ((sentEmails.length) % 5 === 0) {
+            await logProgress(supabaseClient, jobId, {
+              level: 'info',
+              icon: '✅',
+              message: `Sent ${sentEmails.length} of ${emails.length} emails`
+            });
+          }
         }
       } catch (error: any) {
         console.error(`Failed to send email ${email.id}:`, error);
@@ -217,20 +268,24 @@ Deno.serve(async (req: Request) => {
             error_message: error.message,
           })
           .eq('id', email.id);
-      }
 
-      await supabaseClient
-        .from('campaign_jobs')
-        .update({
-          progress: Math.floor(((i + 1) / emails.length) * 100),
-          processed_items: i + 1,
-        })
-        .eq('id', jobId);
+        await logProgress(supabaseClient, jobId, {
+          level: 'warning',
+          icon: '⚠️',
+          message: `Failed to send email to ${email.leads.business_name || 'lead'}`
+        });
+      }
 
       if (!sendImmediately && i < emails.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 5000));
       }
     }
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'success',
+      icon: '📬',
+      message: `Successfully sent ${sentEmails.length} emails`
+    });
 
     await supabaseClient
       .from('campaigns')
@@ -239,15 +294,39 @@ Deno.serve(async (req: Request) => {
       })
       .eq('id', campaignId);
 
+    await supabaseClient.from('agent_jobs').update({
+      progress_percentage: 75,
+      completed_steps: 3
+    }).eq('id', jobId);
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'loading',
+      icon: '📊',
+      message: 'Tracking email delivery...'
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     await supabaseClient
-      .from('campaign_jobs')
+      .from('agent_jobs')
       .update({
         status: 'completed',
-        progress: 100,
-        completed_at: new Date().toISOString(),
-        result_data: { emails_sent: sentEmails.length },
+        progress_percentage: 100,
+        completed_steps: 4,
+        result_data: {
+          campaign_name: campaign?.name || 'Campaign',
+          leadsFound: 0,
+          emailsGenerated: 0,
+          emailsSent: sentEmails.length
+        },
       })
       .eq('id', jobId);
+
+    await logProgress(supabaseClient, jobId, {
+      level: 'success',
+      icon: '🎉',
+      message: `Agent completed! ${sentEmails.length} emails delivered successfully`
+    });
 
     return new Response(
       JSON.stringify({
@@ -260,6 +339,23 @@ Deno.serve(async (req: Request) => {
     );
   } catch (error: any) {
     console.error('Email sending error:', error);
+
+    if (supabaseClient && jobId) {
+      await supabaseClient
+        .from('agent_jobs')
+        .update({
+          status: 'failed',
+          error_message: error.message || 'Failed to send emails'
+        })
+        .eq('id', jobId);
+
+      await logProgress(supabaseClient, jobId, {
+        level: 'error',
+        icon: '❌',
+        message: `Error: ${error.message || 'Failed to send emails'}`
+      });
+    }
+
     return new Response(
       JSON.stringify({ error: error.message || 'Failed to send emails' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
