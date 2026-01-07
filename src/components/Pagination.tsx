@@ -56,18 +56,18 @@ export default function Pagination({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg">
-      <div className="text-sm text-slate-400">
-        Showing <span className="font-medium text-white">{startItem}</span> to{' '}
-        <span className="font-medium text-white">{endItem}</span> of{' '}
-        <span className="font-medium text-white">{totalItems}</span> results
+    <div className="flex items-center justify-between px-4 py-3 bg-white border border-amber-200 rounded-lg shadow-sm">
+      <div className="text-sm text-stone-500">
+        Showing <span className="font-medium text-stone-800">{startItem}</span> to{' '}
+        <span className="font-medium text-stone-800">{endItem}</span> of{' '}
+        <span className="font-medium text-stone-800">{totalItems}</span> results
       </div>
 
       <div className="flex items-center space-x-2">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition"
+          className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-stone-600 border border-amber-200 disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -79,10 +79,10 @@ export default function Pagination({
             disabled={page === '...' || page === currentPage}
             className={`min-w-[40px] h-10 px-3 rounded-lg font-medium transition ${
               page === currentPage
-                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
+                ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white'
                 : page === '...'
-                ? 'text-slate-400 cursor-default'
-                : 'bg-slate-700 hover:bg-slate-600 text-white'
+                ? 'text-stone-400 cursor-default'
+                : 'bg-amber-50 hover:bg-amber-100 text-stone-700 border border-amber-200'
             }`}
           >
             {page}
@@ -92,7 +92,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition"
+          className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-stone-600 border border-amber-200 disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
           <ChevronRight className="w-5 h-5" />
         </button>

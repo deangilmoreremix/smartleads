@@ -204,9 +204,9 @@ export default function AIQualityAnalyzer({ prompt, tone, goal }: AIQualityAnaly
 
   if (!prompt.trim()) {
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-        <Zap className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-        <p className="text-sm text-gray-600">
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
+        <Zap className="w-8 h-8 text-stone-400 mx-auto mb-2" />
+        <p className="text-sm text-stone-600">
           Start writing your prompt to see AI quality analysis
         </p>
       </div>
@@ -222,8 +222,8 @@ export default function AIQualityAnalyzer({ prompt, tone, goal }: AIQualityAnaly
               <TrendingUp className={`w-6 h-6 ${getScoreColor(overallScore)}`} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Prompt Quality Score</h3>
-              <p className="text-sm text-gray-600">Overall AI optimization rating</p>
+              <h3 className="font-semibold text-stone-800">Prompt Quality Score</h3>
+              <p className="text-sm text-stone-600">Overall AI optimization rating</p>
             </div>
           </div>
           <div className={`text-4xl font-bold ${getScoreColor(overallScore)}`}>
@@ -234,26 +234,26 @@ export default function AIQualityAnalyzer({ prompt, tone, goal }: AIQualityAnaly
 
       <div className="space-y-3">
         {metrics.map((metric) => (
-          <div key={metric.name} className="bg-white border border-gray-200 rounded-lg p-4">
+          <div key={metric.name} className="bg-white border border-amber-200 rounded-lg p-4">
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
                 {getStatusIcon(metric.status)}
-                <span className="font-medium text-gray-900">{metric.name}</span>
+                <span className="font-medium text-stone-800">{metric.name}</span>
               </div>
               <span className={`text-sm font-semibold ${getScoreColor(metric.score)}`}>
                 {metric.score}/100
               </span>
             </div>
 
-            <p className="text-sm text-gray-600 mb-2">{metric.message}</p>
+            <p className="text-sm text-stone-600 mb-2">{metric.message}</p>
 
             {metric.suggestions && metric.suggestions.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <p className="text-xs font-medium text-gray-700 mb-1">Suggestions:</p>
+              <div className="mt-3 pt-3 border-t border-amber-100">
+                <p className="text-xs font-medium text-stone-700 mb-1">Suggestions:</p>
                 <ul className="space-y-1">
                   {metric.suggestions.map((suggestion, idx) => (
-                    <li key={idx} className="text-xs text-gray-600 flex items-start gap-1">
-                      <span className="text-blue-600 mt-0.5">•</span>
+                    <li key={idx} className="text-xs text-stone-600 flex items-start gap-1">
+                      <span className="text-orange-500 mt-0.5">•</span>
                       <span>{suggestion}</span>
                     </li>
                   ))}
@@ -261,7 +261,7 @@ export default function AIQualityAnalyzer({ prompt, tone, goal }: AIQualityAnaly
               </div>
             )}
 
-            <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5">
+            <div className="mt-2 w-full bg-amber-100 rounded-full h-1.5">
               <div
                 className={`h-1.5 rounded-full transition-all ${
                   metric.score >= 80 ? 'bg-green-600' : metric.score >= 60 ? 'bg-yellow-600' : 'bg-red-600'
@@ -274,14 +274,14 @@ export default function AIQualityAnalyzer({ prompt, tone, goal }: AIQualityAnaly
       </div>
 
       {overallScore < 70 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
           <div className="flex items-start gap-2">
-            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <Info className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-blue-900 mb-1">
+              <p className="text-sm font-medium text-stone-800 mb-1">
                 Improve Your Prompt Quality
               </p>
-              <p className="text-xs text-blue-700">
+              <p className="text-xs text-stone-600">
                 Higher quality prompts result in better AI-generated emails with higher engagement rates.
                 Follow the suggestions above to optimize your prompt.
               </p>

@@ -82,24 +82,24 @@ export default function TemplatesPage() {
     return (
       <div className="p-8 flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading templates...</p>
+          <div className="w-16 h-16 border-4 border-orange-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-stone-600">Loading templates...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 bg-amber-50/30 min-h-screen">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Email Templates</h1>
-            <p className="text-gray-600">Create and manage email templates for your campaigns</p>
+            <h1 className="text-4xl font-bold text-stone-800 mb-2">Email Templates</h1>
+            <p className="text-stone-600">Create and manage email templates for your campaigns</p>
           </div>
           <button
             onClick={() => navigate('/dashboard/templates/new')}
-            className="flex items-center space-x-2 bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition shadow-sm"
+            className="flex items-center space-x-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-orange-500/30 transition-all"
           >
             <Plus className="w-5 h-5" />
             <span>New Template</span>
@@ -107,17 +107,17 @@ export default function TemplatesPage() {
         </div>
 
         {templates.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-100">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Mail className="w-8 h-8 text-blue-600" />
+          <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-amber-200">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-8 h-8 text-orange-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No templates yet</h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            <h3 className="text-xl font-bold text-stone-800 mb-2">No templates yet</h3>
+            <p className="text-stone-600 mb-6 max-w-md mx-auto">
               Create your first email template to use in your outreach campaigns
             </p>
             <button
               onClick={() => navigate('/dashboard/templates/new')}
-              className="inline-flex items-center space-x-2 bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition"
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-orange-500/30 transition-all"
             >
               <Plus className="w-5 h-5" />
               <span>Create Template</span>
@@ -128,23 +128,23 @@ export default function TemplatesPage() {
             {templates.map((template) => (
               <div
                 key={template.id}
-                className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition"
+                className="bg-white rounded-xl p-6 shadow-sm border border-amber-200 hover:shadow-md transition"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-start space-x-3 flex-1">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-5 h-5 text-orange-600" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-1">
-                        <h3 className="text-lg font-semibold text-gray-900">{template.name}</h3>
+                        <h3 className="text-lg font-semibold text-stone-800">{template.name}</h3>
                         {template.template_type === 'ai' && (
-                          <span className="px-2 py-0.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-medium rounded-full">
+                          <span className="px-2 py-0.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-medium rounded-full">
                             AI
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-stone-500">
                         {template.template_type === 'ai'
                           ? 'AI-generated personalized emails'
                           : `Subject: ${template.subject}`
@@ -155,7 +155,7 @@ export default function TemplatesPage() {
                 </div>
 
                 <div className="mb-4">
-                  <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 line-clamp-4">
+                  <div className="bg-amber-50 rounded-lg p-4 text-sm text-stone-700 line-clamp-4">
                     {template.template_type === 'ai'
                       ? template.ai_prompt || 'AI prompt not available'
                       : template.body
@@ -163,23 +163,23 @@ export default function TemplatesPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2 pt-4 border-t border-gray-100">
+                <div className="flex items-center space-x-2 pt-4 border-t border-amber-100">
                   <button
                     onClick={() => handleDuplicateTemplate(template)}
-                    className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-50 transition text-sm"
+                    className="flex items-center space-x-1 text-stone-600 hover:text-orange-600 px-3 py-2 rounded-lg hover:bg-amber-50 transition text-sm"
                   >
                     <Copy className="w-4 h-4" />
                     <span>Duplicate</span>
                   </button>
                   <button
-                    className="flex items-center space-x-1 text-gray-600 hover:text-green-600 px-3 py-2 rounded-lg hover:bg-green-50 transition text-sm"
+                    className="flex items-center space-x-1 text-stone-600 hover:text-green-600 px-3 py-2 rounded-lg hover:bg-green-50 transition text-sm"
                   >
                     <Edit2 className="w-4 h-4" />
                     <span>Edit</span>
                   </button>
                   <button
                     onClick={() => handleDeleteTemplate(template.id)}
-                    className="flex items-center space-x-1 text-gray-600 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-red-50 transition text-sm ml-auto"
+                    className="flex items-center space-x-1 text-stone-600 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-red-50 transition text-sm ml-auto"
                   >
                     <Trash2 className="w-4 h-4" />
                     <span>Delete</span>
@@ -190,25 +190,25 @@ export default function TemplatesPage() {
           </div>
         )}
 
-        <div className="mt-8 bg-green-50 rounded-xl p-6 border border-green-100">
+        <div className="mt-8 bg-amber-50 rounded-xl p-6 border border-amber-200">
           <div className="flex items-start space-x-3">
-            <Sparkles className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <Sparkles className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
             <div>
-              <h3 className="font-semibold text-green-900 mb-2">Template Variables</h3>
-              <p className="text-sm text-green-800 mb-3">
+              <h3 className="font-semibold text-stone-800 mb-2">Template Variables</h3>
+              <p className="text-sm text-stone-700 mb-3">
                 Use these variables in your templates for personalization:
               </p>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <code className="bg-white px-3 py-1 rounded text-green-700 font-mono">
+                <code className="bg-white px-3 py-1 rounded text-orange-700 font-mono border border-amber-200">
                   {'{business_name}'}
                 </code>
-                <code className="bg-white px-3 py-1 rounded text-green-700 font-mono">
+                <code className="bg-white px-3 py-1 rounded text-orange-700 font-mono border border-amber-200">
                   {'{owner_name}'}
                 </code>
-                <code className="bg-white px-3 py-1 rounded text-green-700 font-mono">
+                <code className="bg-white px-3 py-1 rounded text-orange-700 font-mono border border-amber-200">
                   {'{location}'}
                 </code>
-                <code className="bg-white px-3 py-1 rounded text-green-700 font-mono">
+                <code className="bg-white px-3 py-1 rounded text-orange-700 font-mono border border-amber-200">
                   {'{phone}'}
                 </code>
               </div>

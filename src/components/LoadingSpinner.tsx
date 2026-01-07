@@ -13,10 +13,10 @@ export default function LoadingSpinner({ size = 'md', message }: LoadingSpinnerP
   return (
     <div className="flex flex-col items-center justify-center">
       <div
-        className={`${sizeClasses[size]} border-4 border-blue-500 border-t-transparent rounded-full animate-spin`}
+        className={`${sizeClasses[size]} border-4 border-orange-400 border-t-transparent rounded-full animate-spin`}
       ></div>
       {message && (
-        <p className="mt-4 text-slate-400 text-sm">{message}</p>
+        <p className="mt-4 text-stone-500 text-sm">{message}</p>
       )}
     </div>
   );

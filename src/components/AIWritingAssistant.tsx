@@ -86,18 +86,18 @@ export default function AIWritingAssistant({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4">
+    <div className="bg-white border border-amber-200 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-r from-amber-400 to-orange-500 p-4">
         <div className="flex items-center gap-2 text-white mb-2">
           <Wand2 className="w-5 h-5" />
           <h3 className="font-semibold">AI Writing Assistant</h3>
         </div>
-        <p className="text-sm text-blue-100">
+        <p className="text-sm text-amber-50">
           Generate high-converting email components powered by OpenAI
         </p>
       </div>
 
-      <div className="border-b border-gray-200">
+      <div className="border-b border-amber-200">
         <div className="flex">
           {(['subject', 'opening', 'cta'] as const).map((tab) => (
             <button
@@ -109,8 +109,8 @@ export default function AIWritingAssistant({
               }}
               className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  ? 'text-orange-600 border-b-2 border-orange-500 bg-amber-50'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-amber-50'
               }`}
             >
               {getTabLabel(tab)}
@@ -122,13 +122,13 @@ export default function AIWritingAssistant({
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-sm text-gray-600">
-              Tone: <span className="font-medium text-gray-900 capitalize">{tone}</span>
+            <p className="text-sm text-stone-600">
+              Tone: <span className="font-medium text-stone-800 capitalize">{tone}</span>
               {' • '}
-              Goal: <span className="font-medium text-gray-900">{goal.replace(/_/g, ' ')}</span>
+              Goal: <span className="font-medium text-stone-800">{goal.replace(/_/g, ' ')}</span>
             </p>
             {industry && (
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-stone-500 mt-1">
                 Industry: {industry}
               </p>
             )}
@@ -136,7 +136,7 @@ export default function AIWritingAssistant({
           <button
             onClick={handleGenerate}
             disabled={isGenerating}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg hover:shadow-lg hover:shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {isGenerating ? (
               <>
@@ -164,12 +164,12 @@ export default function AIWritingAssistant({
 
         {!generated && !isGenerating && !error && (
           <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-              {activeTab === 'subject' && <Mail className="w-8 h-8 text-gray-400" />}
-              {activeTab === 'opening' && <Wand2 className="w-8 h-8 text-gray-400" />}
-              {activeTab === 'cta' && <Target className="w-8 h-8 text-gray-400" />}
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
+              {activeTab === 'subject' && <Mail className="w-8 h-8 text-stone-400" />}
+              {activeTab === 'opening' && <Wand2 className="w-8 h-8 text-stone-400" />}
+              {activeTab === 'cta' && <Target className="w-8 h-8 text-stone-400" />}
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-stone-600">
               Click "Generate" to create AI-powered {getTabLabel(activeTab).toLowerCase()}
             </p>
           </div>
@@ -179,7 +179,7 @@ export default function AIWritingAssistant({
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="h-12 bg-gray-200 rounded-lg"></div>
+                <div className="h-12 bg-amber-100 rounded-lg"></div>
               </div>
             ))}
           </div>
@@ -188,12 +188,12 @@ export default function AIWritingAssistant({
         {generated && !isGenerating && (
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-stone-700">
                 {generated.content.length} options generated
               </p>
               <button
                 onClick={handleGenerate}
-                className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                className="text-sm text-orange-500 hover:text-orange-600 flex items-center gap-1"
               >
                 <RefreshCw className="w-4 h-4" />
                 Regenerate
@@ -203,16 +203,16 @@ export default function AIWritingAssistant({
             {generated.content.map((item, index) => (
               <div
                 key={index}
-                className="group p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors"
+                className="group p-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors"
               >
                 <div className="flex items-start gap-3">
                   <div className="flex-1">
-                    <p className="text-sm text-gray-900">{item}</p>
+                    <p className="text-sm text-stone-800">{item}</p>
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleCopy(item, index)}
-                      className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded transition-colors"
+                      className="p-1.5 text-stone-600 hover:text-stone-800 hover:bg-white rounded transition-colors"
                       title="Copy"
                     >
                       {copiedIndex === index ? (
@@ -224,7 +224,7 @@ export default function AIWritingAssistant({
                     {onInsert && (
                       <button
                         onClick={() => handleInsert(item)}
-                        className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-white rounded transition-colors"
+                        className="p-1.5 text-orange-500 hover:text-orange-600 hover:bg-white rounded transition-colors"
                         title="Insert into prompt"
                       >
                         <Target className="w-4 h-4" />
@@ -238,8 +238,8 @@ export default function AIWritingAssistant({
         )}
       </div>
 
-      <div className="bg-gray-50 border-t border-gray-200 p-3">
-        <p className="text-xs text-gray-600 text-center">
+      <div className="bg-amber-50 border-t border-amber-200 p-3">
+        <p className="text-xs text-stone-600 text-center">
           These are AI-generated suggestions powered by OpenAI. Review and customize them to match your voice.
         </p>
       </div>

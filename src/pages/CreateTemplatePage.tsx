@@ -156,12 +156,12 @@ export default function CreateTemplatePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 border-b border-blue-700">
+    <div className="min-h-screen bg-amber-50/30">
+      <div className="bg-gradient-to-r from-amber-400 to-orange-500 border-b border-orange-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <button
             onClick={() => navigate('/dashboard/templates')}
-            className="flex items-center space-x-2 text-blue-100 hover:text-white mb-4 transition-colors"
+            className="flex items-center space-x-2 text-amber-50 hover:text-white mb-4 transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
             <span>Back to Templates</span>
@@ -169,7 +169,7 @@ export default function CreateTemplatePage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">Create AI-Powered Template</h1>
-              <p className="text-blue-100">Build intelligent email templates with advanced AI customization</p>
+              <p className="text-amber-50">Build intelligent email templates with advanced AI customization</p>
             </div>
             <div className="hidden md:block">
               <div className="flex gap-2">
@@ -177,8 +177,8 @@ export default function CreateTemplatePage() {
                   onClick={() => setEmailType('ai')}
                   className={`px-6 py-3 rounded-lg font-medium transition-all ${
                     emailType === 'ai'
-                      ? 'bg-white text-blue-600 shadow-lg'
-                      : 'bg-blue-700 text-white hover:bg-blue-800'
+                      ? 'bg-white text-orange-600 shadow-lg'
+                      : 'bg-orange-600 text-white hover:bg-orange-700'
                   }`}
                 >
                   <Sparkles className="w-4 h-4 inline mr-2" />
@@ -188,8 +188,8 @@ export default function CreateTemplatePage() {
                   onClick={() => setEmailType('manual')}
                   className={`px-6 py-3 rounded-lg font-medium transition-all ${
                     emailType === 'manual'
-                      ? 'bg-white text-blue-600 shadow-lg'
-                      : 'bg-blue-700 text-white hover:bg-blue-800'
+                      ? 'bg-white text-orange-600 shadow-lg'
+                      : 'bg-orange-600 text-white hover:bg-orange-700'
                   }`}
                 >
                   <FileText className="w-4 h-4 inline mr-2" />
@@ -202,7 +202,7 @@ export default function CreateTemplatePage() {
       </div>
 
       {emailType === 'ai' && (
-        <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="bg-white border-b border-amber-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex overflow-x-auto">
               {tabs.map((tab) => (
@@ -211,8 +211,8 @@ export default function CreateTemplatePage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 px-6 py-4 border-b-2 font-medium transition-colors whitespace-nowrap ${
                     activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600 bg-blue-50'
-                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'border-orange-500 text-orange-600 bg-amber-50'
+                      : 'border-transparent text-stone-600 hover:text-stone-900 hover:bg-amber-50'
                   }`}
                 >
                   <tab.icon className="w-5 h-5" />
@@ -231,44 +231,44 @@ export default function CreateTemplatePage() {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             {emailType === 'manual' ? (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 space-y-6">
+              <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-8 space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-stone-700 mb-2">
                     Template Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400"
                     placeholder="Enter template name"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-stone-700 mb-2">
                     Email Subject <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400"
                     placeholder="Enter email subject"
                     required={emailType === 'manual'}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-stone-700 mb-2">
                     Email Body <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     value={formData.body}
                     onChange={(e) => setFormData({ ...formData, body: e.target.value })}
                     rows={12}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    className="w-full px-4 py-3 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 font-mono text-sm"
                     placeholder="Write your email body..."
                     required={emailType === 'manual'}
                   />
@@ -277,30 +277,30 @@ export default function CreateTemplatePage() {
             ) : (
               <>
                 {activeTab === 'builder' && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                  <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-8">
                     <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-stone-700 mb-2">
                         Template Name <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400"
                         placeholder="Enter template name"
                         required
                       />
                     </div>
 
                     <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-stone-700 mb-2">
                         Your Pitch (Optional)
                       </label>
                       <textarea
                         value={formData.pitch}
                         onChange={(e) => setFormData({ ...formData, pitch: e.target.value })}
                         rows={3}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400"
                         placeholder="Define your value proposition that AI can reference"
                       />
                     </div>
@@ -317,7 +317,7 @@ export default function CreateTemplatePage() {
                 )}
 
                 {activeTab === 'preview' && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                  <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-8">
                     <AIPreviewGenerator
                       prompt={formData.aiPrompt}
                       tone={formData.tone}
@@ -328,7 +328,7 @@ export default function CreateTemplatePage() {
                 )}
 
                 {activeTab === 'assistant' && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                  <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-8">
                     <AIWritingAssistant
                       tone={formData.tone}
                       goal={formData.emailGoal}
@@ -344,13 +344,13 @@ export default function CreateTemplatePage() {
                 )}
 
                 {activeTab === 'marketplace' && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                  <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-8">
                     <AITemplateMarketplace onUseTemplate={handleMarketplaceTemplateUse} />
                   </div>
                 )}
 
                 {activeTab === 'analytics' && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                  <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-8">
                     <AIQualityAnalyzer
                       prompt={formData.aiPrompt}
                       tone={formData.tone}
@@ -363,12 +363,12 @@ export default function CreateTemplatePage() {
           </div>
 
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Template Settings</h3>
+            <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-6 sticky top-6">
+              <h3 className="font-semibold text-stone-800 mb-4">Template Settings</h3>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-stone-700 mb-2">
                     Template Type
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -377,8 +377,8 @@ export default function CreateTemplatePage() {
                       onClick={() => setEmailType('ai')}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                         emailType === 'ai'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white'
+                          : 'bg-amber-50 text-stone-700 hover:bg-amber-100'
                       }`}
                     >
                       AI
@@ -388,8 +388,8 @@ export default function CreateTemplatePage() {
                       onClick={() => setEmailType('manual')}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                         emailType === 'manual'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white'
+                          : 'bg-amber-50 text-stone-700 hover:bg-amber-100'
                       }`}
                     >
                       Manual
@@ -400,42 +400,42 @@ export default function CreateTemplatePage() {
                 {emailType === 'ai' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-stone-700 mb-2">
                         Tone
                       </label>
-                      <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm capitalize">
+                      <div className="px-3 py-2 bg-amber-50 rounded-lg text-sm capitalize text-stone-700">
                         {formData.tone}
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-stone-700 mb-2">
                         Goal
                       </label>
-                      <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm capitalize">
+                      <div className="px-3 py-2 bg-amber-50 rounded-lg text-sm capitalize text-stone-700">
                         {formData.emailGoal.replace('_', ' ')}
                       </div>
                     </div>
 
                     {formData.industry && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-stone-700 mb-2">
                           Industry
                         </label>
-                        <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm">
+                        <div className="px-3 py-2 bg-amber-50 rounded-lg text-sm text-stone-700">
                           {formData.industry}
                         </div>
                       </div>
                     )}
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-stone-700 mb-2">
                         Personalization Level
                       </label>
                       <select
                         value={formData.personalizationLevel}
                         onChange={(e) => setFormData({ ...formData, personalizationLevel: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 text-sm"
                       >
                         <option value="low">Low</option>
                         <option value="medium">Medium</option>
@@ -445,8 +445,8 @@ export default function CreateTemplatePage() {
                   </>
                 )}
 
-                <div className="pt-4 border-t border-gray-200">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Quick Actions</h4>
+                <div className="pt-4 border-t border-amber-200">
+                  <h4 className="text-sm font-medium text-stone-700 mb-3">Quick Actions</h4>
                   <div className="space-y-2">
                     {emailType === 'ai' && (
                       <>
@@ -461,7 +461,7 @@ export default function CreateTemplatePage() {
                         <button
                           type="button"
                           onClick={() => setActiveTab('analytics')}
-                          className="w-full flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors text-sm"
+                          className="w-full flex items-center gap-2 px-4 py-2 bg-amber-50 text-orange-700 rounded-lg hover:bg-amber-100 transition-colors text-sm"
                         >
                           <BarChart3 className="w-4 h-4" />
                           Check Quality
@@ -472,18 +472,18 @@ export default function CreateTemplatePage() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
+              <div className="mt-6 pt-6 border-t border-amber-200 space-y-3">
                 <button
                   type="button"
                   onClick={() => navigate('/dashboard/templates')}
-                  className="w-full px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                  className="w-full px-4 py-3 bg-amber-50 text-stone-700 rounded-lg font-medium hover:bg-amber-100 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <>
@@ -501,23 +501,23 @@ export default function CreateTemplatePage() {
             </div>
 
             {emailType === 'ai' && formData.aiPrompt && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <h4 className="text-sm font-medium text-blue-900 mb-2">Next Steps</h4>
-                <ul className="space-y-2 text-sm text-blue-700">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <h4 className="text-sm font-medium text-stone-800 mb-2">Next Steps</h4>
+                <ul className="space-y-2 text-sm text-stone-700">
                   <li className="flex items-start gap-2">
-                    <span className="text-blue-600">1.</span>
+                    <span className="text-orange-600">1.</span>
                     <span>Preview your AI-generated emails</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-blue-600">2.</span>
+                    <span className="text-orange-600">2.</span>
                     <span>Check quality score and suggestions</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-blue-600">3.</span>
+                    <span className="text-orange-600">3.</span>
                     <span>Fine-tune your prompt if needed</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-blue-600">4.</span>
+                    <span className="text-orange-600">4.</span>
                     <span>Save and use in campaigns</span>
                   </li>
                 </ul>

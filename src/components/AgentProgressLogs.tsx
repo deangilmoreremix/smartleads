@@ -38,7 +38,7 @@ export default function AgentProgressLogs({ logs, progress, isComplete }: AgentP
       case 'warning':
         return 'text-yellow-400';
       case 'loading':
-        return 'text-blue-400';
+        return 'text-orange-400';
       default:
         return 'text-gray-300';
     }
@@ -107,9 +107,9 @@ export default function AgentProgressLogs({ logs, progress, isComplete }: AgentP
             <span className="text-gray-500 text-xs mt-0.5 min-w-[70px]">
               [{formatTime(new Date().toISOString())}]
             </span>
-            <span className="text-blue-400 mt-0.5">⏳</span>
+            <span className="text-orange-400 mt-0.5">⏳</span>
             <span className="text-gray-500 mt-0.5">⚙️</span>
-            <span className="flex-1 text-blue-400">Processing...</span>
+            <span className="flex-1 text-orange-400">Processing...</span>
           </div>
         )}
       </div>
@@ -121,7 +121,7 @@ export default function AgentProgressLogs({ logs, progress, isComplete }: AgentP
         </div>
         <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-500 ease-out rounded-full relative"
+            className="h-full bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500 transition-all duration-500 ease-out rounded-full relative"
             style={{ width: `${progress}%` }}
           >
             <div className="absolute inset-0 bg-white/20 animate-shimmer"></div>

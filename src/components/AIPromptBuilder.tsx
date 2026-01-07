@@ -118,14 +118,14 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4">
         <div className="flex items-start gap-3">
-          <div className="p-2 bg-blue-600 rounded-lg">
+          <div className="p-2 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 mb-1">AI Prompt Builder</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="font-semibold text-stone-800 mb-1">AI Prompt Builder</h3>
+            <p className="text-sm text-stone-600">
               Configure how AI should generate personalized emails for each lead. The more specific you are, the better the results.
             </p>
           </div>
@@ -133,7 +133,7 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-stone-700 mb-2">
           Builder Mode
         </label>
         <div className="grid grid-cols-3 gap-3">
@@ -143,12 +143,12 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
               onClick={() => setMode(m.value as typeof mode)}
               className={`p-3 rounded-lg border-2 transition-all ${
                 mode === m.value
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-orange-400 bg-amber-50'
+                  : 'border-stone-200 hover:border-stone-300'
               }`}
             >
-              <div className="font-medium text-sm">{m.label}</div>
-              <div className="text-xs text-gray-500 mt-1">{m.desc}</div>
+              <div className="font-medium text-sm text-stone-800">{m.label}</div>
+              <div className="text-xs text-stone-500 mt-1">{m.desc}</div>
             </button>
           ))}
         </div>
@@ -156,14 +156,14 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <Target className="w-4 h-4 inline mr-1" />
+          <label className="block text-sm font-medium text-stone-700 mb-2">
+            <Target className="w-4 h-4 inline mr-1 text-stone-500" />
             Email Goal
           </label>
           <select
             value={selectedGoal}
             onChange={(e) => handleGoalChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 bg-amber-50/50"
           >
             {EMAIL_GOALS.map((goal) => (
               <option key={goal.value} value={goal.value}>
@@ -171,20 +171,20 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
               </option>
             ))}
           </select>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-stone-500 mt-1">
             {EMAIL_GOALS.find(g => g.value === selectedGoal)?.desc}
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <Lightbulb className="w-4 h-4 inline mr-1" />
+          <label className="block text-sm font-medium text-stone-700 mb-2">
+            <Lightbulb className="w-4 h-4 inline mr-1 text-stone-500" />
             Tone
           </label>
           <select
             value={selectedTone}
             onChange={(e) => handleToneChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 bg-amber-50/50"
           >
             {TONES.map((tone) => (
               <option key={tone.value} value={tone.value}>
@@ -192,7 +192,7 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
               </option>
             ))}
           </select>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-stone-500 mt-1">
             {TONES.find(t => t.value === selectedTone)?.desc}
           </p>
         </div>
@@ -200,14 +200,14 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <Building2 className="w-4 h-4 inline mr-1" />
+          <label className="block text-sm font-medium text-stone-700 mb-2">
+            <Building2 className="w-4 h-4 inline mr-1 text-stone-500" />
             Industry (Optional)
           </label>
           <select
             value={selectedIndustry}
             onChange={(e) => handleIndustryChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 bg-amber-50/50"
           >
             <option value="">All Industries</option>
             {INDUSTRIES.map((industry) => (
@@ -219,14 +219,14 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <Users className="w-4 h-4 inline mr-1" />
+          <label className="block text-sm font-medium text-stone-700 mb-2">
+            <Users className="w-4 h-4 inline mr-1 text-stone-500" />
             Target Audience
           </label>
           <select
             value={selectedAudience}
             onChange={(e) => handleAudienceChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 bg-amber-50/50"
           >
             {TARGET_AUDIENCES.map((audience) => (
               <option key={audience.value} value={audience.value}>
@@ -239,7 +239,7 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
 
       {mode !== 'simple' && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-stone-700 mb-2">
             AI Prompt Instructions
           </label>
           <textarea
@@ -247,13 +247,13 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
             onChange={(e) => onChange(e.target.value)}
             placeholder="Describe how AI should write your emails. Example: Write a friendly email introducing our digital marketing services. Mention specific benefits based on the business's Google reviews and emphasize how we've helped similar businesses increase their online presence..."
             rows={mode === 'advanced' ? 8 : 6}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 bg-amber-50/50 resize-none"
           />
           <div className="flex justify-between items-center mt-2">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-stone-500">
               Use variables like {'{{business_name}}'} {'{{location}}'} {'{{rating}}'}.
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-stone-500">
               {value.length} characters
             </p>
           </div>
@@ -264,16 +264,16 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
         <div>
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
+            className="flex items-center gap-2 text-sm font-medium text-orange-500 hover:text-orange-600"
           >
             {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             Advanced Options
           </button>
 
           {showAdvanced && (
-            <div className="mt-4 space-y-4 p-4 bg-gray-50 rounded-lg">
+            <div className="mt-4 space-y-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-stone-700 mb-2">
                   Custom Instructions
                 </label>
                 <textarea
@@ -281,18 +281,18 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
                   onChange={(e) => setCustomInstructions(e.target.value)}
                   placeholder="Additional instructions for AI behavior, style guidelines, or specific requirements..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 bg-white resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-stone-700 mb-2">
                   Email Length Preference
                 </label>
                 <select
                   value={emailLength}
                   onChange={(e) => setEmailLength(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 bg-white"
                 >
                   <option value="short">Short (50-100 words)</option>
                   <option value="medium">Medium (100-200 words)</option>
@@ -301,13 +301,13 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-stone-700 mb-2">
                   Personalization Level
                 </label>
                 <select
                   value={personalizationLevel}
                   onChange={(e) => setPersonalizationLevel(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 bg-white"
                 >
                   <option value="low">Low - Generic with basic personalization</option>
                   <option value="medium">Medium - Balanced personalization</option>
@@ -319,11 +319,11 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
         </div>
       )}
 
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Available Variables</h4>
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <h4 className="text-sm font-medium text-stone-700 mb-2">Available Variables</h4>
         <div className="flex flex-wrap gap-2">
           {['business_name', 'decision_maker_name', 'location', 'rating', 'review_count', 'website', 'phone'].map((variable) => (
-            <code key={variable} className="px-2 py-1 bg-white border border-gray-300 rounded text-xs text-blue-600">
+            <code key={variable} className="px-2 py-1 bg-white border border-amber-200 rounded text-xs text-orange-600">
               {'{{'}{variable}{'}}'}
             </code>
           ))}

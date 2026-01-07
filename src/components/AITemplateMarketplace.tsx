@@ -134,39 +134,39 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
 
   return (
     <div className="space-y-4">
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg p-6 text-white">
+      <div className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg p-6 text-white">
         <div className="flex items-center gap-3 mb-2">
           <Store className="w-6 h-6" />
           <h2 className="text-2xl font-bold">AI Template Marketplace</h2>
         </div>
-        <p className="text-blue-100">
+        <p className="text-amber-50">
           Browse proven AI prompts from high-performing campaigns. Filter by industry, goal, and performance metrics.
         </p>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="bg-white border border-amber-200 rounded-lg p-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-stone-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search templates..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 bg-amber-50/50"
               />
             </div>
           </div>
 
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 border border-amber-200 rounded-lg hover:bg-amber-50 transition-colors text-stone-700"
           >
             <Filter className="w-4 h-4" />
             Filters
             {(selectedCategory !== 'all' || selectedIndustry !== 'all') && (
-              <span className="px-2 py-0.5 bg-blue-600 text-white text-xs rounded-full">
+              <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">
                 {(selectedCategory !== 'all' ? 1 : 0) + (selectedIndustry !== 'all' ? 1 : 0)}
               </span>
             )}
@@ -175,7 +175,7 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 bg-amber-50/50"
           >
             <option value="rating">Highest Rated</option>
             <option value="usage">Most Used</option>
@@ -184,15 +184,15 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
         </div>
 
         {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 gap-4">
+          <div className="mt-4 pt-4 border-t border-amber-200 grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stone-700 mb-2">
                 Email Goal
               </label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 bg-amber-50/50"
               >
                 {categories.map((cat) => (
                   <option key={cat.value} value={cat.value}>
@@ -203,13 +203,13 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-stone-700 mb-2">
                 Industry
               </label>
               <select
                 value={selectedIndustry}
                 onChange={(e) => setSelectedIndustry(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-orange-100 focus:border-orange-400 bg-amber-50/50"
               >
                 {industries.map((ind) => (
                   <option key={ind.value} value={ind.value}>
@@ -226,7 +226,7 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
                     setSelectedCategory('all');
                     setSelectedIndustry('all');
                   }}
-                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                  className="text-sm text-orange-500 hover:text-orange-600 flex items-center gap-1"
                 >
                   <X className="w-4 h-4" />
                   Clear filters
@@ -239,16 +239,16 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
 
       <div className="grid gap-4">
         {filteredTemplates.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
-            <Store className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-600">No templates found matching your criteria</p>
+          <div className="bg-white border border-amber-200 rounded-lg p-12 text-center">
+            <Store className="w-12 h-12 text-stone-400 mx-auto mb-3" />
+            <p className="text-stone-600">No templates found matching your criteria</p>
             <button
               onClick={() => {
                 setSearchQuery('');
                 setSelectedCategory('all');
                 setSelectedIndustry('all');
               }}
-              className="mt-3 text-sm text-blue-600 hover:text-blue-700"
+              className="mt-3 text-sm text-orange-500 hover:text-orange-600"
             >
               Clear all filters
             </button>
@@ -257,24 +257,24 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
           filteredTemplates.map((template) => (
             <div
               key={template.id}
-              className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+              className="bg-white border border-amber-200 rounded-lg p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg text-gray-900 mb-1">
+                  <h3 className="font-semibold text-lg text-stone-800 mb-1">
                     {template.name}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-sm text-stone-600 mb-2">
                     {template.description}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                    <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full">
                       {template.category.replace('_', ' ')}
                     </span>
                     <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
                       {template.industry}
                     </span>
-                    <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full capitalize">
+                    <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full capitalize">
                       {template.tone}
                     </span>
                   </div>
@@ -285,39 +285,39 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-semibold text-stone-800">
                       {template.rating.toFixed(1)}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-stone-500">
                     {template.rating_count} ratings
                   </p>
                 </div>
 
                 <div className="text-center">
-                  <div className="font-semibold text-gray-900 mb-1">
+                  <div className="font-semibold text-stone-800 mb-1">
                     {template.usage_count}
                   </div>
-                  <p className="text-xs text-gray-500">times used</p>
+                  <p className="text-xs text-stone-500">times used</p>
                 </div>
 
                 <div className="text-center">
                   <div className="font-semibold text-green-600 mb-1">
                     {template.avg_reply_rate.toFixed(1)}%
                   </div>
-                  <p className="text-xs text-gray-500">reply rate</p>
+                  <p className="text-xs text-stone-500">reply rate</p>
                 </div>
 
                 <div className="text-center">
-                  <div className="font-semibold text-blue-600 mb-1">
+                  <div className="font-semibold text-orange-600 mb-1">
                     {template.avg_open_rate.toFixed(1)}%
                   </div>
-                  <p className="text-xs text-gray-500">open rate</p>
+                  <p className="text-xs text-stone-500">open rate</p>
                 </div>
               </div>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
-                <p className="text-sm text-gray-700 font-mono">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-stone-700 font-mono">
                   {template.prompt_text.substring(0, 200)}
                   {template.prompt_text.length > 200 && '...'}
                 </p>
@@ -325,7 +325,7 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
 
               <button
                 onClick={() => handleUseTemplate(template)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg hover:shadow-lg hover:shadow-orange-500/30 transition-all"
               >
                 <Copy className="w-4 h-4" />
                 Use This Template
@@ -336,8 +336,8 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
       </div>
 
       {filteredTemplates.length > 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-          <p className="text-sm text-gray-600">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+          <p className="text-sm text-stone-600">
             Showing {filteredTemplates.length} of {templates.length} templates
           </p>
         </div>
