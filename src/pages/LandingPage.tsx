@@ -120,7 +120,7 @@ export default function LandingPage() {
                     type="text"
                     value={promptInput}
                     onChange={(e) => setPromptInput(e.target.value)}
-                    placeholder={prompts[0]}
+                    placeholder="Describe your outreach campaign and I'll build it"
                     className="w-full bg-gray-50 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-lg px-4 py-4 pr-14 focus:outline-none focus:border-[#FFD666] focus:ring-2 focus:ring-[#FFD666]/20 transition"
                   />
                   <Link
