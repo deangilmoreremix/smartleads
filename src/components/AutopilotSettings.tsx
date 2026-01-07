@@ -17,6 +17,11 @@ import {
   Loader2,
   MapPin,
   Search,
+  Flame,
+  Calendar,
+  Globe,
+  FlaskConical,
+  Shield,
 } from 'lucide-react';
 
 interface AutopilotSettingsProps {
@@ -40,7 +45,26 @@ interface AutopilotConfig {
   rotate_gmail_accounts: boolean;
   pause_on_reply: boolean;
   search_queries: SearchQuery[];
+  business_days_only: boolean;
+  send_window_start: number;
+  send_window_end: number;
+  default_timezone: string;
+  warmup_mode: boolean;
+  ab_testing_enabled: boolean;
+  auto_enrich: boolean;
+  min_quality_score: number;
 }
+
+const TIMEZONES = [
+  { value: 'America/New_York', label: 'Eastern Time (ET)' },
+  { value: 'America/Chicago', label: 'Central Time (CT)' },
+  { value: 'America/Denver', label: 'Mountain Time (MT)' },
+  { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
+  { value: 'Europe/London', label: 'London (GMT)' },
+  { value: 'Europe/Paris', label: 'Central European (CET)' },
+  { value: 'Asia/Tokyo', label: 'Japan (JST)' },
+  { value: 'Australia/Sydney', label: 'Sydney (AEST)' },
+];
 
 export function AutopilotSettings({ campaignId, onSettingsChange }: AutopilotSettingsProps) {
   const [settings, setSettings] = useState<AutopilotConfig>({
@@ -53,6 +77,14 @@ export function AutopilotSettings({ campaignId, onSettingsChange }: AutopilotSet
     rotate_gmail_accounts: true,
     pause_on_reply: true,
     search_queries: [],
+    business_days_only: true,
+    send_window_start: 9,
+    send_window_end: 17,
+    default_timezone: 'America/New_York',
+    warmup_mode: false,
+    ab_testing_enabled: false,
+    auto_enrich: false,
+    min_quality_score: 0,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -422,6 +454,99 @@ export function AutopilotSettings({ campaignId, onSettingsChange }: AutopilotSet
 
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-gray-900 font-medium">
+            <Calendar className="w-4 h-4" />
+            <span>Send Schedule</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1.5">
+                Start Hour
+              </label>
+              <select
+                value={settings.send_window_start}
+                onChange={(e) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    send_window_start: parseInt(e.target.value),
+                  }))
+                }
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-100 focus:border-yellow-400"
+              >
+                {Array.from({ length: 24 }, (_, i) => (
+                  <option key={i} value={i}>
+                    {i === 0 ? '12 AM' : i < 12 ? `${i} AM` : i === 12 ? '12 PM' : `${i - 12} PM`}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1.5">
+                End Hour
+              </label>
+              <select
+                value={settings.send_window_end}
+                onChange={(e) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    send_window_end: parseInt(e.target.value),
+                  }))
+                }
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-100 focus:border-yellow-400"
+              >
+                {Array.from({ length: 24 }, (_, i) => (
+                  <option key={i} value={i}>
+                    {i === 0 ? '12 AM' : i < 12 ? `${i} AM` : i === 12 ? '12 PM' : `${i - 12} PM`}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1.5">
+                Timezone
+              </label>
+              <select
+                value={settings.default_timezone}
+                onChange={(e) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    default_timezone: e.target.value,
+                  }))
+                }
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-100 focus:border-yellow-400"
+              >
+                {TIMEZONES.map((tz) => (
+                  <option key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <label className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+            <input
+              type="checkbox"
+              checked={settings.business_days_only}
+              onChange={(e) =>
+                setSettings((prev) => ({
+                  ...prev,
+                  business_days_only: e.target.checked,
+                }))
+              }
+              className="w-4 h-4 text-yellow-500 border-gray-300 rounded focus:ring-yellow-400"
+            />
+            <div>
+              <span className="font-medium text-gray-700">Business Days Only</span>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Skip sending on weekends (Saturday & Sunday)
+              </p>
+            </div>
+          </label>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-gray-900 font-medium">
             <Settings className="w-4 h-4" />
             <span>Advanced Options</span>
           </div>
@@ -476,6 +601,107 @@ export function AutopilotSettings({ campaignId, onSettingsChange }: AutopilotSet
                 </p>
               </div>
             </label>
+
+            <label className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+              <input
+                type="checkbox"
+                checked={settings.warmup_mode}
+                onChange={(e) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    warmup_mode: e.target.checked,
+                  }))
+                }
+                className="w-4 h-4 text-yellow-500 border-gray-300 rounded focus:ring-yellow-400"
+              />
+              <div>
+                <div className="flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-orange-500" />
+                  <span className="font-medium text-gray-700">
+                    Warmup Mode
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Gradually increase daily limit for new accounts
+                </p>
+              </div>
+            </label>
+
+            <label className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+              <input
+                type="checkbox"
+                checked={settings.ab_testing_enabled}
+                onChange={(e) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    ab_testing_enabled: e.target.checked,
+                  }))
+                }
+                className="w-4 h-4 text-yellow-500 border-gray-300 rounded focus:ring-yellow-400"
+              />
+              <div>
+                <div className="flex items-center gap-2">
+                  <FlaskConical className="w-4 h-4 text-blue-500" />
+                  <span className="font-medium text-gray-700">
+                    A/B Testing
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Test different subject lines automatically
+                </p>
+              </div>
+            </label>
+
+            <label className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+              <input
+                type="checkbox"
+                checked={settings.auto_enrich}
+                onChange={(e) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    auto_enrich: e.target.checked,
+                  }))
+                }
+                className="w-4 h-4 text-yellow-500 border-gray-300 rounded focus:ring-yellow-400"
+              />
+              <div>
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-green-500" />
+                  <span className="font-medium text-gray-700">
+                    Auto-Enrich Leads
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Enable Apify contact enrichment (extra cost)
+                </p>
+              </div>
+            </label>
+
+            <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="w-4 h-4 text-amber-500" />
+                <span className="font-medium text-gray-700">Min Quality Score</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="80"
+                step="10"
+                value={settings.min_quality_score}
+                onChange={(e) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    min_quality_score: parseInt(e.target.value),
+                  }))
+                }
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>All leads</span>
+                <span className="font-medium text-amber-600">{settings.min_quality_score}+</span>
+                <span>High quality</span>
+              </div>
+            </div>
           </div>
         </div>
 
