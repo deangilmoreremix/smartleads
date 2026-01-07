@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Eye, RefreshCw, Sparkles, Mail, ThumbsUp, ThumbsDown, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
 
 interface AIPreviewGeneratorProps {
   prompt: string;
@@ -9,19 +10,45 @@ interface AIPreviewGeneratorProps {
   industry?: string;
 }
 
+interface LeadExample {
+  business_name: string;
+  decision_maker_name: string;
+  location: string;
+  rating: number;
+  review_count: number;
+}
+
 interface PreviewEmail {
   id: number;
   subject: string;
   body: string;
   score: number;
-  leadExample: {
-    business_name: string;
-    decision_maker_name: string;
-    location: string;
-    rating: number;
-    review_count: number;
-  };
+  leadExample: LeadExample;
 }
+
+const sampleLeadProfiles: LeadExample[] = [
+  {
+    business_name: "Mario's Italian Restaurant",
+    decision_maker_name: 'Mario Rossi',
+    location: 'New York, NY',
+    rating: 4.8,
+    review_count: 342
+  },
+  {
+    business_name: 'Summit Real Estate Group',
+    decision_maker_name: 'Sarah Chen',
+    location: 'Austin, TX',
+    rating: 4.5,
+    review_count: 156
+  },
+  {
+    business_name: 'TechVision Solutions',
+    decision_maker_name: 'James Wilson',
+    location: 'San Francisco, CA',
+    rating: 4.9,
+    review_count: 89
+  }
+];
 
 export default function AIPreviewGenerator({ prompt, tone, goal, industry }: AIPreviewGeneratorProps) {
   const [previews, setPreviews] = useState<PreviewEmail[]>([]);
@@ -29,31 +56,7 @@ export default function AIPreviewGenerator({ prompt, tone, goal, industry }: AIP
   const [selectedPreview, setSelectedPreview] = useState<number>(0);
   const [ratings, setRatings] = useState<{ [key: number]: 'up' | 'down' | null }>({});
 
-  const mockLeads = [
-    {
-      business_name: "Mario's Italian Restaurant",
-      decision_maker_name: 'Mario Rossi',
-      location: 'New York, NY',
-      rating: 4.8,
-      review_count: 342
-    },
-    {
-      business_name: 'Summit Real Estate Group',
-      decision_maker_name: 'Sarah Chen',
-      location: 'Austin, TX',
-      rating: 4.5,
-      review_count: 156
-    },
-    {
-      business_name: 'TechVision Solutions',
-      decision_maker_name: 'James Wilson',
-      location: 'San Francisco, CA',
-      rating: 4.9,
-      review_count: 89
-    }
-  ];
-
-  const generatePreviews = () => {
+  const generatePreviews = async () => {
     if (!prompt.trim()) {
       toast.error('Please enter a prompt first');
       return;
@@ -61,53 +64,80 @@ export default function AIPreviewGenerator({ prompt, tone, goal, industry }: AIP
 
     setIsGenerating(true);
 
-    setTimeout(() => {
-      const generated: PreviewEmail[] = mockLeads.map((lead, index) => ({
-        id: index,
-        subject: generateSubject(lead, index),
-        body: generateBody(lead, index),
-        score: Math.floor(Math.random() * 15) + 85,
-        leadExample: lead
-      }));
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please sign in to generate previews');
+        setIsGenerating(false);
+        return;
+      }
 
-      setPreviews(generated);
+      const generatedPreviews: PreviewEmail[] = [];
+
+      for (let i = 0; i < sampleLeadProfiles.length; i++) {
+        const lead = sampleLeadProfiles[i];
+
+        const systemPrompt = `You are an expert cold email writer. Write personalized, compelling emails that:
+- Are concise (100-150 words)
+- Feel human and conversational, not AI-generated
+- Show genuine research about the recipient
+- Include a clear, specific value proposition
+- Reference specific details about their business
+- End with a simple, low-friction call to action
+- Avoid marketing jargon and spam triggers
+
+Tone: ${tone}
+Email Goal: ${goal.replace('_', ' ')}
+Target Industry: ${industry || 'general business'}`;
+
+        const userPrompt = `${prompt}
+
+Write a personalized cold email to:
+Business: ${lead.business_name}
+Decision Maker: ${lead.decision_maker_name}
+Location: ${lead.location}
+Rating: ${lead.rating} stars (${lead.review_count} reviews)
+
+Write the email body only, no subject line.`;
+
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-content`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            systemPrompt,
+            userPrompt,
+            generateSubject: true,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to generate email');
+        }
+
+        const result = await response.json();
+
+        generatedPreviews.push({
+          id: i,
+          subject: result.subject || `Quick question about ${lead.business_name}`,
+          body: result.body || result.content || '',
+          score: Math.floor(Math.random() * 15) + 85,
+          leadExample: lead
+        });
+      }
+
+      setPreviews(generatedPreviews);
       setSelectedPreview(0);
+      toast.success(`Generated ${generatedPreviews.length} preview emails`);
+    } catch (error: any) {
+      console.error('Preview generation error:', error);
+      toast.error(error.message || 'Failed to generate previews');
+    } finally {
       setIsGenerating(false);
-      toast.success(`Generated ${generated.length} preview emails`);
-    }, 2000);
-  };
-
-  const generateSubject = (lead: typeof mockLeads[0], variant: number) => {
-    const subjects = [
-      `Quick question about ${lead.business_name}`,
-      `${lead.decision_maker_name}, loved your ${lead.rating}-star rating!`,
-      `Idea for ${lead.business_name} in ${lead.location}`,
-      `${lead.business_name} - specific growth opportunity`,
-      `${lead.decision_maker_name}, can we chat briefly?`
-    ];
-    return subjects[variant] || subjects[0];
-  };
-
-  const generateBody = (lead: typeof mockLeads[0], variant: number) => {
-    const intros = [
-      `Hi ${lead.decision_maker_name},\n\nI came across ${lead.business_name} and was really impressed by your ${lead.rating}-star rating with ${lead.review_count} reviews. Clearly you're doing something right!`,
-      `${lead.decision_maker_name},\n\nHope this email finds you well. I noticed ${lead.business_name} in ${lead.location} and wanted to reach out with a quick idea.`,
-      `Hey ${lead.decision_maker_name},\n\nI've been researching successful businesses in ${lead.location}, and ${lead.business_name} definitely caught my attention with those ${lead.review_count} reviews.`
-    ];
-
-    const bodies = [
-      `\n\nI help ${industry || 'businesses'} like yours increase their online presence and drive more customers through targeted digital marketing. We've helped similar businesses in ${lead.location} increase their customer base by 40% in just 90 days.\n\n`,
-      `\n\nI specialize in helping ${industry || 'local businesses'} maximize their online visibility. Based on your excellent reviews, I think there's real potential to amplify your reach and bring in even more customers.\n\n`,
-      `\n\nI work with ${industry || 'businesses'} to scale their operations through smart digital strategies. Given ${lead.business_name}'s strong reputation, I believe we could help you reach the next level.\n\n`
-    ];
-
-    const ctas = [
-      `Would you be open to a quick 15-minute call this week to discuss how we could help ${lead.business_name} grow?\n\nBest regards`,
-      `Are you interested in learning more? I'd love to show you some specific strategies that could work for ${lead.business_name}.\n\nLooking forward to hearing from you`,
-      `Let me know if you'd like to chat - I have some ideas specific to ${lead.location} that might interest you.\n\nThanks`
-    ];
-
-    return intros[variant % intros.length] + bodies[variant % bodies.length] + ctas[variant % ctas.length];
+    }
   };
 
   const handleRating = (previewId: number, rating: 'up' | 'down') => {
@@ -119,21 +149,79 @@ export default function AIPreviewGenerator({ prompt, tone, goal, industry }: AIP
     toast.success(rating === 'up' ? 'Marked as helpful' : 'Feedback recorded');
   };
 
-  const regeneratePreview = (index: number) => {
+  const regeneratePreview = async (index: number) => {
+    if (!prompt.trim()) return;
+
     setIsGenerating(true);
-    setTimeout(() => {
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please sign in to regenerate');
+        setIsGenerating(false);
+        return;
+      }
+
+      const lead = sampleLeadProfiles[index % sampleLeadProfiles.length];
+
+      const systemPrompt = `You are an expert cold email writer. Write personalized, compelling emails that:
+- Are concise (100-150 words)
+- Feel human and conversational, not AI-generated
+- Show genuine research about the recipient
+- Include a clear, specific value proposition
+- Reference specific details about their business
+- End with a simple, low-friction call to action
+- Avoid marketing jargon and spam triggers
+
+Tone: ${tone}
+Email Goal: ${goal.replace('_', ' ')}
+Target Industry: ${industry || 'general business'}`;
+
+      const userPrompt = `${prompt}
+
+Write a DIFFERENT variation of a personalized cold email to:
+Business: ${lead.business_name}
+Decision Maker: ${lead.decision_maker_name}
+Location: ${lead.location}
+Rating: ${lead.rating} stars (${lead.review_count} reviews)
+
+Write the email body only, no subject line. Make it unique from previous versions.`;
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-content`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          systemPrompt,
+          userPrompt,
+          generateSubject: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to regenerate email');
+      }
+
+      const result = await response.json();
+
       const newPreviews = [...previews];
-      const lead = mockLeads[index % mockLeads.length];
       newPreviews[index] = {
         ...newPreviews[index],
-        subject: generateSubject(lead, Math.floor(Math.random() * 5)),
-        body: generateBody(lead, Math.floor(Math.random() * 3)),
+        subject: result.subject || `Quick question about ${lead.business_name}`,
+        body: result.body || result.content || '',
         score: Math.floor(Math.random() * 15) + 85
       };
       setPreviews(newPreviews);
-      setIsGenerating(false);
       toast.success('Preview regenerated');
-    }, 1000);
+    } catch (error: any) {
+      console.error('Regeneration error:', error);
+      toast.error(error.message || 'Failed to regenerate preview');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -147,7 +235,7 @@ export default function AIPreviewGenerator({ prompt, tone, goal, industry }: AIP
             <div className="flex-1">
               <h3 className="font-semibold text-stone-800 mb-1">AI Email Preview</h3>
               <p className="text-sm text-stone-600">
-                Generate sample emails to see how AI will personalize your message for different leads
+                Generate real AI-powered sample emails to see how your prompt performs
               </p>
             </div>
           </div>
@@ -179,7 +267,7 @@ export default function AIPreviewGenerator({ prompt, tone, goal, industry }: AIP
             Click "Generate Previews" to see how your AI prompt will create personalized emails
           </p>
           <p className="text-xs text-stone-500">
-            We'll generate 3-5 sample emails using different lead profiles
+            We'll generate 3 sample emails using different lead profiles via OpenAI
           </p>
         </div>
       )}
@@ -188,7 +276,7 @@ export default function AIPreviewGenerator({ prompt, tone, goal, industry }: AIP
         <div className="bg-white border border-amber-200 rounded-lg p-8">
           <div className="flex flex-col items-center gap-4">
             <RefreshCw className="w-8 h-8 text-orange-500 animate-spin" />
-            <p className="text-sm text-stone-600">Generating preview emails...</p>
+            <p className="text-sm text-stone-600">Generating preview emails with AI...</p>
             <div className="w-full max-w-md bg-amber-100 rounded-full h-2">
               <div className="bg-gradient-to-r from-amber-400 to-orange-500 h-2 rounded-full animate-pulse" style={{ width: '70%' }}></div>
             </div>
@@ -241,7 +329,7 @@ export default function AIPreviewGenerator({ prompt, tone, goal, industry }: AIP
                     {previews[selectedPreview].leadExample.business_name}
                   </h4>
                   <p className="text-sm text-stone-600">
-                    {previews[selectedPreview].leadExample.decision_maker_name} • {previews[selectedPreview].leadExample.location}
+                    {previews[selectedPreview].leadExample.decision_maker_name} - {previews[selectedPreview].leadExample.location}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
                     <div className="flex items-center gap-1">
@@ -339,7 +427,7 @@ export default function AIPreviewGenerator({ prompt, tone, goal, industry }: AIP
       {previews.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
           <p className="text-sm text-stone-800">
-            <strong>Tip:</strong> Review these previews to ensure the AI is generating emails that match your expectations.
+            <strong>Tip:</strong> Review these AI-generated previews to ensure your prompt produces quality emails.
             You can regenerate individual previews or adjust your prompt and generate new ones.
           </p>
         </div>

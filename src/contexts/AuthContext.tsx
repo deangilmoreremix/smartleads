@@ -22,47 +22,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-
-      if (session) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      } else {
-        try {
-          const demoEmail = 'demo@smartleads.io';
-          const demoPassword = 'demo-password-123';
-
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-            email: demoEmail,
-            password: demoPassword,
-          });
-
-          if (signInError) {
-            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-              email: demoEmail,
-              password: demoPassword,
-              options: {
-                data: {
-                  full_name: 'Demo User',
-                },
-              },
-            });
-
-            if (signUpError) throw signUpError;
-
-            if (signUpData.user) {
-              setUser(signUpData.user);
-              setSession(signUpData.session);
-            }
-          } else {
-            setUser(signInData.user);
-            setSession(signInData.session);
-          }
-        } catch (error) {
-          console.error('Auto-login failed:', error);
-        }
-        setLoading(false);
-      }
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
     };
 
     initAuth();
