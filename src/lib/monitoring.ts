@@ -152,20 +152,37 @@ export class Logger {
     this.logBuffer = [];
 
     try {
-      // In a production system, you would send these to a logging service
-      // For now, we'll just store critical errors in the database
-      const criticalLogs = logsToSend.filter(
-        (log) => log.level === LogLevel.CRITICAL || log.level === LogLevel.ERROR
+      // Store critical errors and warnings in the database
+      const logsToStore = logsToSend.filter(
+        (log) =>
+          log.level === LogLevel.CRITICAL ||
+          log.level === LogLevel.ERROR ||
+          log.level === LogLevel.WARNING
       );
 
-      if (criticalLogs.length > 0) {
-        // You could create a system_logs table for this
-        console.log(`Flushing ${criticalLogs.length} critical/error logs to storage`);
+      if (logsToStore.length > 0) {
+        const logRecords = logsToStore.map((log) => ({
+          user_id: log.userId || null,
+          campaign_id: log.campaignId || null,
+          lead_id: log.leadId || null,
+          log_level: log.level,
+          category: log.category,
+          message: log.message,
+          details: log.details || {},
+          error_message: log.error?.message || null,
+          error_stack: log.error?.stack || null,
+        }));
+
+        const { error } = await supabase.from('system_logs').insert(logRecords);
+
+        if (error) {
+          console.error('Failed to insert logs to database:', error);
+          // Don't put logs back to avoid infinite loop
+        }
       }
     } catch (err) {
       console.error('Failed to flush logs:', err);
-      // Put logs back in buffer to retry
-      this.logBuffer.unshift(...logsToSend);
+      // Don't put logs back to avoid infinite loop if database is having issues
     }
   }
 
