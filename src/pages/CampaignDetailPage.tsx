@@ -205,7 +205,7 @@ export default function CampaignDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-screen">
+      <div className="p-8 flex items-center justify-center min-h-screen bg-gray-50">
         <LoadingSpinner message="Loading campaign..." />
       </div>
     );
@@ -213,10 +213,10 @@ export default function CampaignDetailPage() {
 
   if (!campaign) {
     return (
-      <div className="p-8">
+      <div className="p-8 bg-gray-50 min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-2">Campaign not found</h2>
-          <Link to="/dashboard/campaigns" className="text-blue-400 hover:text-blue-300">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Campaign not found</h2>
+          <Link to="/dashboard/campaigns" className="text-yellow-600 hover:text-yellow-700">
             Back to campaigns
           </Link>
         </div>
@@ -232,272 +232,276 @@ export default function CampaignDetailPage() {
     : '0';
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-8">
-        <Link
-          to="/dashboard/campaigns"
-          className="inline-flex items-center space-x-2 text-slate-400 hover:text-white mb-4 transition"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span>Back to campaigns</span>
-        </Link>
+    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <Link
+            to="/dashboard/campaigns"
+            className="inline-flex items-center space-x-2 text-gray-500 hover:text-gray-900 mb-4 transition"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to campaigns</span>
+          </Link>
 
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center space-x-3 mb-2">
-              <h1 className="text-3xl font-bold text-white">{campaign.name}</h1>
-              <span className={`
-                px-3 py-1 rounded-full text-sm font-medium
-                ${campaign.status === 'active' ? 'bg-green-500/20 text-green-400' :
-                  campaign.status === 'paused' ? 'bg-yellow-500/20 text-yellow-400' :
-                  campaign.status === 'completed' ? 'bg-blue-500/20 text-blue-400' :
-                  'bg-slate-500/20 text-slate-400'}
-              `}>
-                {campaign.status}
-              </span>
-            </div>
-            <div className="flex items-center space-x-4 text-slate-400">
-              <span>{campaign.niche}</span>
-              <span>•</span>
-              <span>{campaign.location}</span>
-              <span>•</span>
-              <span>Created {new Date(campaign.created_at).toLocaleDateString()}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            {campaign.status === 'draft' && (
-              <button
-                onClick={handleStartAutomation}
-                disabled={isAutomating}
-                className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-blue-500/50 transition disabled:opacity-50"
-              >
-                <Zap className="w-5 h-5" />
-                <span>Start Automation</span>
-              </button>
-            )}
-            <button
-              onClick={() => setShowDeleteDialog(true)}
-              className="inline-flex items-center space-x-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 px-4 py-2 rounded-lg transition"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {isAutomating && (
-        <div className="mb-8 bg-blue-500/10 border border-blue-500/30 rounded-xl p-6">
-          <div className="flex items-center space-x-4">
-            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="flex items-start justify-between">
             <div>
-              <h3 className="text-white font-medium mb-1">Automation in Progress</h3>
-              <p className="text-slate-400 text-sm">{automationStatus}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {campaign.ai_prompt && (
-        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-8">
-          <div className="flex items-start space-x-3">
-            <Sparkles className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-blue-400 font-medium mb-2">AI Prompt Used</h3>
-              <p className="text-slate-300">{campaign.ai_prompt}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-blue-400" />
-                </div>
-                <TrendingUp className="w-5 h-5 text-green-400" />
+              <div className="flex items-center space-x-3 mb-2">
+                <h1 className="text-3xl font-bold text-gray-900">{campaign.name}</h1>
+                <span className={`
+                  px-3 py-1 rounded-full text-sm font-medium
+                  ${campaign.status === 'active' ? 'bg-green-100 text-green-700' :
+                    campaign.status === 'paused' ? 'bg-yellow-100 text-yellow-700' :
+                    campaign.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                    'bg-gray-100 text-gray-600'}
+                `}>
+                  {campaign.status}
+                </span>
               </div>
-              <div className="text-3xl font-bold text-white mb-1">{campaign.total_leads}</div>
-              <div className="text-slate-400 text-sm">Total Leads</div>
-            </div>
-
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-                  <Mail className="w-6 h-6 text-cyan-400" />
-                </div>
+              <div className="flex items-center space-x-4 text-gray-500">
+                <span>{campaign.niche}</span>
+                <span>-</span>
+                <span>{campaign.location}</span>
+                <span>-</span>
+                <span>Created {new Date(campaign.created_at).toLocaleDateString()}</span>
               </div>
-              <div className="text-3xl font-bold text-white mb-1">{campaign.emails_sent}</div>
-              <div className="text-slate-400 text-sm">Emails Sent</div>
             </div>
 
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                  <Eye className="w-6 h-6 text-purple-400" />
-                </div>
-              </div>
-              <div className="text-3xl font-bold text-white mb-1">{openRate}%</div>
-              <div className="text-slate-400 text-sm">Open Rate</div>
-            </div>
-
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-                  <MessageSquare className="w-6 h-6 text-green-400" />
-                </div>
-              </div>
-              <div className="text-3xl font-bold text-white mb-1">{replyRate}%</div>
-              <div className="text-slate-400 text-sm">Reply Rate</div>
-            </div>
-          </div>
-
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Campaign Leads</h2>
-              <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3">
+              {campaign.status === 'draft' && (
                 <button
-                  onClick={() => loadCampaignDetails()}
-                  className="p-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition"
+                  onClick={handleStartAutomation}
+                  disabled={isAutomating}
+                  className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-xl hover:shadow-lg hover:shadow-orange-500/30 transition disabled:opacity-50"
                 >
-                  <RefreshCw className="w-5 h-5" />
+                  <Zap className="w-5 h-5" />
+                  <span>Start Automation</span>
                 </button>
-                <Link
-                  to="/dashboard/leads"
-                  className="text-blue-400 hover:text-blue-300 text-sm font-medium transition"
-                >
-                  View all
-                </Link>
+              )}
+              <button
+                onClick={() => setShowDeleteDialog(true)}
+                className="inline-flex items-center space-x-2 bg-red-100 hover:bg-red-200 text-red-600 px-4 py-2 rounded-xl transition"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {isAutomating && (
+          <div className="mb-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+              <div>
+                <h3 className="text-gray-900 font-medium mb-1">Automation in Progress</h3>
+                <p className="text-gray-600 text-sm">{automationStatus}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {campaign.ai_prompt && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-8">
+            <div className="flex items-start space-x-3">
+              <Sparkles className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-yellow-700 font-medium mb-2">AI Prompt Used</h3>
+                <p className="text-gray-700">{campaign.ai_prompt}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <Users className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <TrendingUp className="w-5 h-5 text-green-500" />
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">{campaign.total_leads}</div>
+                <div className="text-gray-500 text-sm">Total Leads</div>
+              </div>
+
+              <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <Mail className="w-6 h-6 text-green-600" />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">{campaign.emails_sent}</div>
+                <div className="text-gray-500 text-sm">Emails Sent</div>
+              </div>
+
+              <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                    <Eye className="w-6 h-6 text-yellow-600" />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">{openRate}%</div>
+                <div className="text-gray-500 text-sm">Open Rate</div>
+              </div>
+
+              <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                    <MessageSquare className="w-6 h-6 text-orange-600" />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">{replyRate}%</div>
+                <div className="text-gray-500 text-sm">Reply Rate</div>
               </div>
             </div>
 
-            {leads.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-8 h-8 text-slate-500" />
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Campaign Leads</h2>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => loadCampaignDetails()}
+                    className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition"
+                  >
+                    <RefreshCw className="w-5 h-5" />
+                  </button>
+                  <Link
+                    to="/dashboard/leads"
+                    className="text-yellow-600 hover:text-yellow-700 text-sm font-medium transition"
+                  >
+                    View all
+                  </Link>
                 </div>
-                <h3 className="text-white font-medium mb-2">No leads yet</h3>
-                <p className="text-slate-400 text-sm mb-6">Start scraping Google Maps to find leads</p>
+              </div>
+
+              {leads.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-gray-900 font-medium mb-2">No leads yet</h3>
+                  <p className="text-gray-500 text-sm mb-6">Start scraping Google Maps to find leads</p>
+                  <button
+                    onClick={handleScrapLeads}
+                    disabled={isAutomating}
+                    className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-3 rounded-xl hover:shadow-lg hover:shadow-orange-500/30 transition disabled:opacity-50"
+                  >
+                    <Zap className="w-5 h-5" />
+                    <span>Scrape Leads</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {leads.map((lead) => (
+                    <div key={lead.id} className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-gray-900 font-medium mb-1">{lead.business_name}</h3>
+                        <p className="text-gray-500 text-sm">{lead.email}</p>
+                      </div>
+                      <span className={`
+                        px-3 py-1 rounded-full text-xs font-medium
+                        ${lead.status === 'converted' ? 'bg-green-100 text-green-700' :
+                          lead.status === 'replied' ? 'bg-blue-100 text-blue-700' :
+                          lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-gray-100 text-gray-600'}
+                      `}>
+                        {lead.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Automation Tools</h2>
+              <div className="space-y-3">
                 <button
                   onClick={handleScrapLeads}
                   disabled={isAutomating}
-                  className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-lg hover:shadow-lg hover:shadow-blue-500/50 transition disabled:opacity-50"
+                  className="w-full flex items-center space-x-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl p-4 transition disabled:opacity-50 text-left"
                 >
-                  <Zap className="w-5 h-5" />
-                  <span>Scrape Leads</span>
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-gray-900 font-medium">Scrape Leads</h3>
+                    <p className="text-gray-500 text-sm">Find local businesses</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={handleGenerateEmails}
+                  disabled={isAutomating || campaign.total_leads === 0}
+                  className="w-full flex items-center space-x-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl p-4 transition disabled:opacity-50 text-left"
+                >
+                  <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-gray-900 font-medium">Generate Emails</h3>
+                    <p className="text-gray-500 text-sm">AI personalization</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={handleSendEmails}
+                  disabled={isAutomating || campaign.total_leads === 0}
+                  className="w-full flex items-center space-x-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl p-4 transition disabled:opacity-50 text-left"
+                >
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Mail className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-gray-900 font-medium">Send Emails</h3>
+                    <p className="text-gray-500 text-sm">Launch outreach</p>
+                  </div>
                 </button>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {leads.map((lead) => (
-                  <div key={lead.id} className="bg-slate-700/50 rounded-lg p-4 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-white font-medium mb-1">{lead.business_name}</h3>
-                      <p className="text-slate-400 text-sm">{lead.email}</p>
-                    </div>
-                    <span className={`
-                      px-3 py-1 rounded-full text-xs font-medium
-                      ${lead.status === 'converted' ? 'bg-green-500/20 text-green-400' :
-                        lead.status === 'replied' ? 'bg-blue-500/20 text-blue-400' :
-                        lead.status === 'contacted' ? 'bg-cyan-500/20 text-cyan-400' :
-                        'bg-slate-500/20 text-slate-400'}
-                    `}>
-                      {lead.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Automation Tools</h2>
-            <div className="space-y-3">
-              <button
-                onClick={handleScrapLeads}
-                disabled={isAutomating}
-                className="w-full flex items-center space-x-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg p-4 transition disabled:opacity-50 text-left"
-              >
-                <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-blue-400" />
-                </div>
-                <div>
-                  <h3 className="text-white font-medium">Scrape Leads</h3>
-                  <p className="text-slate-400 text-sm">Find local businesses</p>
-                </div>
-              </button>
-
-              <button
-                onClick={handleGenerateEmails}
-                disabled={isAutomating || campaign.total_leads === 0}
-                className="w-full flex items-center space-x-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg p-4 transition disabled:opacity-50 text-left"
-              >
-                <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-purple-400" />
-                </div>
-                <div>
-                  <h3 className="text-white font-medium">Generate Emails</h3>
-                  <p className="text-slate-400 text-sm">AI personalization</p>
-                </div>
-              </button>
-
-              <button
-                onClick={handleSendEmails}
-                disabled={isAutomating || campaign.total_leads === 0}
-                className="w-full flex items-center space-x-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg p-4 transition disabled:opacity-50 text-left"
-              >
-                <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-green-400" />
-                </div>
-                <div>
-                  <h3 className="text-white font-medium">Send Emails</h3>
-                  <p className="text-slate-400 text-sm">Launch outreach</p>
-                </div>
-              </button>
             </div>
-          </div>
 
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-            <h2 className="text-lg font-bold text-white mb-4">Campaign Info</h2>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Scraping Status:</span>
-                <span className="text-white capitalize">{campaign.scraping_status?.replace('_', ' ') || 'Not started'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">AI Personalization:</span>
-                <span className="text-white">{campaign.ai_personalization ? 'Enabled' : 'Disabled'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Automation:</span>
-                <span className="text-white">{campaign.automation_enabled ? 'Active' : 'Inactive'}</span>
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Campaign Info</h2>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Scraping Status:</span>
+                  <span className="text-gray-900 capitalize font-medium">{campaign.scraping_status?.replace('_', ' ') || 'Not started'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">AI Personalization:</span>
+                  <span className="text-gray-900 font-medium">{campaign.ai_personalization ? 'Enabled' : 'Disabled'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Automation:</span>
+                  <span className={`font-medium ${campaign.automation_enabled ? 'text-green-600' : 'text-gray-500'}`}>
+                    {campaign.automation_enabled ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="mb-8">
-        <EmailSequenceBuilder
-          campaignId={campaign.id}
-          onSequenceCreated={loadCampaignDetails}
+        <div className="mb-8">
+          <EmailSequenceBuilder
+            campaignId={campaign.id}
+            onSequenceCreated={loadCampaignDetails}
+          />
+        </div>
+
+        <ConfirmDialog
+          isOpen={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          onConfirm={handleDelete}
+          title="Delete Campaign"
+          message="Are you sure you want to delete this campaign? This action cannot be undone and will delete all associated leads and emails."
+          confirmText="Delete"
+          type="danger"
         />
       </div>
-
-      <ConfirmDialog
-        isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        onConfirm={handleDelete}
-        title="Delete Campaign"
-        message="Are you sure you want to delete this campaign? This action cannot be undone and will delete all associated leads and emails."
-        confirmText="Delete"
-        type="danger"
-      />
     </div>
   );
 }
