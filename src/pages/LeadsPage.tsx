@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Search, Filter, Mail, Phone, Globe, Star, ExternalLink } from 'lucide-react';
 import type { Database } from '../types/database';
+import EmailVerificationBadge from '../components/EmailVerificationBadge';
+import SequenceProgressBadge from '../components/SequenceProgressBadge';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
 
@@ -109,8 +111,14 @@ export default function LeadsPage() {
             <div key={lead.id} className="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:border-blue-500/50 transition">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
+                  <div className="flex items-center flex-wrap gap-2 mb-2">
                     <h3 className="text-lg font-bold text-white">{lead.business_name}</h3>
+                    {lead.verification_status && (
+                      <EmailVerificationBadge
+                        status={lead.verification_status as 'valid' | 'invalid' | 'risky' | 'pending'}
+                        size="sm"
+                      />
+                    )}
                     <span className={`
                       px-3 py-1 rounded-full text-xs font-medium
                       ${lead.email_type === 'personal' ? 'bg-green-500/20 text-green-400' :

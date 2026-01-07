@@ -50,7 +50,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: email } = await supabase
       .from("emails")
-      .select("id")
+      .select("id, lead_id, campaign_id")
       .eq("unipile_message_id", event.message_id)
       .maybeSingle();
 
@@ -101,6 +101,50 @@ Deno.serve(async (req: Request) => {
     if (insertError) {
       console.error("Error inserting tracking event:", insertError);
       throw insertError;
+    }
+
+    if (eventType === "replied" && email.lead_id) {
+      await supabase
+        .from("leads")
+        .update({
+          has_replied: true,
+          replied_at: event.timestamp || new Date().toISOString(),
+          status: "replied",
+        })
+        .eq("id", email.lead_id);
+
+      await supabase
+        .from("lead_sequence_progress")
+        .update({
+          is_paused: true,
+          pause_reason: "Lead replied to email",
+        })
+        .eq("lead_id", email.lead_id);
+
+      await supabase
+        .from("emails")
+        .update({
+          status: "replied",
+          replied_at: event.timestamp || new Date().toISOString(),
+        })
+        .eq("id", email.id);
+
+      const { data: campaign } = await supabase
+        .from("campaigns")
+        .select("emails_replied")
+        .eq("id", email.campaign_id)
+        .maybeSingle();
+
+      if (campaign) {
+        await supabase
+          .from("campaigns")
+          .update({
+            emails_replied: (campaign.emails_replied || 0) + 1,
+          })
+          .eq("id", email.campaign_id);
+      }
+
+      console.log(`Reply detected! Paused sequence for lead ${email.lead_id}`);
     }
 
     console.log(`Successfully processed ${eventType} event for email ${email.id}`);

@@ -170,6 +170,14 @@ export interface Database {
           scraped_data: Json
           personalization_score: number
           last_contacted_at: string | null
+          email_verified: boolean
+          verification_status: 'pending' | 'valid' | 'invalid' | 'risky'
+          verification_date: string | null
+          verification_details: Json | null
+          has_replied: boolean
+          replied_at: string | null
+          last_email_sent_at: string | null
+          emails_sent_count: number
           created_at: string
           updated_at: string
         }
@@ -192,6 +200,14 @@ export interface Database {
           scraped_data?: Json
           personalization_score?: number
           last_contacted_at?: string | null
+          email_verified?: boolean
+          verification_status?: 'pending' | 'valid' | 'invalid' | 'risky'
+          verification_date?: string | null
+          verification_details?: Json | null
+          has_replied?: boolean
+          replied_at?: string | null
+          last_email_sent_at?: string | null
+          emails_sent_count?: number
           created_at?: string
           updated_at?: string
         }
@@ -214,6 +230,14 @@ export interface Database {
           scraped_data?: Json
           personalization_score?: number
           last_contacted_at?: string | null
+          email_verified?: boolean
+          verification_status?: 'pending' | 'valid' | 'invalid' | 'risky'
+          verification_date?: string | null
+          verification_details?: Json | null
+          has_replied?: boolean
+          replied_at?: string | null
+          last_email_sent_at?: string | null
+          emails_sent_count?: number
           created_at?: string
           updated_at?: string
         }
