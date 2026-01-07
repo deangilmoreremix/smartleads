@@ -49,7 +49,7 @@ Deno.serve(async (req: Request) => {
     const openai = new OpenAI({ apiKey: openaiApiKey });
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
@@ -65,7 +65,7 @@ Deno.serve(async (req: Request) => {
       const body = lines.join('\n');
 
       const subjectCompletion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5-mini',
         messages: [
           {
             role: 'system',
