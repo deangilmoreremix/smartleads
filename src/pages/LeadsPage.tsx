@@ -1,12 +1,20 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Search, Filter, Mail, Phone, Globe, Star, ExternalLink } from 'lucide-react';
+import {
+  Search, Filter, Mail, Phone, Globe, Star, ExternalLink,
+  Brain, Target, Activity, ChevronRight, X, TrendingUp,
+  CheckCircle, AlertTriangle
+} from 'lucide-react';
 import type { Database } from '../types/database';
 import EmailVerificationBadge from '../components/EmailVerificationBadge';
-import SequenceProgressBadge from '../components/SequenceProgressBadge';
+import LeadIntelligencePanel from '../components/LeadIntelligencePanel';
 
-type Lead = Database['public']['Tables']['leads']['Row'];
+type Lead = Database['public']['Tables']['leads']['Row'] & {
+  research_completed?: boolean;
+  website_health_checked?: boolean;
+  intent_score?: number;
+};
 
 export default function LeadsPage() {
   const { user } = useAuth();
@@ -14,6 +22,8 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [showIntelligencePanel, setShowIntelligencePanel] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -45,6 +55,17 @@ export default function LeadsPage() {
     return matchesSearch && matchesFilter;
   });
 
+  const openIntelligencePanel = (lead: Lead) => {
+    setSelectedLead(lead);
+    setShowIntelligencePanel(true);
+  };
+
+  const closeIntelligencePanel = () => {
+    setShowIntelligencePanel(false);
+    setSelectedLead(null);
+    loadLeads();
+  };
+
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-screen">
@@ -60,7 +81,60 @@ export default function LeadsPage() {
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Leads</h1>
-        <p className="text-slate-400">Browse and manage your prospects</p>
+        <p className="text-slate-400">Browse and manage your prospects with AI-powered intelligence</p>
+      </div>
+
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm">Total Leads</p>
+              <p className="text-2xl font-bold text-white">{leads.length}</p>
+            </div>
+            <div className="p-3 bg-blue-500/20 rounded-xl">
+              <Mail className="w-6 h-6 text-blue-400" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm">Researched</p>
+              <p className="text-2xl font-bold text-white">
+                {leads.filter(l => l.research_completed).length}
+              </p>
+            </div>
+            <div className="p-3 bg-emerald-500/20 rounded-xl">
+              <Brain className="w-6 h-6 text-emerald-400" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm">Health Checked</p>
+              <p className="text-2xl font-bold text-white">
+                {leads.filter(l => l.website_health_checked).length}
+              </p>
+            </div>
+            <div className="p-3 bg-cyan-500/20 rounded-xl">
+              <Activity className="w-6 h-6 text-cyan-400" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm">High Intent</p>
+              <p className="text-2xl font-bold text-white">
+                {leads.filter(l => (l.intent_score || 0) >= 70).length}
+              </p>
+            </div>
+            <div className="p-3 bg-orange-500/20 rounded-xl">
+              <Target className="w-6 h-6 text-orange-400" />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 mb-6">
@@ -93,127 +167,188 @@ export default function LeadsPage() {
         </div>
       </div>
 
-      {filteredLeads.length === 0 ? (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-12 text-center">
-          <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Mail className="w-8 h-8 text-slate-500" />
-          </div>
-          <h3 className="text-white font-medium mb-2">No leads found</h3>
-          <p className="text-slate-400 text-sm">
-            {leads.length === 0
-              ? 'Create a campaign to start generating leads'
-              : 'Try adjusting your search or filter criteria'}
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {filteredLeads.map((lead) => (
-            <div key={lead.id} className="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:border-blue-500/50 transition">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center flex-wrap gap-2 mb-2">
-                    <h3 className="text-lg font-bold text-white">{lead.business_name}</h3>
-                    {lead.verification_status && (
-                      <EmailVerificationBadge
-                        status={lead.verification_status as 'valid' | 'invalid' | 'risky' | 'pending'}
-                        size="sm"
-                      />
-                    )}
-                    <span className={`
-                      px-3 py-1 rounded-full text-xs font-medium
-                      ${lead.email_type === 'personal' ? 'bg-green-500/20 text-green-400' :
-                        lead.email_type === 'generic' ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-slate-500/20 text-slate-400'}
-                    `}>
-                      {lead.email_type}
-                    </span>
-                    <span className={`
-                      px-3 py-1 rounded-full text-xs font-medium
-                      ${lead.status === 'converted' ? 'bg-green-500/20 text-green-400' :
-                        lead.status === 'replied' ? 'bg-blue-500/20 text-blue-400' :
-                        lead.status === 'contacted' ? 'bg-cyan-500/20 text-cyan-400' :
-                        lead.status === 'bounced' ? 'bg-red-500/20 text-red-400' :
-                        'bg-slate-500/20 text-slate-400'}
-                    `}>
-                      {lead.status}
-                    </span>
-                  </div>
-                  {lead.decision_maker_name && (
-                    <p className="text-slate-400 text-sm mb-2">Contact: {lead.decision_maker_name}</p>
-                  )}
-                </div>
-                {lead.rating && (
-                  <div className="flex items-center space-x-1 bg-slate-700/50 px-3 py-1 rounded-lg">
-                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                    <span className="text-white font-medium text-sm">{lead.rating}</span>
-                    <span className="text-slate-400 text-sm">({lead.review_count})</span>
-                  </div>
-                )}
+      <div className="flex gap-6">
+        <div className={`flex-1 transition-all duration-300 ${showIntelligencePanel ? 'w-1/2' : 'w-full'}`}>
+          {filteredLeads.length === 0 ? (
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-12 text-center">
+              <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Mail className="w-8 h-8 text-slate-500" />
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                <a
-                  href={`mailto:${lead.email}`}
-                  className="flex items-center space-x-2 text-slate-300 hover:text-white transition"
-                >
-                  <Mail className="w-4 h-4 text-blue-400" />
-                  <span className="text-sm truncate">{lead.email}</span>
-                </a>
-                {lead.phone && (
-                  <a
-                    href={`tel:${lead.phone}`}
-                    className="flex items-center space-x-2 text-slate-300 hover:text-white transition"
-                  >
-                    <Phone className="w-4 h-4 text-green-400" />
-                    <span className="text-sm">{lead.phone}</span>
-                  </a>
-                )}
-                {lead.website && (
-                  <a
-                    href={lead.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-2 text-slate-300 hover:text-white transition"
-                  >
-                    <Globe className="w-4 h-4 text-cyan-400" />
-                    <span className="text-sm truncate">Website</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-              </div>
-
-              {lead.address && (
-                <p className="text-slate-400 text-sm mb-4">{lead.address}</p>
-              )}
-
-              {lead.notes && (
-                <div className="bg-slate-700/50 rounded-lg p-3 mt-4">
-                  <p className="text-slate-300 text-sm">{lead.notes}</p>
-                </div>
-              )}
-
-              <div className="mt-4 flex items-center space-x-3">
-                <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium text-sm transition">
-                  Send Email
-                </button>
-                {lead.google_maps_url && (
-                  <a
-                    href={lead.google_maps_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition"
-                  >
-                    <ExternalLink className="w-5 h-5" />
-                  </a>
-                )}
-              </div>
+              <h3 className="text-white font-medium mb-2">No leads found</h3>
+              <p className="text-slate-400 text-sm">
+                {leads.length === 0
+                  ? 'Create a campaign to start generating leads'
+                  : 'Try adjusting your search or filter criteria'}
+              </p>
             </div>
-          ))}
-        </div>
-      )}
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {filteredLeads.map((lead) => (
+                <div
+                  key={lead.id}
+                  className={`bg-slate-800 border rounded-xl p-6 hover:border-blue-500/50 transition cursor-pointer ${
+                    selectedLead?.id === lead.id ? 'border-blue-500' : 'border-slate-700'
+                  }`}
+                  onClick={() => openIntelligencePanel(lead)}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center flex-wrap gap-2 mb-2">
+                        <h3 className="text-lg font-bold text-white">{lead.business_name}</h3>
+                        {lead.verification_status && (
+                          <EmailVerificationBadge
+                            status={lead.verification_status as 'valid' | 'invalid' | 'risky' | 'pending'}
+                            size="sm"
+                          />
+                        )}
+                        <span className={`
+                          px-3 py-1 rounded-full text-xs font-medium
+                          ${lead.email_type === 'personal' ? 'bg-green-500/20 text-green-400' :
+                            lead.email_type === 'generic' ? 'bg-yellow-500/20 text-yellow-400' :
+                            'bg-slate-500/20 text-slate-400'}
+                        `}>
+                          {lead.email_type}
+                        </span>
+                        <span className={`
+                          px-3 py-1 rounded-full text-xs font-medium
+                          ${lead.status === 'converted' ? 'bg-green-500/20 text-green-400' :
+                            lead.status === 'replied' ? 'bg-blue-500/20 text-blue-400' :
+                            lead.status === 'contacted' ? 'bg-cyan-500/20 text-cyan-400' :
+                            lead.status === 'bounced' ? 'bg-red-500/20 text-red-400' :
+                            'bg-slate-500/20 text-slate-400'}
+                        `}>
+                          {lead.status}
+                        </span>
+                      </div>
+                      {lead.decision_maker_name && (
+                        <p className="text-slate-400 text-sm mb-2">Contact: {lead.decision_maker_name}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {lead.intent_score !== undefined && lead.intent_score > 0 && (
+                        <div className={`flex items-center gap-1 px-3 py-1 rounded-lg ${
+                          lead.intent_score >= 70 ? 'bg-emerald-500/20' :
+                          lead.intent_score >= 50 ? 'bg-amber-500/20' : 'bg-slate-700/50'
+                        }`}>
+                          <Target className={`w-4 h-4 ${
+                            lead.intent_score >= 70 ? 'text-emerald-400' :
+                            lead.intent_score >= 50 ? 'text-amber-400' : 'text-slate-400'
+                          }`} />
+                          <span className={`text-sm font-medium ${
+                            lead.intent_score >= 70 ? 'text-emerald-400' :
+                            lead.intent_score >= 50 ? 'text-amber-400' : 'text-slate-400'
+                          }`}>
+                            {lead.intent_score}
+                          </span>
+                        </div>
+                      )}
+                      {lead.rating && (
+                        <div className="flex items-center space-x-1 bg-slate-700/50 px-3 py-1 rounded-lg">
+                          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                          <span className="text-white font-medium text-sm">{lead.rating}</span>
+                          <span className="text-slate-400 text-sm">({lead.review_count})</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-      <div className="mt-6 text-center text-slate-400 text-sm">
-        Showing {filteredLeads.length} of {leads.length} leads
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                    <a
+                      href={`mailto:${lead.email}`}
+                      onClick={e => e.stopPropagation()}
+                      className="flex items-center space-x-2 text-slate-300 hover:text-white transition"
+                    >
+                      <Mail className="w-4 h-4 text-blue-400" />
+                      <span className="text-sm truncate">{lead.email}</span>
+                    </a>
+                    {lead.phone && (
+                      <a
+                        href={`tel:${lead.phone}`}
+                        onClick={e => e.stopPropagation()}
+                        className="flex items-center space-x-2 text-slate-300 hover:text-white transition"
+                      >
+                        <Phone className="w-4 h-4 text-green-400" />
+                        <span className="text-sm">{lead.phone}</span>
+                      </a>
+                    )}
+                    {lead.website && (
+                      <a
+                        href={lead.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        className="flex items-center space-x-2 text-slate-300 hover:text-white transition"
+                      >
+                        <Globe className="w-4 h-4 text-cyan-400" />
+                        <span className="text-sm truncate">Website</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+
+                  {lead.address && (
+                    <p className="text-slate-400 text-sm mb-4">{lead.address}</p>
+                  )}
+
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-700">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        {lead.research_completed ? (
+                          <CheckCircle className="w-4 h-4 text-emerald-400" />
+                        ) : (
+                          <AlertTriangle className="w-4 h-4 text-slate-500" />
+                        )}
+                        <span className="text-xs text-slate-400">Research</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {lead.website_health_checked ? (
+                          <CheckCircle className="w-4 h-4 text-emerald-400" />
+                        ) : (
+                          <AlertTriangle className="w-4 h-4 text-slate-500" />
+                        )}
+                        <span className="text-xs text-slate-400">Health</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openIntelligencePanel(lead);
+                      }}
+                      className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition"
+                    >
+                      <Brain className="w-4 h-4" />
+                      View Intelligence
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6 text-center text-slate-400 text-sm">
+            Showing {filteredLeads.length} of {leads.length} leads
+          </div>
+        </div>
+
+        {showIntelligencePanel && selectedLead && (
+          <div className="w-1/2 sticky top-4 h-fit">
+            <div className="relative">
+              <button
+                onClick={closeIntelligencePanel}
+                className="absolute -left-3 top-4 z-10 p-2 bg-slate-800 border border-slate-700 rounded-full text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <LeadIntelligencePanel
+                leadId={selectedLead.id}
+                businessName={selectedLead.business_name}
+                website={selectedLead.website}
+                onClose={closeIntelligencePanel}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

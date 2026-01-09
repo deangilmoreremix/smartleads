@@ -21,6 +21,7 @@ import AccountsPage from './pages/AccountsPage';
 import PlansPage from './pages/PlansPage';
 import UnipileCallbackPage from './pages/UnipileCallbackPage';
 import AgentProgressPage from './pages/AgentProgressPage';
+import IntentSignalsPage from './pages/IntentSignalsPage';
 
 function App() {
   return (
@@ -106,6 +107,17 @@ function App() {
                 <ProtectedRoute>
                   <DashboardLayout>
                     <LeadsPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/signals"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <IntentSignalsPage />
                   </DashboardLayout>
                 </ProtectedRoute>
               }

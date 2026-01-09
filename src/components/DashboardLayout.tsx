@@ -9,7 +9,9 @@ import {
   LogOut,
   Menu,
   X,
-  Zap
+  Zap,
+  Brain,
+  UserSearch
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
@@ -31,6 +33,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Campaigns', href: '/dashboard/campaigns', icon: Target },
+    { name: 'Leads', href: '/dashboard/leads', icon: UserSearch },
+    { name: 'Intent Signals', href: '/dashboard/signals', icon: Brain },
     { name: 'Templates', href: '/dashboard/templates', icon: Mail },
     { name: 'Accounts', href: '/dashboard/accounts', icon: Users },
     { name: 'Plans', href: '/dashboard/plans', icon: CreditCard },
