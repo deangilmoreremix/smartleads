@@ -3,14 +3,30 @@ import { supabase } from '../lib/supabase';
 const EDGE_FUNCTION_BASE = import.meta.env.VITE_SUPABASE_URL + '/functions/v1';
 
 export interface RtrvrSettings {
-  maxLeads?: number;
-  enableWebsiteEnrichment?: boolean;
-  enableSocialExtraction?: boolean;
-  enableAiExtraction?: boolean;
-  scrapingThoroughness?: 'quick' | 'standard' | 'deep';
-  extractContacts?: boolean;
-  extractReviews?: boolean;
+  maxCrawledPlacesPerSearch?: number;
+  language?: string;
+  searchMatching?: 'all' | 'only_includes' | 'only_exact';
+  placeMinimumStars?: string;
+  website?: 'allPlaces' | 'withWebsite' | 'withoutWebsite';
+  skipClosedPlaces?: boolean;
+  scrapePlaceDetailPage?: boolean;
+  scrapeContacts?: boolean;
+  scrapeSocialMediaProfiles?: {
+    facebooks?: boolean;
+    instagrams?: boolean;
+    youtubes?: boolean;
+    tiktoks?: boolean;
+    twitters?: boolean;
+  };
+  maximumLeadsEnrichmentRecords?: number;
   maxReviews?: number;
+  reviewsSort?: string;
+  maxImages?: number;
+  maxQuestions?: number;
+  countryCode?: string;
+  state?: string;
+  county?: string;
+  postalCode?: string;
 }
 
 export interface ScrapeLeadsParams {

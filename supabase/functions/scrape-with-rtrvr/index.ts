@@ -3,14 +3,30 @@ import { RtrvrClient } from '../_shared/rtrvr-client.ts';
 import { GPT5Extractor, BusinessListing, BusinessDetails, ContactInfo } from '../_shared/gpt5-extractor.ts';
 
 interface RtrvrSettings {
-  maxLeads: number;
-  enableWebsiteEnrichment: boolean;
-  enableSocialExtraction: boolean;
-  enableAiExtraction: boolean;
-  scrapingThoroughness: 'quick' | 'standard' | 'deep';
-  extractContacts: boolean;
-  extractReviews: boolean;
-  maxReviews: number;
+  maxCrawledPlacesPerSearch?: number;
+  language?: string;
+  searchMatching?: 'all' | 'only_includes' | 'only_exact';
+  placeMinimumStars?: string;
+  website?: 'allPlaces' | 'withWebsite' | 'withoutWebsite';
+  skipClosedPlaces?: boolean;
+  scrapePlaceDetailPage?: boolean;
+  scrapeContacts?: boolean;
+  scrapeSocialMediaProfiles?: {
+    facebooks?: boolean;
+    instagrams?: boolean;
+    youtubes?: boolean;
+    tiktoks?: boolean;
+    twitters?: boolean;
+  };
+  maximumLeadsEnrichmentRecords?: number;
+  maxReviews?: number;
+  reviewsSort?: string;
+  maxImages?: number;
+  maxQuestions?: number;
+  countryCode?: string;
+  state?: string;
+  county?: string;
+  postalCode?: string;
 }
 
 interface ScrapeRequest {
@@ -27,14 +43,26 @@ const corsHeaders = {
 };
 
 const defaultSettings: RtrvrSettings = {
-  maxLeads: 50,
-  enableWebsiteEnrichment: true,
-  enableSocialExtraction: true,
-  enableAiExtraction: true,
-  scrapingThoroughness: 'standard',
-  extractContacts: true,
-  extractReviews: false,
-  maxReviews: 5,
+  maxCrawledPlacesPerSearch: 50,
+  language: 'en',
+  searchMatching: 'all',
+  placeMinimumStars: '',
+  website: 'allPlaces',
+  skipClosedPlaces: false,
+  scrapePlaceDetailPage: false,
+  scrapeContacts: false,
+  scrapeSocialMediaProfiles: {
+    facebooks: false,
+    instagrams: false,
+    youtubes: false,
+    tiktoks: false,
+    twitters: false,
+  },
+  maximumLeadsEnrichmentRecords: 0,
+  maxReviews: 0,
+  reviewsSort: 'newest',
+  maxImages: 0,
+  maxQuestions: 0,
 };
 
 async function logProgress(
@@ -123,12 +151,12 @@ Deno.serve(async (req: Request) => {
     if (!rtrvrApiKey) {
       throw new Error('RTRVR_API_KEY not configured');
     }
-    if (!openaiApiKey && settings.enableAiExtraction) {
+    if (!openaiApiKey) {
       throw new Error('OPENAI_API_KEY not configured for AI extraction');
     }
 
     const rtrvr = new RtrvrClient(rtrvrApiKey);
-    const extractor = settings.enableAiExtraction ? new GPT5Extractor(openaiApiKey!) : null;
+    const extractor = new GPT5Extractor(openaiApiKey);
 
     jobId = crypto.randomUUID();
     await supabase.from('agent_jobs').insert({
@@ -189,37 +217,24 @@ Deno.serve(async (req: Request) => {
       metadata: { pageLength: searchResult.content.length },
     });
 
-    let businessListings: BusinessListing[] = [];
+    await logProgress(supabase, jobId, {
+      level: 'loading',
+      icon: '🤖',
+      message: 'GPT-5.2 analyzing search results to extract business listings...',
+    });
 
-    if (extractor) {
-      await logProgress(supabase, jobId, {
-        level: 'loading',
-        icon: '🤖',
-        message: 'GPT-5.2 analyzing search results to extract business listings...',
-      });
+    const { listings } = await extractor.extractBusinessListings(
+      searchResult.content,
+      searchResult.accessibilityTree
+    );
 
-      const { listings } = await extractor.extractBusinessListings(
-        searchResult.content,
-        searchResult.accessibilityTree
-      );
+    const businessListings = listings.slice(0, settings.maxCrawledPlacesPerSearch || 50);
 
-      businessListings = listings.slice(0, settings.maxLeads);
-
-      await logProgress(supabase, jobId, {
-        level: 'success',
-        icon: '📊',
-        message: `Extracted ${businessListings.length} businesses using GPT-5.2`,
-      });
-    } else {
-      const basicListings = parseBasicListings(searchResult.content);
-      businessListings = basicListings.slice(0, settings.maxLeads);
-
-      await logProgress(supabase, jobId, {
-        level: 'info',
-        icon: '📊',
-        message: `Found ${businessListings.length} businesses (basic extraction)`,
-      });
-    }
+    await logProgress(supabase, jobId, {
+      level: 'success',
+      icon: '📊',
+      message: `Extracted ${businessListings.length} businesses using GPT-5.2`,
+    });
 
     await supabase.from('agent_jobs').update({
       progress_percentage: 40,
@@ -232,14 +247,14 @@ Deno.serve(async (req: Request) => {
       contacts?: ContactInfo;
     }> = [];
 
-    if (settings.scrapingThoroughness !== 'quick' && businessListings.length > 0) {
+    if (settings.scrapePlaceDetailPage && businessListings.length > 0) {
       await logProgress(supabase, jobId, {
         level: 'loading',
         icon: '🔍',
         message: `Scraping detailed pages for ${businessListings.length} businesses...`,
       });
 
-      const batchSize = settings.scrapingThoroughness === 'deep' ? 3 : 5;
+      const batchSize = 5;
       let processedCount = 0;
 
       for (let i = 0; i < businessListings.length; i += batchSize) {
@@ -258,14 +273,12 @@ Deno.serve(async (req: Request) => {
 
           const detailResult = detailResults.get(listing.google_maps_url);
           if (detailResult && !(detailResult instanceof Error)) {
-            if (extractor) {
-              const { details } = await extractor.extractBusinessDetails(
-                detailResult.content,
-                listing.business_name,
-                detailResult.accessibilityTree
-              );
-              leadData.details = details;
-            }
+            const { details } = await extractor.extractBusinessDetails(
+              detailResult.content,
+              listing.business_name,
+              detailResult.accessibilityTree
+            );
+            leadData.details = details;
           }
 
           leads.push(leadData);
@@ -294,7 +307,7 @@ Deno.serve(async (req: Request) => {
       completed_steps: 4,
     }).eq('id', jobId);
 
-    if (settings.enableWebsiteEnrichment && extractor) {
+    if (settings.scrapeContacts && extractor) {
       await logProgress(supabase, jobId, {
         level: 'loading',
         icon: '🌐',
@@ -371,7 +384,7 @@ Deno.serve(async (req: Request) => {
         google_maps_url: lead.listing.google_maps_url,
         status: 'new',
         extraction_source: 'rtrvr',
-        extraction_confidence: extractor ? 0.95 : 0.7,
+        extraction_confidence: 0.95,
         scraped_data: {
           category: lead.listing.category,
           hours: lead.details?.hours,
@@ -395,7 +408,8 @@ Deno.serve(async (req: Request) => {
       throw new Error(`Failed to insert leads: ${insertError.message}`);
     }
 
-    if (settings.extractContacts && leads.some(l => l.contacts?.team_members?.length)) {
+    const shouldExtractContacts = (settings.maximumLeadsEnrichmentRecords || 0) > 0;
+    if (shouldExtractContacts && leads.some(l => l.contacts?.team_members?.length)) {
       const contactsToInsert = leads.flatMap((lead, idx) => {
         const leadId = insertedLeads?.[idx]?.id;
         if (!leadId || !lead.contacts?.team_members) return [];
@@ -415,7 +429,9 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    if (settings.enableSocialExtraction && leads.some(l => l.contacts?.social_profiles)) {
+    const socialProfiles = settings.scrapeSocialMediaProfiles || {};
+    const shouldExtractSocial = socialProfiles.facebooks || socialProfiles.instagrams || socialProfiles.youtubes || socialProfiles.tiktoks || socialProfiles.twitters;
+    if (shouldExtractSocial && leads.some(l => l.contacts?.social_profiles)) {
       const socialsToInsert = leads.flatMap((lead, idx) => {
         const leadId = insertedLeads?.[idx]?.id;
         if (!leadId || !lead.contacts?.social_profiles) return [];
@@ -444,8 +460,8 @@ Deno.serve(async (req: Request) => {
 
     const rtrvrUsage = rtrvr.getUsageStats();
     const rtrvrCost = rtrvr.calculateCost();
-    const openaiUsage = extractor?.getTotalUsage() || { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
-    const openaiCost = extractor?.calculateCost() || 0;
+    const openaiUsage = extractor.getTotalUsage();
+    const openaiCost = extractor.calculateCost();
 
     await supabase.from('rtrvr_usage_logs').insert({
       user_id: user.id,
@@ -560,31 +576,6 @@ Deno.serve(async (req: Request) => {
     );
   }
 });
-
-function parseBasicListings(content: string): BusinessListing[] {
-  const listings: BusinessListing[] = [];
-  const lines = content.split('\n');
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (line.length > 5 && line.length < 100 && !line.includes('http') && !line.includes('@')) {
-      const nextLines = lines.slice(i + 1, i + 5).join(' ');
-      const ratingMatch = nextLines.match(/(\d\.?\d?)\s*(?:stars?|rating)/i);
-      const reviewMatch = nextLines.match(/(\d+)\s*reviews?/i);
-
-      if (ratingMatch || reviewMatch) {
-        listings.push({
-          business_name: line,
-          google_maps_url: '',
-          rating: ratingMatch ? parseFloat(ratingMatch[1]) : undefined,
-          review_count: reviewMatch ? parseInt(reviewMatch[1]) : undefined,
-        });
-      }
-    }
-  }
-
-  return listings;
-}
 
 function determineBestEmail(lead: { listing: BusinessListing; details?: BusinessDetails; contacts?: ContactInfo }): string {
   if (lead.contacts?.emails && lead.contacts.emails.length > 0) {

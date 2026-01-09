@@ -18,14 +18,27 @@ export default function NewCampaignPage() {
   const [location, setLocation] = useState('');
   const [emailTemplate, setEmailTemplate] = useState('');
   const [rtrvrSettings, setRtrvrSettings] = useState<RtrvrSettings>({
-    maxLeads: 50,
-    enableWebsiteEnrichment: true,
-    enableSocialExtraction: true,
-    enableAiExtraction: true,
-    scrapingThoroughness: 'standard',
-    extractContacts: true,
-    extractReviews: false,
-    maxReviews: 5,
+    maxCrawledPlacesPerSearch: 50,
+    language: 'en',
+    searchMatching: 'all',
+    placeMinimumStars: '',
+    website: 'allPlaces',
+    skipClosedPlaces: false,
+    scrapePlaceDetailPage: false,
+    scrapeContacts: false,
+    scrapeSocialMediaProfiles: {
+      facebooks: false,
+      instagrams: false,
+      youtubes: false,
+      tiktoks: false,
+      twitters: false,
+    },
+    maximumLeadsEnrichmentRecords: 0,
+    maxReviews: 0,
+    reviewsSort: 'newest',
+    maxImages: 0,
+    maxQuestions: 0,
+    categoryFilterWords: [],
   });
 
   const examplePrompts = [
@@ -79,8 +92,6 @@ export default function NewCampaignPage() {
           ai_prompt: aiPrompt || null,
           email_template: emailTemplate || null,
           rtrvr_settings: rtrvrSettings,
-          scraping_provider: 'rtrvr',
-          openai_extraction_enabled: rtrvrSettings.enableAiExtraction,
           status: 'draft'
         })
         .select()

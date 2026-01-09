@@ -1,15 +1,34 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Sparkles, Globe, Users, DollarSign, Zap } from 'lucide-react';
+import { ChevronDown, ChevronUp, Info } from 'lucide-react';
 
 export interface RtrvrSettings {
-  maxLeads: number;
-  enableWebsiteEnrichment: boolean;
-  enableSocialExtraction: boolean;
-  enableAiExtraction: boolean;
-  scrapingThoroughness: 'quick' | 'standard' | 'deep';
-  extractContacts: boolean;
-  extractReviews: boolean;
-  maxReviews: number;
+  maxCrawledPlacesPerSearch?: number;
+  language?: string;
+  searchMatching?: 'all' | 'only_includes' | 'only_exact';
+  placeMinimumStars?: '' | 'two' | 'twoAndHalf' | 'three' | 'threeAndHalf' | 'four' | 'fourAndHalf';
+  website?: 'allPlaces' | 'withWebsite' | 'withoutWebsite';
+  skipClosedPlaces?: boolean;
+  scrapePlaceDetailPage?: boolean;
+  scrapeContacts?: boolean;
+  scrapeSocialMediaProfiles?: {
+    facebooks?: boolean;
+    instagrams?: boolean;
+    youtubes?: boolean;
+    tiktoks?: boolean;
+    twitters?: boolean;
+  };
+  maximumLeadsEnrichmentRecords?: number;
+  leadsEnrichmentDepartments?: string[];
+  maxReviews?: number;
+  reviewsSort?: 'newest' | 'mostRelevant' | 'highestRanking' | 'lowestRanking';
+  maxImages?: number;
+  maxQuestions?: number;
+  categoryFilterWords?: string[];
+  countryCode?: string;
+  city?: string;
+  state?: string;
+  county?: string;
+  postalCode?: string;
 }
 
 interface Props {
@@ -17,271 +36,328 @@ interface Props {
   onChange: (settings: RtrvrSettings) => void;
 }
 
-const defaultSettings: RtrvrSettings = {
-  maxLeads: 50,
-  enableWebsiteEnrichment: true,
-  enableSocialExtraction: true,
-  enableAiExtraction: true,
-  scrapingThoroughness: 'standard',
-  extractContacts: true,
-  extractReviews: false,
-  maxReviews: 5,
-};
-
-function estimateCost(settings: RtrvrSettings): { rtrvr: number; openai: number; total: number } {
-  const basePerPage = 0.001;
-  const enrichmentPerPage = 0.0005;
-  const openaiPerLead = 0.002;
-
-  let rtrvrCost = settings.maxLeads * basePerPage;
-
-  if (settings.scrapingThoroughness !== 'quick') {
-    rtrvrCost += settings.maxLeads * basePerPage;
-  }
-
-  if (settings.enableWebsiteEnrichment) {
-    rtrvrCost += settings.maxLeads * enrichmentPerPage * 0.7;
-  }
-
-  let openaiCost = 0;
-  if (settings.enableAiExtraction) {
-    openaiCost = settings.maxLeads * openaiPerLead;
-    if (settings.enableWebsiteEnrichment) {
-      openaiCost += settings.maxLeads * openaiPerLead * 0.5;
-    }
-  }
-
-  return {
-    rtrvr: rtrvrCost,
-    openai: openaiCost,
-    total: rtrvrCost + openaiCost,
-  };
-}
-
-export default function RtrvrScrapingSettings({ settings = defaultSettings, onChange }: Props) {
+export default function RtrvrScrapingSettings({ settings, onChange }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const mergedSettings = { ...defaultSettings, ...settings };
-
   const updateSettings = (updates: Partial<RtrvrSettings>) => {
-    onChange({ ...mergedSettings, ...updates });
+    onChange({ ...settings, ...updates });
   };
 
-  const costs = estimateCost(mergedSettings);
+  const updateSocialProfiles = (platform: string, enabled: boolean) => {
+    onChange({
+      ...settings,
+      scrapeSocialMediaProfiles: {
+        ...settings.scrapeSocialMediaProfiles,
+        [`${platform}s`]: enabled,
+      },
+    });
+  };
 
   return (
-    <div className="bg-white border border-teal-200 rounded-2xl overflow-hidden shadow-sm">
+    <div className="bg-white border border-amber-200 rounded-2xl overflow-hidden shadow-sm">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-6 hover:bg-teal-50/50 transition"
+        className="w-full flex items-center justify-between p-6 hover:bg-amber-50/50 transition"
       >
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center">
+            <Info className="w-5 h-5 text-white" />
           </div>
           <div className="text-left">
-            <h3 className="text-lg font-bold text-stone-800">AI-Powered Scraping Settings</h3>
-            <p className="text-sm text-stone-500">rtrvr.ai + GPT-5.2 intelligent extraction</p>
+            <h3 className="text-lg font-bold text-stone-800">Advanced Scraping Options</h3>
+            <p className="text-sm text-stone-500">Configure filters, enrichment, and data collection</p>
           </div>
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="text-right">
-            <p className="text-xs text-stone-500">Est. Cost</p>
-            <p className="text-sm font-semibold text-teal-600">${costs.total.toFixed(2)}</p>
-          </div>
-          {isOpen ? (
-            <ChevronUp className="w-5 h-5 text-stone-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-stone-400" />
-          )}
-        </div>
+        {isOpen ? (
+          <ChevronUp className="w-5 h-5 text-stone-400" />
+        ) : (
+          <ChevronDown className="w-5 h-5 text-stone-400" />
+        )}
       </button>
 
       {isOpen && (
         <div className="p-6 pt-0 space-y-6">
-          <div className="border-t border-teal-200 pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-semibold text-stone-700">Leads to Scrape</h4>
-              <span className="text-lg font-bold text-teal-600">{mergedSettings.maxLeads}</span>
-            </div>
-            <input
-              type="range"
-              min="10"
-              max="200"
-              step="10"
-              value={mergedSettings.maxLeads}
-              onChange={(e) => updateSettings({ maxLeads: parseInt(e.target.value) })}
-              className="w-full h-2 bg-teal-100 rounded-lg appearance-none cursor-pointer accent-teal-500"
-            />
-            <div className="flex justify-between text-xs text-stone-500 mt-1">
-              <span>10</span>
-              <span>100</span>
-              <span>200</span>
-            </div>
-          </div>
-
-          <div className="border-t border-teal-200 pt-6">
-            <h4 className="text-sm font-semibold text-stone-700 mb-4">Scraping Thoroughness</h4>
-            <div className="grid grid-cols-3 gap-3">
-              {(['quick', 'standard', 'deep'] as const).map((level) => (
-                <button
-                  key={level}
-                  type="button"
-                  onClick={() => updateSettings({ scrapingThoroughness: level })}
-                  className={`p-4 rounded-xl border-2 transition ${
-                    mergedSettings.scrapingThoroughness === level
-                      ? 'border-teal-500 bg-teal-50'
-                      : 'border-stone-200 bg-white hover:border-teal-300'
-                  }`}
-                >
-                  <div className="text-center">
-                    <Zap className={`w-5 h-5 mx-auto mb-2 ${
-                      mergedSettings.scrapingThoroughness === level ? 'text-teal-500' : 'text-stone-400'
-                    }`} />
-                    <p className={`text-sm font-medium capitalize ${
-                      mergedSettings.scrapingThoroughness === level ? 'text-teal-700' : 'text-stone-600'
-                    }`}>
-                      {level}
-                    </p>
-                    <p className="text-xs text-stone-500 mt-1">
-                      {level === 'quick' && 'Basic info only'}
-                      {level === 'standard' && 'Full details'}
-                      {level === 'deep' && 'Max enrichment'}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="border-t border-teal-200 pt-6">
-            <h4 className="text-sm font-semibold text-stone-700 mb-4">AI & Enrichment Features</h4>
-            <div className="space-y-4">
-              <label className="flex items-start space-x-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={mergedSettings.enableAiExtraction}
-                  onChange={(e) => updateSettings({ enableAiExtraction: e.target.checked })}
-                  className="w-5 h-5 mt-0.5 rounded border-teal-300 bg-teal-50/50 text-teal-500 focus:ring-2 focus:ring-teal-200"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <Sparkles className="w-4 h-4 text-teal-500" />
-                    <span className="text-sm font-medium text-stone-700 group-hover:text-teal-600">GPT-5.2 Intelligent Extraction</span>
-                    <span className="px-2 py-0.5 text-xs bg-teal-100 text-teal-700 rounded-full">Recommended</span>
-                  </div>
-                  <p className="text-xs text-stone-500 mt-1">
-                    Uses AI to understand page structure and extract accurate business data. Handles layout variations automatically.
-                  </p>
-                </div>
-              </label>
-
-              <label className="flex items-start space-x-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={mergedSettings.enableWebsiteEnrichment}
-                  onChange={(e) => updateSettings({ enableWebsiteEnrichment: e.target.checked })}
-                  className="w-5 h-5 mt-0.5 rounded border-teal-300 bg-teal-50/50 text-teal-500 focus:ring-2 focus:ring-teal-200"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <Globe className="w-4 h-4 text-cyan-500" />
-                    <span className="text-sm font-medium text-stone-700 group-hover:text-teal-600">Website Contact Enrichment</span>
-                  </div>
-                  <p className="text-xs text-stone-500 mt-1">
-                    Visits business websites to find real email addresses, phone numbers, and team member contacts.
-                  </p>
-                </div>
-              </label>
-
-              <label className="flex items-start space-x-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={mergedSettings.enableSocialExtraction}
-                  onChange={(e) => updateSettings({ enableSocialExtraction: e.target.checked })}
-                  className="w-5 h-5 mt-0.5 rounded border-teal-300 bg-teal-50/50 text-teal-500 focus:ring-2 focus:ring-teal-200"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4 text-blue-500" />
-                    <span className="text-sm font-medium text-stone-700 group-hover:text-teal-600">Social Media Profile Extraction</span>
-                  </div>
-                  <p className="text-xs text-stone-500 mt-1">
-                    Extracts Facebook, Instagram, LinkedIn, Twitter, TikTok, and YouTube profiles from websites.
-                  </p>
-                </div>
-              </label>
-
-              <label className="flex items-start space-x-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={mergedSettings.extractContacts}
-                  onChange={(e) => updateSettings({ extractContacts: e.target.checked })}
-                  className="w-5 h-5 mt-0.5 rounded border-teal-300 bg-teal-50/50 text-teal-500 focus:ring-2 focus:ring-teal-200"
-                />
-                <div className="flex-1">
-                  <span className="text-sm font-medium text-stone-700 group-hover:text-teal-600">Extract Team Members & Decision Makers</span>
-                  <p className="text-xs text-stone-500 mt-1">
-                    Identifies key personnel from About/Team pages with their roles and contact info.
-                  </p>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <div className="border-t border-teal-200 pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-semibold text-stone-700">Review Extraction</h4>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={mergedSettings.extractReviews}
-                  onChange={(e) => updateSettings({ extractReviews: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-stone-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-500"></div>
-              </label>
-            </div>
-            {mergedSettings.extractReviews && (
-              <div className="bg-teal-50/50 rounded-lg p-4">
-                <label className="block text-sm text-stone-600 mb-2">Reviews per business</label>
+          <div className="border-t border-amber-200 pt-6">
+            <h4 className="text-sm font-semibold text-stone-700 mb-4">Basic Settings</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-stone-600 mb-2">
+                  Max Results Per Search
+                </label>
                 <input
                   type="number"
                   min="1"
-                  max="20"
-                  value={mergedSettings.maxReviews}
-                  onChange={(e) => updateSettings({ maxReviews: parseInt(e.target.value) || 5 })}
-                  className="w-full bg-white text-stone-800 border border-teal-200 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
+                  max="500"
+                  value={settings.maxCrawledPlacesPerSearch || 50}
+                  onChange={(e) => updateSettings({ maxCrawledPlacesPerSearch: parseInt(e.target.value) })}
+                  className="w-full bg-amber-50/50 text-stone-800 border border-amber-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm text-stone-600 mb-2">
+                  Minimum Rating
+                </label>
+                <select
+                  value={settings.placeMinimumStars || ''}
+                  onChange={(e) => updateSettings({ placeMinimumStars: e.target.value as RtrvrSettings['placeMinimumStars'] })}
+                  className="w-full bg-amber-50/50 text-stone-800 border border-amber-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                >
+                  <option value="">Any Rating</option>
+                  <option value="two">2+ Stars</option>
+                  <option value="twoAndHalf">2.5+ Stars</option>
+                  <option value="three">3+ Stars</option>
+                  <option value="threeAndHalf">3.5+ Stars</option>
+                  <option value="four">4+ Stars</option>
+                  <option value="fourAndHalf">4.5+ Stars</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-stone-600 mb-2">
+                  Website Filter
+                </label>
+                <select
+                  value={settings.website || 'allPlaces'}
+                  onChange={(e) => updateSettings({ website: e.target.value as RtrvrSettings['website'] })}
+                  className="w-full bg-amber-50/50 text-stone-800 border border-amber-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                >
+                  <option value="allPlaces">All Places</option>
+                  <option value="withWebsite">With Website Only</option>
+                  <option value="withoutWebsite">Without Website</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-stone-600 mb-2">
+                  Search Matching
+                </label>
+                <select
+                  value={settings.searchMatching || 'all'}
+                  onChange={(e) => updateSettings({ searchMatching: e.target.value as RtrvrSettings['searchMatching'] })}
+                  className="w-full bg-amber-50/50 text-stone-800 border border-amber-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                >
+                  <option value="all">All Results</option>
+                  <option value="only_includes">Name Includes Search Term</option>
+                  <option value="only_exact">Exact Name Match</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="flex items-center space-x-3 text-sm text-stone-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.skipClosedPlaces || false}
+                  onChange={(e) => updateSettings({ skipClosedPlaces: e.target.checked })}
+                  className="w-4 h-4 rounded border-amber-300 bg-amber-50/50 text-orange-500 focus:ring-2 focus:ring-orange-200"
+                />
+                <span>Skip Closed Places</span>
+              </label>
+            </div>
+
+            <div className="mt-4">
+              <label className="flex items-center space-x-3 text-sm text-stone-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.scrapePlaceDetailPage || false}
+                  onChange={(e) => updateSettings({ scrapePlaceDetailPage: e.target.checked })}
+                  className="w-4 h-4 rounded border-amber-300 bg-amber-50/50 text-orange-500 focus:ring-2 focus:ring-orange-200"
+                />
+                <span>Scrape Detailed Place Info (opening hours, popular times, etc.)</span>
+              </label>
+              <p className="text-xs text-stone-500 ml-7 mt-1">Required for reviews, images, and Q&A extraction</p>
+            </div>
+          </div>
+
+          <div className="border-t border-amber-200 pt-6">
+            <h4 className="text-sm font-semibold text-stone-700 mb-4">Contact Enrichment</h4>
+            <div className="space-y-4">
+              <div>
+                <label className="flex items-center space-x-3 text-sm text-stone-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.scrapeContacts || false}
+                    onChange={(e) => updateSettings({ scrapeContacts: e.target.checked })}
+                    className="w-4 h-4 rounded border-amber-300 bg-amber-50/50 text-orange-500 focus:ring-2 focus:ring-orange-200"
+                  />
+                  <span className="font-medium">Extract Real Emails from Websites</span>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-sm text-stone-600 mb-2">
+                  Social Media Profile Enrichment
+                </label>
+                <div className="space-y-2 ml-4">
+                  {['facebook', 'instagram', 'youtube', 'tiktok', 'twitter'].map((platform) => (
+                    <label key={platform} className="flex items-center space-x-3 text-sm text-stone-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.scrapeSocialMediaProfiles?.[`${platform}s` as keyof typeof settings.scrapeSocialMediaProfiles] || false}
+                        onChange={(e) => updateSocialProfiles(platform, e.target.checked)}
+                        className="w-4 h-4 rounded border-amber-300 bg-amber-50/50 text-orange-500 focus:ring-2 focus:ring-orange-200"
+                      />
+                      <span className="capitalize">{platform}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm text-stone-600 mb-2">
+                  Employee Leads Per Place
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="50"
+                  value={settings.maximumLeadsEnrichmentRecords || 0}
+                  onChange={(e) => updateSettings({ maximumLeadsEnrichmentRecords: parseInt(e.target.value) })}
+                  placeholder="0 = disabled"
+                  className="w-full bg-amber-50/50 text-stone-800 border border-amber-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                />
+                <p className="text-xs text-stone-500 mt-1">
+                  Extract employee names, job titles, emails, LinkedIn profiles.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-amber-200 pt-6">
+            <h4 className="text-sm font-semibold text-stone-700 mb-4">Additional Data Collection</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm text-stone-600 mb-2">
+                  Max Reviews
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={settings.maxReviews || 0}
+                  onChange={(e) => updateSettings({ maxReviews: parseInt(e.target.value) })}
+                  placeholder="0 = none"
+                  className="w-full bg-amber-50/50 text-stone-800 border border-amber-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-stone-600 mb-2">
+                  Max Images
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={settings.maxImages || 0}
+                  onChange={(e) => updateSettings({ maxImages: parseInt(e.target.value) })}
+                  placeholder="0 = none"
+                  className="w-full bg-amber-50/50 text-stone-800 border border-amber-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-stone-600 mb-2">
+                  Max Questions
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={settings.maxQuestions || 0}
+                  onChange={(e) => updateSettings({ maxQuestions: parseInt(e.target.value) })}
+                  placeholder="0 = none"
+                  className="w-full bg-amber-50/50 text-stone-800 border border-amber-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+            </div>
+
+            {(settings.maxReviews || 0) > 0 && (
+              <div className="mt-4">
+                <label className="block text-sm text-stone-600 mb-2">
+                  Review Sort Order
+                </label>
+                <select
+                  value={settings.reviewsSort || 'newest'}
+                  onChange={(e) => updateSettings({ reviewsSort: e.target.value as RtrvrSettings['reviewsSort'] })}
+                  className="w-full bg-amber-50/50 text-stone-800 border border-amber-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="mostRelevant">Most Relevant</option>
+                  <option value="highestRanking">Highest Rating</option>
+                  <option value="lowestRanking">Lowest Rating</option>
+                </select>
               </div>
             )}
           </div>
 
-          <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-xl p-5">
-            <div className="flex items-start space-x-3">
-              <DollarSign className="w-5 h-5 text-teal-600 mt-0.5" />
-              <div className="flex-1">
-                <h5 className="text-sm font-semibold text-stone-700 mb-2">Estimated Cost Breakdown</h5>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-stone-600">rtrvr.ai scraping:</span>
-                    <span className="font-medium text-stone-700">${costs.rtrvr.toFixed(3)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-stone-600">GPT-5.2 extraction:</span>
-                    <span className="font-medium text-stone-700">${costs.openai.toFixed(3)}</span>
-                  </div>
-                  <div className="flex justify-between pt-2 border-t border-teal-200 mt-2">
-                    <span className="font-semibold text-stone-700">Total estimated:</span>
-                    <span className="font-bold text-teal-600">${costs.total.toFixed(2)}</span>
-                  </div>
-                  <p className="text-xs text-stone-500 mt-2">
-                    ~${(costs.total / mergedSettings.maxLeads).toFixed(4)} per lead
-                  </p>
-                </div>
+          <div className="border-t border-amber-200 pt-6">
+            <h4 className="text-sm font-semibold text-stone-700 mb-4">Location Refinement</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-stone-600 mb-2">
+                  Country Code
+                </label>
+                <input
+                  type="text"
+                  value={settings.countryCode || ''}
+                  onChange={(e) => updateSettings({ countryCode: e.target.value })}
+                  placeholder="e.g., US, GB, CA"
+                  className="w-full bg-amber-50/50 text-stone-800 border border-amber-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-stone-600 mb-2">
+                  State/Province
+                </label>
+                <input
+                  type="text"
+                  value={settings.state || ''}
+                  onChange={(e) => updateSettings({ state: e.target.value })}
+                  placeholder="e.g., California, Texas"
+                  className="w-full bg-amber-50/50 text-stone-800 border border-amber-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-stone-600 mb-2">
+                  County
+                </label>
+                <input
+                  type="text"
+                  value={settings.county || ''}
+                  onChange={(e) => updateSettings({ county: e.target.value })}
+                  placeholder="e.g., Los Angeles County"
+                  className="w-full bg-amber-50/50 text-stone-800 border border-amber-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-stone-600 mb-2">
+                  Postal Code
+                </label>
+                <input
+                  type="text"
+                  value={settings.postalCode || ''}
+                  onChange={(e) => updateSettings({ postalCode: e.target.value })}
+                  placeholder="e.g., 90210"
+                  className="w-full bg-amber-50/50 text-stone-800 border border-amber-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                />
               </div>
             </div>
+            <p className="text-xs text-stone-500 mt-2">
+              These settings override the main location field for more precise targeting
+            </p>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <p className="text-sm text-stone-700">
+              <strong>Note:</strong> Advanced features like contact enrichment, social profiles, and employee leads
+              use rtrvr.ai for scraping and GPT-5.2 for intelligent extraction.
+            </p>
           </div>
         </div>
       )}
