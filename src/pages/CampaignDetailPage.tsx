@@ -109,14 +109,14 @@ export default function CampaignDetailPage() {
     if (!campaign) return;
 
     setIsAutomating(true);
-    setAutomationStatus('Starting AI agent...');
+    setAutomationStatus('Starting AI agent with rtrvr.ai + GPT-5.2...');
 
     try {
       const result = await scrapeGoogleMapsLeads({
         campaignId: campaign.id,
         niche: campaign.niche,
         location: campaign.location,
-        apifySettings: campaign.apify_settings || undefined,
+        rtrvrSettings: (campaign as any).rtrvr_settings || undefined,
       });
 
       if (result.jobId) {

@@ -14,13 +14,25 @@ interface ApiKeyStatus {
   error?: string;
 }
 
-async function verifyApifyKey(apiKey: string): Promise<{ valid: boolean; message: string; error?: string }> {
+async function verifyRtrvrKey(apiKey: string): Promise<{ valid: boolean; message: string; error?: string }> {
   try {
-    const response = await fetch(`https://api.apify.com/v2/acts?token=${apiKey}&limit=1`);
+    const response = await fetch('https://api.rtrvr.ai/scrape', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: 'https://example.com',
+        onlyTextContent: true,
+      }),
+    });
     if (response.ok) {
-      return { valid: true, message: 'API key is valid and working' };
+      return { valid: true, message: 'API key is valid - rtrvr.ai connected' };
     } else if (response.status === 401) {
       return { valid: false, message: 'API key is invalid or expired', error: 'Unauthorized' };
+    } else if (response.status === 429) {
+      return { valid: true, message: 'API key is valid (rate limited)' };
     } else {
       return { valid: false, message: 'Unable to verify API key', error: `HTTP ${response.status}` };
     }
@@ -37,7 +49,7 @@ async function verifyOpenAIKey(apiKey: string): Promise<{ valid: boolean; messag
       },
     });
     if (response.ok) {
-      return { valid: true, message: 'API key is valid and working' };
+      return { valid: true, message: 'API key is valid - GPT-5.2 ready' };
     } else if (response.status === 401) {
       return { valid: false, message: 'API key is invalid or expired', error: 'Unauthorized' };
     } else {
@@ -91,31 +103,29 @@ Deno.serve(async (req: Request) => {
 
     const results: ApiKeyStatus[] = [];
 
-    // Check Apify
-    const apifyKey = Deno.env.get('APIFY_API_TOKEN');
-    if (!apifyKey || apifyKey === '') {
+    const rtrvrKey = Deno.env.get('RTRVR_API_KEY');
+    if (!rtrvrKey || rtrvrKey === '') {
       results.push({
-        name: 'Apify',
+        name: 'rtrvr.ai',
         configured: false,
         valid: false,
-        message: 'Not configured - add APIFY_API_TOKEN to Supabase secrets',
+        message: 'Not configured - add RTRVR_API_KEY to Supabase secrets',
       });
     } else {
-      const apifyResult = await verifyApifyKey(apifyKey);
+      const rtrvrResult = await verifyRtrvrKey(rtrvrKey);
       results.push({
-        name: 'Apify',
+        name: 'rtrvr.ai',
         configured: true,
-        valid: apifyResult.valid,
-        message: apifyResult.message,
-        error: apifyResult.error,
+        valid: rtrvrResult.valid,
+        message: rtrvrResult.message,
+        error: rtrvrResult.error,
       });
     }
 
-    // Check OpenAI
     const openaiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openaiKey || openaiKey === '') {
       results.push({
-        name: 'OpenAI',
+        name: 'OpenAI (GPT-5.2)',
         configured: false,
         valid: false,
         message: 'Not configured - add OPENAI_API_KEY to Supabase secrets',
@@ -123,7 +133,7 @@ Deno.serve(async (req: Request) => {
     } else {
       const openaiResult = await verifyOpenAIKey(openaiKey);
       results.push({
-        name: 'OpenAI',
+        name: 'OpenAI (GPT-5.2)',
         configured: true,
         valid: openaiResult.valid,
         message: openaiResult.message,
@@ -131,7 +141,6 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Check Unipile
     const unipileKey = Deno.env.get('UNIPILE_API_KEY');
     if (!unipileKey || unipileKey === '') {
       results.push({
@@ -151,7 +160,6 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Check Unipile DSN (optional)
     const unipileDsn = Deno.env.get('UNIPILE_DSN');
     results.push({
       name: 'Unipile DSN',

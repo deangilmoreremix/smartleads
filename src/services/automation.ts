@@ -2,12 +2,23 @@ import { supabase } from '../lib/supabase';
 
 const EDGE_FUNCTION_BASE = import.meta.env.VITE_SUPABASE_URL + '/functions/v1';
 
+export interface RtrvrSettings {
+  maxLeads?: number;
+  enableWebsiteEnrichment?: boolean;
+  enableSocialExtraction?: boolean;
+  enableAiExtraction?: boolean;
+  scrapingThoroughness?: 'quick' | 'standard' | 'deep';
+  extractContacts?: boolean;
+  extractReviews?: boolean;
+  maxReviews?: number;
+}
+
 export interface ScrapeLeadsParams {
   campaignId: string;
   niche: string;
   location: string;
   maxResults?: number;
-  apifySettings?: any;
+  rtrvrSettings?: RtrvrSettings;
 }
 
 export interface GenerateEmailsParams {
@@ -26,7 +37,7 @@ export async function scrapeGoogleMapsLeads(params: ScrapeLeadsParams) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
-  const response = await fetch(`${EDGE_FUNCTION_BASE}/scrape-google-maps`, {
+  const response = await fetch(`${EDGE_FUNCTION_BASE}/scrape-with-rtrvr`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${session.access_token}`,

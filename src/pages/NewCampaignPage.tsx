@@ -3,37 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Sparkles, MapPin, Target, Mail, ArrowRight, Wand2 } from 'lucide-react';
-import ApifyAdvancedSettings from '../components/ApifyAdvancedSettings';
-
-interface ApifySettings {
-  maxCrawledPlacesPerSearch?: number;
-  language?: string;
-  searchMatching?: 'all' | 'only_includes' | 'only_exact';
-  placeMinimumStars?: '' | 'two' | 'twoAndHalf' | 'three' | 'threeAndHalf' | 'four' | 'fourAndHalf';
-  website?: 'allPlaces' | 'withWebsite' | 'withoutWebsite';
-  skipClosedPlaces?: boolean;
-  scrapePlaceDetailPage?: boolean;
-  scrapeContacts?: boolean;
-  scrapeSocialMediaProfiles?: {
-    facebooks?: boolean;
-    instagrams?: boolean;
-    youtubes?: boolean;
-    tiktoks?: boolean;
-    twitters?: boolean;
-  };
-  maximumLeadsEnrichmentRecords?: number;
-  leadsEnrichmentDepartments?: string[];
-  maxReviews?: number;
-  reviewsSort?: 'newest' | 'mostRelevant' | 'highestRanking' | 'lowestRanking';
-  maxImages?: number;
-  maxQuestions?: number;
-  categoryFilterWords?: string[];
-  countryCode?: string;
-  city?: string;
-  state?: string;
-  county?: string;
-  postalCode?: string;
-}
+import RtrvrScrapingSettings, { RtrvrSettings } from '../components/RtrvrScrapingSettings';
 
 export default function NewCampaignPage() {
   const { user } = useAuth();
@@ -47,28 +17,15 @@ export default function NewCampaignPage() {
   const [niche, setNiche] = useState('');
   const [location, setLocation] = useState('');
   const [emailTemplate, setEmailTemplate] = useState('');
-  const [apifySettings, setApifySettings] = useState<ApifySettings>({
-    maxCrawledPlacesPerSearch: 50,
-    language: 'en',
-    searchMatching: 'all',
-    placeMinimumStars: '',
-    website: 'allPlaces',
-    skipClosedPlaces: false,
-    scrapePlaceDetailPage: false,
-    scrapeContacts: false,
-    scrapeSocialMediaProfiles: {
-      facebooks: false,
-      instagrams: false,
-      youtubes: false,
-      tiktoks: false,
-      twitters: false,
-    },
-    maximumLeadsEnrichmentRecords: 0,
-    maxReviews: 0,
-    reviewsSort: 'newest',
-    maxImages: 0,
-    maxQuestions: 0,
-    categoryFilterWords: [],
+  const [rtrvrSettings, setRtrvrSettings] = useState<RtrvrSettings>({
+    maxLeads: 50,
+    enableWebsiteEnrichment: true,
+    enableSocialExtraction: true,
+    enableAiExtraction: true,
+    scrapingThoroughness: 'standard',
+    extractContacts: true,
+    extractReviews: false,
+    maxReviews: 5,
   });
 
   const examplePrompts = [
@@ -121,7 +78,9 @@ export default function NewCampaignPage() {
           location: location,
           ai_prompt: aiPrompt || null,
           email_template: emailTemplate || null,
-          apify_settings: apifySettings,
+          rtrvr_settings: rtrvrSettings,
+          scraping_provider: 'rtrvr',
+          openai_extraction_enabled: rtrvrSettings.enableAiExtraction,
           status: 'draft'
         })
         .select()
@@ -285,9 +244,9 @@ Variables: {firstName}, {businessName}, {location}"
             </div>
           </div>
 
-          <ApifyAdvancedSettings
-            settings={apifySettings}
-            onChange={setApifySettings}
+          <RtrvrScrapingSettings
+            settings={rtrvrSettings}
+            onChange={setRtrvrSettings}
           />
 
           {aiPrompt && (

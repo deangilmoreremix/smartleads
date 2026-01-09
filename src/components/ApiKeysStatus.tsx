@@ -198,13 +198,13 @@ export default function ApiKeysStatus() {
             <h3 className="text-sm font-medium text-blue-900 mb-2">How to Configure API Keys</h3>
             <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
               <li>Go to your Supabase Dashboard</li>
-              <li>Navigate to Project Settings → Edge Functions</li>
+              <li>Navigate to Project Settings &rarr; Edge Functions</li>
               <li>Click on "Manage secrets"</li>
               <li>Add the following secrets:
                 <ul className="ml-6 mt-1 space-y-1 list-disc list-inside text-xs">
-                  <li><code className="bg-blue-100 px-1 py-0.5 rounded">APIFY_API_TOKEN</code> - From Apify dashboard</li>
-                  <li><code className="bg-blue-100 px-1 py-0.5 rounded">OPENAI_API_KEY</code> - From OpenAI dashboard</li>
-                  <li><code className="bg-blue-100 px-1 py-0.5 rounded">UNIPILE_API_KEY</code> - From Unipile dashboard</li>
+                  <li><code className="bg-blue-100 px-1 py-0.5 rounded">RTRVR_API_KEY</code> - From rtrvr.ai dashboard (for web scraping)</li>
+                  <li><code className="bg-blue-100 px-1 py-0.5 rounded">OPENAI_API_KEY</code> - From OpenAI dashboard (GPT-5.2 extraction)</li>
+                  <li><code className="bg-blue-100 px-1 py-0.5 rounded">UNIPILE_API_KEY</code> - From Unipile dashboard (email sending)</li>
                   <li><code className="bg-blue-100 px-1 py-0.5 rounded">UNIPILE_DSN</code> - Optional, for webhook validation</li>
                 </ul>
               </li>
