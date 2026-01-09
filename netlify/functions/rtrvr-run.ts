@@ -1,12 +1,51 @@
 import type { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
 
-const RTRVR_API_URL = 'https://api.rtrvr.ai/v1/extract';
+const RTRVR_API_URL = 'https://api.rtrvr.ai/agent';
 const REQUEST_TIMEOUT_MS = 300000;
 
 interface RtrvrRequest {
   prompt: string;
   schema: Record<string, unknown>;
   config: Record<string, unknown>;
+}
+
+interface AgentApiResponse {
+  success: boolean;
+  status: 'success' | 'error' | 'cancelled' | 'requires_input' | 'executing';
+  trajectoryId: string;
+  phase: number;
+  output?: Array<{
+    type: 'text' | 'json' | 'tool_result';
+    text?: string;
+    data?: unknown;
+  }>;
+  result?: {
+    text?: string;
+    json?: unknown;
+  };
+  steps?: Array<{
+    toolName: string;
+    status: string;
+    duration?: number;
+    creditsUsed?: number;
+  }>;
+  usage: {
+    creditsUsed: number;
+    creditsLeft?: number;
+    currentCreditsUsed?: number;
+    expiryReason?: string;
+  };
+  metadata: {
+    taskRef: string;
+    inlineOutputMaxBytes: number;
+    toolsUsed: string[];
+    outputTooLarge?: boolean;
+    responseRef?: {
+      downloadUrl?: string;
+    };
+  };
+  warnings?: string[];
+  error?: string;
 }
 
 interface RtrvrResponse {
@@ -108,9 +147,8 @@ const handler: Handler = async (event: HandlerEvent, _context: HandlerContext) =
     const rtrvrPayload = {
       input: prompt,
       schema: schema,
-      options: {
-        strict_json: true,
-        timeout_ms: REQUEST_TIMEOUT_MS - 10000
+      response: {
+        verbosity: 'final' as const
       }
     };
 
@@ -165,7 +203,7 @@ const handler: Handler = async (event: HandlerEvent, _context: HandlerContext) =
     }
 
     const responseText = await response.text();
-    let rtrvrData: unknown;
+    let rtrvrData: AgentApiResponse;
 
     try {
       rtrvrData = JSON.parse(responseText);
@@ -180,33 +218,54 @@ const handler: Handler = async (event: HandlerEvent, _context: HandlerContext) =
       });
     }
 
+    if (!rtrvrData.success || rtrvrData.status === 'error') {
+      console.error('RTRVR agent returned error', {
+        status: rtrvrData.status,
+        error: rtrvrData.error,
+        durationMs
+      });
+      return createResponse(422, {
+        success: false,
+        error: rtrvrData.error || 'RTRVR agent failed to complete the task',
+        durationMs
+      });
+    }
+
+    const extractedData = rtrvrData.result?.json || {};
+
     console.log('RTRVR request completed', {
       durationMs,
-      placesCount: Array.isArray((rtrvrData as Record<string, unknown>).places)
-        ? ((rtrvrData as Record<string, unknown>).places as unknown[]).length
+      status: rtrvrData.status,
+      creditsUsed: rtrvrData.usage?.creditsUsed,
+      placesCount: Array.isArray((extractedData as Record<string, unknown>).places)
+        ? ((extractedData as Record<string, unknown>).places as unknown[]).length
         : 0
     });
 
     const result: RtrvrResponse = {
       success: true,
-      data: rtrvrData,
+      data: extractedData,
+      warnings: rtrvrData.warnings,
       diagnostics: {
         pagesVisited: 0,
         totalResultsFound: 0,
-        totalPlacesReturned: Array.isArray((rtrvrData as Record<string, unknown>).places)
-          ? ((rtrvrData as Record<string, unknown>).places as unknown[]).length
+        totalPlacesReturned: Array.isArray((extractedData as Record<string, unknown>).places)
+          ? ((extractedData as Record<string, unknown>).places as unknown[]).length
           : 0,
         durationMs,
         errors: [],
-        warnings: []
+        warnings: rtrvrData.warnings || []
       }
     };
 
-    if (typeof rtrvrData === 'object' && rtrvrData !== null && 'diagnostics' in rtrvrData) {
-      result.diagnostics = {
-        ...result.diagnostics,
-        ...(rtrvrData as Record<string, unknown>).diagnostics as Record<string, unknown>
-      } as RtrvrResponse['diagnostics'];
+    if (typeof extractedData === 'object' && extractedData !== null && 'diagnostics' in extractedData) {
+      const dataDiagnostics = (extractedData as Record<string, unknown>).diagnostics as Record<string, unknown> | undefined;
+      if (dataDiagnostics) {
+        result.diagnostics = {
+          ...result.diagnostics,
+          ...dataDiagnostics
+        } as RtrvrResponse['diagnostics'];
+      }
     }
 
     return createResponse(200, result);
