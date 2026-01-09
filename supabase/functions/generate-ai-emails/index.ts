@@ -206,7 +206,8 @@ Deno.serve(async (req: Request) => {
           emailTemplate,
           selectedVariant,
           userPrefs,
-          openai
+          openai,
+          supabaseClient
         );
 
         const { data: insertedEmail } = await supabaseClient
@@ -336,14 +337,144 @@ Deno.serve(async (req: Request) => {
   }
 });
 
+async function getLeadIntelligence(
+  supabaseClient: any,
+  leadId: string
+): Promise<{
+  services: string[];
+  painPoints: string[];
+  conversationStarter: string | null;
+  techStack: string[];
+  companySize: string | null;
+  decisionMaker: { name: string; role: string } | null;
+  websiteHealth: {
+    seoScore: number;
+    hasSSL: boolean;
+    mobileScore: number;
+    recommendedServices: string[];
+  } | null;
+  intentSignals: Array<{ type: string; strength: string; title: string }>;
+}> {
+  const [researchResult, healthResult, signalsResult] = await Promise.all([
+    supabaseClient
+      .from('lead_research')
+      .select('*')
+      .eq('lead_id', leadId)
+      .maybeSingle(),
+    supabaseClient
+      .from('website_health_scores')
+      .select('*')
+      .eq('lead_id', leadId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabaseClient
+      .from('intent_signals')
+      .select('signal_type, signal_strength, title')
+      .eq('lead_id', leadId)
+      .eq('is_actionable', true)
+      .order('relevance_score', { ascending: false })
+      .limit(5),
+  ]);
+
+  const research = researchResult.data;
+  const health = healthResult.data;
+  const signals = signalsResult.data || [];
+
+  return {
+    services: Array.isArray(research?.main_services)
+      ? research.main_services.map((s: { name: string }) => s.name)
+      : [],
+    painPoints: Array.isArray(research?.identified_pain_points)
+      ? research.identified_pain_points
+      : [],
+    conversationStarter: Array.isArray(research?.conversation_starters) && research.conversation_starters.length > 0
+      ? research.conversation_starters[0]
+      : null,
+    techStack: Array.isArray(research?.tech_stack) ? research.tech_stack : [],
+    companySize: research?.company_size_estimate || null,
+    decisionMaker: Array.isArray(research?.decision_makers) && research.decision_makers.length > 0
+      ? research.decision_makers[0]
+      : null,
+    websiteHealth: health ? {
+      seoScore: health.seo_score || 0,
+      hasSSL: health.has_ssl || false,
+      mobileScore: health.mobile_score || 0,
+      recommendedServices: Array.isArray(health.recommended_services) ? health.recommended_services : [],
+    } : null,
+    intentSignals: signals.map((s: { signal_type: string; signal_strength: string; title: string }) => ({
+      type: s.signal_type,
+      strength: s.signal_strength,
+      title: s.title,
+    })),
+  };
+}
+
+function buildIntentBasedApproach(
+  intentSignals: Array<{ type: string; strength: string; title: string }>,
+  websiteHealth: { seoScore: number; hasSSL: boolean; mobileScore: number; recommendedServices: string[] } | null
+): { approach: string; hooks: string[]; serviceRecommendations: string[] } {
+  const hooks: string[] = [];
+  const serviceRecommendations: string[] = [];
+  let approach = 'standard';
+
+  for (const signal of intentSignals) {
+    switch (signal.type) {
+      case 'hiring_surge':
+      case 'job_posting':
+        hooks.push(`Reference their growth: "${signal.title}"`);
+        approach = 'growth_focused';
+        break;
+      case 'funding_announcement':
+        hooks.push('Congratulate on funding and offer scaling services');
+        approach = 'high_value';
+        break;
+      case 'negative_review':
+        hooks.push('Offer reputation management or service improvement');
+        approach = 'problem_solver';
+        serviceRecommendations.push('Reputation management');
+        break;
+      case 'expansion_news':
+        hooks.push('Reference expansion and offer support services');
+        approach = 'growth_focused';
+        break;
+      case 'technology_adoption':
+        hooks.push(`Mention their tech adoption: "${signal.title}"`);
+        approach = 'tech_savvy';
+        break;
+    }
+  }
+
+  if (websiteHealth) {
+    if (websiteHealth.seoScore < 50) {
+      serviceRecommendations.push('SEO optimization');
+      hooks.push('Their website could rank higher with SEO improvements');
+    }
+    if (!websiteHealth.hasSSL) {
+      serviceRecommendations.push('SSL certificate and security audit');
+      hooks.push('Security improvement opportunity');
+    }
+    if (websiteHealth.mobileScore < 60) {
+      serviceRecommendations.push('Mobile optimization');
+      hooks.push('Mobile experience needs improvement');
+    }
+    if (websiteHealth.recommendedServices.length > 0) {
+      serviceRecommendations.push(...websiteHealth.recommendedServices.slice(0, 3));
+    }
+  }
+
+  return { approach, hooks, serviceRecommendations };
+}
+
 async function generatePersonalizedEmail(
   lead: any,
   campaign: any,
   template: any | null,
   variant: any | null,
   userPrefs: any | null,
-  openai: OpenAI
-): Promise<{ subject: string; body: string; prompt: string; tokens: any; qualityScore?: number }> {
+  openai: OpenAI,
+  supabaseClient?: any
+): Promise<{ subject: string; body: string; prompt: string; tokens: any; qualityScore?: number; intelligence?: any }> {
   const businessName = lead.business_name || 'your business';
   const reviews = lead.scraped_data?.reviews || [];
   const rating = lead.rating || 0;
@@ -352,7 +483,20 @@ async function generatePersonalizedEmail(
   const website = lead.website || '';
   const phone = lead.phone || '';
 
-  const firstName = lead.decision_maker_name ||
+  let intelligence = null;
+  let intentApproach = null;
+
+  if (supabaseClient && lead.id) {
+    try {
+      intelligence = await getLeadIntelligence(supabaseClient, lead.id);
+      intentApproach = buildIntentBasedApproach(intelligence.intentSignals, intelligence.websiteHealth);
+    } catch (err) {
+      console.log('Failed to fetch lead intelligence:', err);
+    }
+  }
+
+  const firstName = intelligence?.decisionMaker?.name?.split(' ')[0] ||
+    lead.decision_maker_name ||
     (lead.email ? lead.email.split('@')[0].split('.')[0] : 'there');
   const capitalizedName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
 
@@ -363,12 +507,20 @@ async function generatePersonalizedEmail(
   const tokens: any = {
     business_name: businessName,
     decision_maker_name: capitalizedName,
+    first_name: capitalizedName,
     location,
     rating: rating.toString(),
     review_count: reviewCount.toString(),
     website,
     phone,
     niche: campaign.niche || 'business',
+    services: intelligence?.services?.slice(0, 3).join(', ') || '',
+    pain_points: intelligence?.painPoints?.slice(0, 2).join('; ') || '',
+    conversation_starter: intelligence?.conversationStarter || '',
+    tech_stack: intelligence?.techStack?.slice(0, 3).join(', ') || '',
+    company_size: intelligence?.companySize || '',
+    decision_maker_role: intelligence?.decisionMaker?.role || 'Owner',
+    recommended_services: intentApproach?.serviceRecommendations?.slice(0, 3).join(', ') || '',
   };
 
   if (variant && variant.subject && variant.body) {
@@ -424,12 +576,36 @@ Before writing, analyze the business data to identify key personalization opport
 - What pain points might they have in their industry?
 - What value can we offer that's specifically relevant to them?
 
+${intentApproach && intentApproach.approach !== 'standard' ? `
+APPROACH TO USE: ${intentApproach.approach}
+${intentApproach.hooks.length > 0 ? `PERSONALIZATION HOOKS:\n${intentApproach.hooks.map(h => `- ${h}`).join('\n')}` : ''}
+` : ''}
+
+${intelligence && intelligence.intentSignals.length > 0 ? `
+INTENT SIGNALS DETECTED (use these subtly):
+${intelligence.intentSignals.map((s: { type: string; title: string; strength: string }) => `- ${s.type}: ${s.title} (${s.strength} priority)`).join('\n')}
+` : ''}
+
+${intelligence && intelligence.websiteHealth ? `
+WEBSITE ANALYSIS (identify opportunities):
+- SEO Score: ${intelligence.websiteHealth.seoScore}/100${intelligence.websiteHealth.seoScore < 50 ? ' (opportunity for SEO services)' : ''}
+- Mobile Score: ${intelligence.websiteHealth.mobileScore}/100${intelligence.websiteHealth.mobileScore < 60 ? ' (needs mobile optimization)' : ''}
+- Has SSL: ${intelligence.websiteHealth.hasSSL ? 'Yes' : 'No (security vulnerability)'}
+${intelligence.websiteHealth.recommendedServices.length > 0 ? `- Recommended Services: ${intelligence.websiteHealth.recommendedServices.slice(0, 3).join(', ')}` : ''}
+` : ''}
+
+${intelligence && intelligence.painPoints.length > 0 ? `
+IDENTIFIED PAIN POINTS:
+${intelligence.painPoints.slice(0, 3).map((p: string) => `- ${p}`).join('\n')}
+` : ''}
+
 Then write a personalized, compelling email that:
 - Is concise (100-150 words)
 - Feels human and conversational, not AI-generated
 - Shows genuine research about the recipient
 - Includes a clear, specific value proposition
 - References specific details about their business (not generic)
+- Naturally incorporates intent signals without being obvious
 - Ends with a simple, low-friction call to action
 - Avoids marketing jargon, excessive enthusiasm, and spam triggers`;
 
@@ -466,7 +642,20 @@ Target Audience: ${template.target_audience || 'business owners'}`;
 
     userPrompt = `First, analyze this business data and identify 2-3 specific personalization opportunities:\n\nBusiness: ${businessName}\nIndustry: ${campaign.niche}\nLocation: ${location}\nDecision Maker: ${capitalizedName}\n${rating > 0 ? `Rating: ${rating} stars (${reviewCount} reviews)` : ''}\n${reviewInsight ? `Recent review: "${reviewInsight}"` : ''}\n\nThen, based on your analysis, ${aiPrompt}`;
   } else {
-    userPrompt = `First, analyze this business and identify specific personalization angles:\n\nBusiness: ${businessName}\nIndustry: ${campaign.niche}\nLocation: ${location}\nDecision Maker: ${capitalizedName}\n${rating > 0 ? `Rating: ${rating} stars (${reviewCount} reviews)` : ''}\n${reviewInsight ? `Recent review mentions: "${reviewInsight}"` : ''}\n\nBased on your analysis, write a personalized cold email that acknowledges their ${rating > 0 ? 'strong reputation' : 'business'} and offers value specifically relevant to their situation.`;
+    userPrompt = `Write a cold email for:
+Business: ${businessName}
+Industry: ${campaign.niche}
+Location: ${location}
+Decision Maker: ${capitalizedName}${intelligence?.decisionMaker?.role ? ` (${intelligence.decisionMaker.role})` : ''}
+${rating > 0 ? `Rating: ${rating} stars (${reviewCount} reviews)` : ''}
+${reviewInsight ? `Recent review: "${reviewInsight}"` : ''}
+${tokens.services ? `Main Services: ${tokens.services}` : ''}
+${tokens.pain_points ? `Pain Points: ${tokens.pain_points}` : ''}
+${tokens.conversation_starter ? `Conversation Starter: ${tokens.conversation_starter}` : ''}
+${tokens.tech_stack ? `Tech Stack: ${tokens.tech_stack}` : ''}
+${tokens.company_size ? `Company Size: ${tokens.company_size}` : ''}
+
+Write a personalized email that offers value specifically relevant to their situation.`;
   }
 
   const modelToUse = aiModel === 'gpt-5.2' ? 'gpt-5.2' : 'gpt-5-mini';
@@ -533,6 +722,13 @@ Target Audience: ${template.target_audience || 'business owners'}`;
       prompt: userPrompt,
       tokens,
       qualityScore,
+      intelligence: intelligence ? {
+        servicesUsed: intelligence.services.length > 0,
+        painPointsUsed: intelligence.painPoints.length > 0,
+        intentSignalsUsed: intelligence.intentSignals.length,
+        websiteHealthUsed: !!intelligence.websiteHealth,
+        approachUsed: intentApproach?.approach || 'standard',
+      } : null,
     };
   } catch (error: any) {
     console.error('OpenAI API error:', error);

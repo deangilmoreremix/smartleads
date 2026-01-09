@@ -32,6 +32,9 @@ import EmailHealthDisplay from '../components/EmailHealthDisplay';
 import ReplyClassificationPanel from '../components/ReplyClassificationPanel';
 import CampaignGroupsManager from '../components/CampaignGroupsManager';
 import WebhookManager from '../components/WebhookManager';
+import AutomationScheduler from '../components/AutomationScheduler';
+import AutomationMonitor from '../components/AutomationMonitor';
+import EmailPreviewPanel from '../components/EmailPreviewPanel';
 
 interface AutopilotCampaign {
   id: string;
@@ -69,7 +72,7 @@ interface AutopilotRun {
   };
 }
 
-type TabId = 'overview' | 'funnel' | 'health' | 'replies' | 'groups' | 'webhooks';
+type TabId = 'overview' | 'funnel' | 'health' | 'replies' | 'groups' | 'webhooks' | 'scheduler' | 'monitor' | 'preview';
 
 export default function AutopilotDashboard() {
   const { user } = useAuth();
@@ -190,7 +193,7 @@ export default function AutopilotDashboard() {
     setTriggering(campaignId);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/campaign-autopilot`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/run-autopilot`,
         {
           method: 'POST',
           headers: {
@@ -201,6 +204,7 @@ export default function AutopilotDashboard() {
             campaignId,
             userId: user!.id,
             runType: 'full_cycle',
+            forceRun: true,
           }),
         }
       );
@@ -209,7 +213,7 @@ export default function AutopilotDashboard() {
 
       if (result.success) {
         toast.success(
-          `Autopilot cycle completed: ${result.leadsScraped || 0} leads scraped, ${result.emailsGenerated || 0} emails generated, ${result.emailsSent || 0} sent`
+          `Autopilot cycle completed: ${result.totalEmailsGenerated || 0} emails generated, ${result.totalEmailsSent || 0} sent`
         );
         loadData();
       } else {
@@ -269,6 +273,9 @@ export default function AutopilotDashboard() {
 
   const tabs = [
     { id: 'overview' as TabId, label: 'Overview', icon: Activity },
+    { id: 'monitor' as TabId, label: 'Live Monitor', icon: Zap },
+    { id: 'scheduler' as TabId, label: 'Scheduler', icon: Calendar },
+    { id: 'preview' as TabId, label: 'Email Preview', icon: Mail },
     { id: 'funnel' as TabId, label: 'Funnel', icon: BarChart3 },
     { id: 'health' as TabId, label: 'Email Health', icon: Shield },
     { id: 'replies' as TabId, label: 'Replies', icon: MessageSquare },
@@ -535,6 +542,8 @@ export default function AutopilotDashboard() {
                 )}
               </div>
 
+              <AutomationMonitor compact />
+
               <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <Zap className="w-5 h-5 text-amber-600" />
@@ -545,7 +554,7 @@ export default function AutopilotDashboard() {
                 </p>
                 <div className="p-3 bg-white/50 rounded-xl">
                   <code className="text-amber-700 text-xs break-all">
-                    POST {import.meta.env.VITE_SUPABASE_URL}/functions/v1/webhook-endpoint?user_id=YOUR_ID
+                    POST {import.meta.env.VITE_SUPABASE_URL}/functions/v1/run-autopilot
                   </code>
                 </div>
               </div>
@@ -589,6 +598,49 @@ export default function AutopilotDashboard() {
         {activeTab === 'webhooks' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <WebhookManager />
+          </div>
+        )}
+
+        {activeTab === 'scheduler' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <AutomationScheduler onScheduleChange={loadData} />
+          </div>
+        )}
+
+        {activeTab === 'monitor' && (
+          <div className="space-y-6">
+            <AutomationMonitor />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {campaigns.slice(0, 2).map((item) => (
+                <div key={item.campaign_id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                  <h3 className="font-semibold text-gray-900 mb-4">{item.campaigns.name}</h3>
+                  <AutomationMonitor campaignId={item.campaign_id} compact />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'preview' && (
+          <div className="space-y-6">
+            {campaigns.length > 0 ? (
+              campaigns.map((item) => (
+                <div key={item.campaign_id}>
+                  <h3 className="font-semibold text-gray-900 mb-4">{item.campaigns.name}</h3>
+                  <EmailPreviewPanel
+                    campaignId={item.campaign_id}
+                    onApprove={() => loadData()}
+                    onReject={() => loadData()}
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
+                <Mail className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-gray-900 font-medium mb-2">No campaigns with autopilot</h3>
+                <p className="text-gray-500 text-sm">Enable autopilot on a campaign to preview emails</p>
+              </div>
+            )}
           </div>
         )}
       </div>
