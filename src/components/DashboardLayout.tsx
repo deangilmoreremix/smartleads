@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { NotificationProvider } from '../contexts/NotificationContext';
+import { OnboardingProvider } from '../contexts/OnboardingContext';
 import {
   LayoutDashboard,
   Target,
@@ -19,6 +20,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/database';
 import NotificationBell from './NotificationBell';
+import HelpMenu from './HelpMenu';
+import WelcomeModal from './WelcomeModal';
+import TourManager from './TourManager';
+import OnboardingChecklist from './OnboardingChecklist';
 
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
 
@@ -81,7 +86,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <NotificationProvider>
+    <OnboardingProvider>
     <div className="min-h-screen bg-gray-50">
+      <WelcomeModal />
+      <TourManager />
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-50">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
@@ -90,6 +98,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <span className="text-gray-900 font-bold text-xl">SmartLeads</span>
         </div>
         <div className="flex items-center space-x-2">
+          <HelpMenu />
           <NotificationBell />
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -177,6 +186,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         <main className="flex-1 min-h-screen flex flex-col">
           <header className="hidden lg:flex h-14 bg-white border-b border-gray-200 items-center justify-end px-6 gap-3">
+            <HelpMenu />
             <NotificationBell />
             <Link
               to="/dashboard/settings"
@@ -191,7 +201,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </main>
       </div>
+      <OnboardingChecklist />
     </div>
+    </OnboardingProvider>
     </NotificationProvider>
   );
 }

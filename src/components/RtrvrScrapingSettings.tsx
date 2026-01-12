@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Info } from 'lucide-react';
+import InfoTooltip from './InfoTooltip';
 
 export interface RtrvrSettings {
   maxCrawledPlacesPerSearch?: number;
@@ -82,8 +83,9 @@ export default function RtrvrScrapingSettings({ settings, onChange }: Props) {
             <h4 className="text-sm font-semibold text-stone-700 mb-4">Basic Settings</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-stone-600 mb-2">
+                <label className="flex items-center gap-1 text-sm text-stone-600 mb-2">
                   Max Results Per Search
+                  <InfoTooltip content="How many businesses to find per search query. Higher numbers cost more credits but give you more leads." />
                 </label>
                 <input
                   type="number"
@@ -96,8 +98,9 @@ export default function RtrvrScrapingSettings({ settings, onChange }: Props) {
               </div>
 
               <div>
-                <label className="block text-sm text-stone-600 mb-2">
+                <label className="flex items-center gap-1 text-sm text-stone-600 mb-2">
                   Minimum Rating
+                  <InfoTooltip content="Only include businesses with this star rating or higher. Higher-rated businesses often have better customer service and may respond better to outreach." />
                 </label>
                 <select
                   value={settings.placeMinimumStars || ''}
@@ -183,6 +186,7 @@ export default function RtrvrScrapingSettings({ settings, onChange }: Props) {
                     className="w-4 h-4 rounded border-amber-300 bg-amber-50/50 text-orange-500 focus:ring-2 focus:ring-orange-200"
                   />
                   <span className="font-medium">Extract Real Emails from Websites</span>
+                  <InfoTooltip content="Visits each business's website to find email addresses. Gets real contacts instead of just generic info@. Uses 1 extra credit per business." />
                 </label>
               </div>
 
@@ -206,8 +210,9 @@ export default function RtrvrScrapingSettings({ settings, onChange }: Props) {
               </div>
 
               <div>
-                <label className="block text-sm text-stone-600 mb-2">
+                <label className="flex items-center gap-1 text-sm text-stone-600 mb-2">
                   Employee Leads Per Place
+                  <InfoTooltip content="Find decision-makers at each business. Gets names, job titles, emails, and LinkedIn profiles of owners, managers, and key staff." />
                 </label>
                 <input
                   type="number"

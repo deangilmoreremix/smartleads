@@ -1,7 +1,19 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, BarChart3, Gift, Mail, Zap } from 'lucide-react';
+import { useOnboarding } from '../contexts/OnboardingContext';
 
 export default function Dashboard() {
+  const { state, activeTour, startTour } = useOnboarding();
+
+  useEffect(() => {
+    if (!state.dashboard_tour_completed && state.welcome_completed && !activeTour) {
+      const timer = setTimeout(() => {
+        startTour('dashboard');
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [state.dashboard_tour_completed, state.welcome_completed, activeTour, startTour]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
@@ -12,7 +24,10 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition">
+          <div
+            data-tour="start-campaign"
+            className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition"
+          >
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Start Campaign</h2>
               <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center">
@@ -30,7 +45,10 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition">
+          <div
+            data-tour="autopilot"
+            className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition"
+          >
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Autopilot</h2>
               <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
@@ -48,7 +66,10 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition">
+          <div
+            data-tour="campaigns"
+            className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition"
+          >
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Campaigns</h2>
               <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
@@ -66,10 +87,13 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition">
+          <div
+            data-tour="accounts"
+            className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition"
+          >
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Accounts</h2>
-              <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
                 <Gift className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -84,10 +108,13 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition">
+          <div
+            data-tour="templates"
+            className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition"
+          >
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Templates</h2>
-              <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-teal-500 rounded-full flex items-center justify-center">
                 <Mail className="w-6 h-6 text-white" />
               </div>
             </div>

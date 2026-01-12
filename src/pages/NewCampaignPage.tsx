@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { useOnboarding } from '../contexts/OnboardingContext';
 import { Sparkles, MapPin, Target, Mail, ArrowRight, Wand2 } from 'lucide-react';
 import RtrvrScrapingSettings, { RtrvrSettings } from '../components/RtrvrScrapingSettings';
 
 export default function NewCampaignPage() {
   const { user } = useAuth();
+  const { state, activeTour, startTour, markMilestone } = useOnboarding();
   const navigate = useNavigate();
   const [step, setStep] = useState<'prompt' | 'details'>('prompt');
   const [loading, setLoading] = useState(false);
@@ -48,6 +50,15 @@ export default function NewCampaignPage() {
     'Reach real estate agents in Dubai for CRM solution',
     'Connect with auto repair shop owners in Toronto'
   ];
+
+  useEffect(() => {
+    if (!state.campaign_tour_completed && state.dashboard_tour_completed && !activeTour) {
+      const timer = setTimeout(() => {
+        startTour('campaign');
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [state.campaign_tour_completed, state.dashboard_tour_completed, activeTour, startTour]);
 
   const handleAIPrompt = () => {
     const prompt = aiPrompt.toLowerCase();
@@ -99,6 +110,10 @@ export default function NewCampaignPage() {
 
       if (insertError) throw insertError;
 
+      if (!state.first_campaign_created) {
+        markMilestone('first_campaign_created');
+      }
+
       navigate(`/dashboard/campaigns/${data.id}`);
     } catch (err: any) {
       setError(err.message || 'Failed to create campaign');
@@ -126,7 +141,7 @@ export default function NewCampaignPage() {
             </div>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-6" data-tour="ai-prompt">
             <div className="relative">
               <textarea
                 value={aiPrompt}
@@ -147,7 +162,7 @@ export default function NewCampaignPage() {
             </p>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-6" data-tour="example-prompts">
             <h3 className="text-sm font-medium text-stone-700 mb-3">Example prompts:</h3>
             <div className="space-y-2">
               {examplePrompts.map((prompt, i) => (
@@ -183,7 +198,7 @@ export default function NewCampaignPage() {
             </div>
           )}
 
-          <div className="bg-white border border-amber-200 rounded-2xl p-8 shadow-sm">
+          <div className="bg-white border border-amber-200 rounded-2xl p-8 shadow-sm" data-tour="campaign-details">
             <h2 className="text-xl font-bold text-stone-800 mb-6">Campaign Details</h2>
 
             <div className="space-y-6">
@@ -233,7 +248,7 @@ export default function NewCampaignPage() {
                 </div>
               </div>
 
-              <div>
+              <div data-tour="email-template">
                 <label className="block text-sm font-medium text-stone-700 mb-2">
                   <Mail className="w-4 h-4 inline mr-2 text-stone-500" />
                   Email Template (Optional)
@@ -255,10 +270,12 @@ Variables: {firstName}, {businessName}, {location}"
             </div>
           </div>
 
-          <RtrvrScrapingSettings
-            settings={rtrvrSettings}
-            onChange={setRtrvrSettings}
-          />
+          <div data-tour="scraping-settings">
+            <RtrvrScrapingSettings
+              settings={rtrvrSettings}
+              onChange={setRtrvrSettings}
+            />
+          </div>
 
           {aiPrompt && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
