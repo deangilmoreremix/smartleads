@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Bot, Clock, Zap, ArrowRight, CheckCircle, Target, Mail, Users, TrendingUp, Calendar, Shield } from 'lucide-react';
 import GoogleMapsBackground from '../components/GoogleMapsBackground';
+import AutomationTimeline from '../components/interactive/AutomationTimeline';
+import AnimatedCounter from '../components/interactive/AnimatedCounter';
 
 export default function AutomationPage() {
   return (
@@ -67,98 +69,8 @@ export default function AutomationPage() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden mb-20">
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-8 py-6 border-b border-gray-700">
-              <h3 className="text-2xl font-bold text-white mb-2">The Complete Automation Pipeline</h3>
-              <p className="text-gray-300">Your AI agent handles everything end-to-end</p>
-            </div>
-            <div className="p-8">
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-[#FFD666]/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-gray-900 font-bold text-xl">1</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <Target className="w-5 h-5 text-[#FFD666]" />
-                      <h4 className="text-xl font-bold text-gray-900">Lead Discovery</h4>
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">AUTOMATED</span>
-                    </div>
-                    <p className="text-gray-700">Continuously scrapes Google Maps for businesses matching your criteria. Updates your lead database daily with fresh prospects.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-[#FFD666]/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-gray-900 font-bold text-xl">2</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <Shield className="w-5 h-5 text-[#FFD666]" />
-                      <h4 className="text-xl font-bold text-gray-900">Email Verification</h4>
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">AUTOMATED</span>
-                    </div>
-                    <p className="text-gray-700">Validates every email address, removes duplicates, and filters for personal emails. Protects your sender reputation automatically.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-[#FFD666]/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-gray-900 font-bold text-xl">3</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <Zap className="w-5 h-5 text-[#FFD666]" />
-                      <h4 className="text-xl font-bold text-gray-900">AI Email Generation</h4>
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">AUTOMATED</span>
-                    </div>
-                    <p className="text-gray-700">GPT-5 analyzes each business and crafts personalized emails. Every message is unique and references actual business details.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-[#FFD666]/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-gray-900 font-bold text-xl">4</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <Calendar className="w-5 h-5 text-[#FFD666]" />
-                      <h4 className="text-xl font-bold text-xl">Smart Scheduling</h4>
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">AUTOMATED</span>
-                    </div>
-                    <p className="text-gray-700">Optimizes send times based on timezone, industry patterns, and recipient behavior. Maximizes open rates automatically.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-[#FFD666]/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-gray-900 font-bold text-xl">5</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <Mail className="w-5 h-5 text-[#FFD666]" />
-                      <h4 className="text-xl font-bold text-gray-900">Email Delivery</h4>
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">AUTOMATED</span>
-                    </div>
-                    <p className="text-gray-700">Sends emails through multiple authenticated Gmail accounts. Respects daily limits and manages warm-up automatically.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-[#FFD666]/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-gray-900 font-bold text-xl">6</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <TrendingUp className="w-5 h-5 text-[#FFD666]" />
-                      <h4 className="text-xl font-bold text-gray-900">Performance Tracking</h4>
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">AUTOMATED</span>
-                    </div>
-                    <p className="text-gray-700">Monitors opens, clicks, and replies in real-time. Automatically adjusts strategy based on what's working best.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="mb-20">
+            <AutomationTimeline />
           </div>
         </div>
       </section>
@@ -210,7 +122,7 @@ export default function AutomationPage() {
               </ul>
               <div className="mt-6 pt-6 border-t border-gray-300">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-red-600 mb-1">40+ hours</div>
+                  <div className="text-3xl font-bold text-red-600 mb-1"><AnimatedCounter end={40} suffix="+" /> hours</div>
                   <div className="text-gray-600">Per campaign</div>
                 </div>
               </div>
@@ -251,7 +163,7 @@ export default function AutomationPage() {
               </ul>
               <div className="mt-6 pt-6 border-t border-[#FFD666]">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-[#FFD666] mb-1" style={{ WebkitTextStroke: '0.5px #1A1A1A' }}>5 minutes</div>
+                  <div className="text-3xl font-bold text-[#FFD666] mb-1" style={{ WebkitTextStroke: '0.5px #1A1A1A' }}><AnimatedCounter end={5} /> minutes</div>
                   <div className="text-gray-700 font-semibold">One-time setup</div>
                 </div>
               </div>
@@ -366,25 +278,25 @@ export default function AutomationPage() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6 text-center">
-              <div className="text-5xl font-bold text-gray-900 mb-2">10hrs</div>
+              <div className="text-5xl font-bold text-gray-900 mb-2"><AnimatedCounter end={10} />hrs</div>
               <div className="text-gray-600 mb-4">Saved per week</div>
               <p className="text-sm text-gray-700">Focus on closing deals, not busy work</p>
             </div>
 
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6 text-center">
-              <div className="text-5xl font-bold text-gray-900 mb-2">500+</div>
+              <div className="text-5xl font-bold text-gray-900 mb-2"><AnimatedCounter end={500} />+</div>
               <div className="text-gray-600 mb-4">Leads per day</div>
               <p className="text-sm text-gray-700">Continuous pipeline of qualified prospects</p>
             </div>
 
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6 text-center">
-              <div className="text-5xl font-bold text-gray-900 mb-2">68%</div>
+              <div className="text-5xl font-bold text-gray-900 mb-2"><AnimatedCounter end={68} />%</div>
               <div className="text-gray-600 mb-4">Open rate</div>
               <p className="text-sm text-gray-700">High engagement with AI personalization</p>
             </div>
 
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6 text-center">
-              <div className="text-5xl font-bold text-gray-900 mb-2">12%</div>
+              <div className="text-5xl font-bold text-gray-900 mb-2"><AnimatedCounter end={12} />%</div>
               <div className="text-gray-600 mb-4">Reply rate</div>
               <p className="text-sm text-gray-700">More conversations, more opportunities</p>
             </div>

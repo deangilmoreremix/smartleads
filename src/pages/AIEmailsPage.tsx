@@ -1,8 +1,26 @@
 import { Link } from 'react-router-dom';
 import { Sparkles, Mail, Brain, Star, ArrowRight, Zap, TrendingUp, CheckCircle, Shield } from 'lucide-react';
 import GoogleMapsBackground from '../components/GoogleMapsBackground';
+import LiveTypingAnimation from '../components/interactive/LiveTypingAnimation';
+import PerformanceGauge from '../components/interactive/PerformanceGauge';
+import AnimatedCounter from '../components/interactive/AnimatedCounter';
 
 export default function AIEmailsPage() {
+  const emailExamples = [
+    {
+      label: 'Restaurant Owner',
+      content: `Hi Sarah,\n\nI noticed Bella's Bistro has amazing reviews praising your "farm-to-table commitment." As someone working with restaurants on sustainable sourcing, that caught my attention.\n\nI help restaurants like yours reduce food costs by 15-20% while maintaining quality. Given your focus on fresh ingredients, this could be valuable.\n\nWould you be open to a quick 10-minute call next week?\n\nBest,\nJohn`
+    },
+    {
+      label: 'Fitness Studio',
+      content: `Hey Mike,\n\nUrban Fitness has incredible Google reviews - especially the one mentioning your "personalized training approach."\n\nI work with gyms to automate their member onboarding. Most save 5-10 hours per week on admin work.\n\nInterested in learning more?\n\nCheers,\nJohn`
+    },
+    {
+      label: 'Coffee Shop',
+      content: `Hi Maria,\n\nYour customers rave about The Coffee House's "cozy atmosphere" and "perfect lattes." Love seeing local businesses thrive!\n\nI help cafes optimize their supplier contracts - clients typically save $500-1000/month.\n\nFree to chat this week?\n\nBest,\nJohn`
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-[#F5F1E8] relative">
       <GoogleMapsBackground />
@@ -67,66 +85,8 @@ export default function AIEmailsPage() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-2xl mb-20">
-            <div className="grid md:grid-cols-2 gap-12">
-              <div>
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full">GENERIC TEMPLATE</span>
-                    <span className="text-gray-400">Reply Rate: 2%</span>
-                  </div>
-                  <div className="space-y-3 text-sm text-gray-600 font-mono leading-relaxed">
-                    <p>Hi [FirstName],</p>
-                    <p>I hope this email finds you well. I wanted to reach out to introduce our services.</p>
-                    <p>We help businesses like yours grow. Would you be interested in learning more?</p>
-                    <p>Best regards,<br />John</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 bg-red-50 border border-red-200 rounded-lg p-4">
-                  <span className="text-red-600 font-bold">✗</span>
-                  <div className="text-sm text-red-800">
-                    <p className="font-semibold mb-1">Why this fails:</p>
-                    <ul className="space-y-1 list-disc list-inside">
-                      <li>No personalization beyond name</li>
-                      <li>Vague value proposition</li>
-                      <li>Triggers spam filters</li>
-                      <li>No relevance to recipient</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <div className="bg-gradient-to-br from-[#FFD666]/10 to-[#FFD666]/5 border-2 border-[#FFD666] rounded-xl p-6 mb-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full flex items-center space-x-1">
-                      <Zap className="w-3 h-3" />
-                      <span>AI PERSONALIZED</span>
-                    </span>
-                    <span className="text-green-600 font-semibold">Reply Rate: 12%</span>
-                  </div>
-                  <div className="space-y-3 text-sm text-gray-700 font-mono leading-relaxed">
-                    <p>Hi Sarah,</p>
-                    <p>I noticed Bella's Bistro has amazing reviews praising your "farm-to-table commitment." As someone working with restaurants on sustainable sourcing, that caught my attention.</p>
-                    <p>I help restaurants like yours reduce food costs by 15-20% while maintaining quality. Given your focus on fresh ingredients, this could be valuable.</p>
-                    <p>Would you be open to a quick 10-minute call next week?</p>
-                    <p>Best,<br />John</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 bg-green-50 border border-green-200 rounded-lg p-4">
-                  <span className="text-green-600 font-bold">✓</span>
-                  <div className="text-sm text-green-800">
-                    <p className="font-semibold mb-1">Why this works:</p>
-                    <ul className="space-y-1 list-disc list-inside">
-                      <li>References actual reviews</li>
-                      <li>Relevant value proposition</li>
-                      <li>Natural, conversational tone</li>
-                      <li>Clear, specific ask</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="mb-20">
+            <LiveTypingAnimation texts={emailExamples} />
           </div>
         </div>
       </section>
@@ -227,29 +187,10 @@ export default function AIEmailsPage() {
           </div>
 
           <div className="grid md:grid-cols-4 gap-6 mb-12">
-            <div className="bg-white border border-gray-200 rounded-xl p-6 text-center hover:border-[#FFD666] hover:shadow-lg transition">
-              <TrendingUp className="w-8 h-8 text-[#FFD666] mx-auto mb-3" />
-              <div className="text-4xl font-bold text-gray-900 mb-2">68%</div>
-              <div className="text-gray-600">Open Rate</div>
-            </div>
-
-            <div className="bg-white border border-gray-200 rounded-xl p-6 text-center hover:border-[#FFD666] hover:shadow-lg transition">
-              <Mail className="w-8 h-8 text-[#FFD666] mx-auto mb-3" />
-              <div className="text-4xl font-bold text-gray-900 mb-2">12%</div>
-              <div className="text-gray-600">Reply Rate</div>
-            </div>
-
-            <div className="bg-white border border-gray-200 rounded-xl p-6 text-center hover:border-[#FFD666] hover:shadow-lg transition">
-              <Shield className="w-8 h-8 text-[#FFD666] mx-auto mb-3" />
-              <div className="text-4xl font-bold text-gray-900 mb-2">&lt;1%</div>
-              <div className="text-gray-600">Spam Rate</div>
-            </div>
-
-            <div className="bg-white border border-gray-200 rounded-xl p-6 text-center hover:border-[#FFD666] hover:shadow-lg transition">
-              <CheckCircle className="w-8 h-8 text-[#FFD666] mx-auto mb-3" />
-              <div className="text-4xl font-bold text-gray-900 mb-2">6x</div>
-              <div className="text-gray-600">Better ROI</div>
-            </div>
+            <PerformanceGauge label="Open Rate" value={68} max={100} unit="%" color="green" />
+            <PerformanceGauge label="Reply Rate" value={12} max={20} unit="%" color="blue" />
+            <PerformanceGauge label="Deliverability" value={99} max={100} unit="%" color="yellow" />
+            <PerformanceGauge label="Engagement" value={85} max={100} unit="%" color="purple" />
           </div>
 
           <div className="bg-white border border-gray-200 rounded-2xl p-8">
