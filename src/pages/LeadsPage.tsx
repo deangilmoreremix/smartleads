@@ -4,11 +4,12 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   Search, Filter, Mail, Phone, Globe, Star, ExternalLink,
   Brain, Target, Activity, ChevronRight, X, TrendingUp,
-  CheckCircle, AlertTriangle
+  CheckCircle, AlertTriangle, Download
 } from 'lucide-react';
 import type { Database } from '../types/database';
 import EmailVerificationBadge from '../components/EmailVerificationBadge';
 import LeadIntelligencePanel from '../components/LeadIntelligencePanel';
+import toast from 'react-hot-toast';
 
 type Lead = Database['public']['Tables']['leads']['Row'] & {
   research_completed?: boolean;
@@ -20,6 +21,7 @@ export default function LeadsPage() {
   const { user } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -64,6 +66,61 @@ export default function LeadsPage() {
     setShowIntelligencePanel(false);
     setSelectedLead(null);
     loadLeads();
+  };
+
+  const exportToCSV = async () => {
+    setExporting(true);
+    try {
+      const dataToExport = filteredLeads.length > 0 ? filteredLeads : leads;
+
+      if (dataToExport.length === 0) {
+        toast.error('No leads to export');
+        return;
+      }
+
+      const headers = [
+        'Business Name',
+        'Email',
+        'Phone',
+        'Website',
+        'Address',
+        'Rating',
+        'Reviews',
+        'Status',
+        'Created At'
+      ];
+
+      const csvRows = dataToExport.map(lead => [
+        `"${(lead.business_name || '').replace(/"/g, '""')}"`,
+        `"${(lead.email || '').replace(/"/g, '""')}"`,
+        `"${(lead.phone || '').replace(/"/g, '""')}"`,
+        `"${(lead.website || '').replace(/"/g, '""')}"`,
+        `"${(lead.address || '').replace(/"/g, '""')}"`,
+        lead.rating || '',
+        lead.reviews || '',
+        lead.status || '',
+        lead.created_at ? new Date(lead.created_at).toLocaleDateString() : ''
+      ].join(','));
+
+      const csvContent = [headers.join(','), ...csvRows].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `leads-export-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Exported ${dataToExport.length} leads to CSV`);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export leads');
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (loading) {
@@ -164,7 +221,21 @@ export default function LeadsPage() {
               <option value="bounced">Bounced</option>
             </select>
           </div>
+          <button
+            onClick={exportToCSV}
+            disabled={exporting || leads.length === 0}
+            className="inline-flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-5 h-5" />
+            <span>{exporting ? 'Exporting...' : 'Export CSV'}</span>
+          </button>
         </div>
+        {filteredLeads.length > 0 && filteredLeads.length !== leads.length && (
+          <div className="mt-3 text-sm text-slate-400">
+            Showing {filteredLeads.length} of {leads.length} leads
+            {filterStatus !== 'all' && ` (filtered by: ${filterStatus})`}
+          </div>
+        )}
       </div>
 
       <div className="flex gap-6">

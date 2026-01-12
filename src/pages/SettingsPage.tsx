@@ -1,25 +1,42 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Bell, Zap, Mail, Save, CreditCard } from 'lucide-react';
+import { User, Bell, Zap, Mail, Save, CreditCard, Check } from 'lucide-react';
 import type { Database } from '../types/database';
 import ImageUploader from '../components/ImageUploader';
 import StorageQuotaDisplay from '../components/StorageQuotaDisplay';
 import ApiKeysStatus from '../components/ApiKeysStatus';
-import { uploadFile, STORAGE_BUCKETS, ALLOWED_IMAGE_TYPES } from '../lib/storage';
+import { uploadFile, STORAGE_BUCKETS } from '../lib/storage';
 import toast from 'react-hot-toast';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
 type UserSettings = Database['public']['Tables']['user_settings']['Row'];
 
+interface NotificationPreferences {
+  email_notifications: boolean;
+  campaign_updates: boolean;
+  reply_alerts: boolean;
+}
+
+const defaultNotificationPrefs: NotificationPreferences = {
+  email_notifications: true,
+  campaign_updates: true,
+  reply_alerts: true,
+};
+
 export default function SettingsPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [savingNotifications, setSavingNotifications] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [dailyEmailLimit, setDailyEmailLimit] = useState(50);
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(defaultNotificationPrefs);
 
   useEffect(() => {
     if (user) {
@@ -37,7 +54,18 @@ export default function SettingsPage() {
 
       if (profileResult.data) setProfile(profileResult.data);
       if (subscriptionResult.data) setSubscription(subscriptionResult.data);
-      if (settingsResult.data) setSettings(settingsResult.data);
+      if (settingsResult.data) {
+        setSettings(settingsResult.data);
+        setDailyEmailLimit(settingsResult.data.daily_email_limit || 50);
+        const prefs = settingsResult.data.notification_preferences as NotificationPreferences | null;
+        if (prefs) {
+          setNotificationPrefs({
+            email_notifications: prefs.email_notifications ?? true,
+            campaign_updates: prefs.campaign_updates ?? true,
+            reply_alerts: prefs.reply_alerts ?? true,
+          });
+        }
+      }
     } catch (error) {
       console.error('Error loading settings:', error);
     } finally {
@@ -150,6 +178,46 @@ export default function SettingsPage() {
     } catch (error) {
       console.error('Error removing logo:', error);
       toast.error('Failed to remove company logo');
+    }
+  };
+
+  const handleSaveEmailSettings = async () => {
+    setSavingEmail(true);
+    try {
+      const { error } = await supabase
+        .from('user_settings')
+        .update({ daily_email_limit: dailyEmailLimit })
+        .eq('user_id', user!.id);
+
+      if (error) throw error;
+      toast.success('Email settings saved');
+    } catch (error) {
+      console.error('Error saving email settings:', error);
+      toast.error('Failed to save email settings');
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  const handleNotificationChange = async (key: keyof NotificationPreferences) => {
+    const newPrefs = { ...notificationPrefs, [key]: !notificationPrefs[key] };
+    setNotificationPrefs(newPrefs);
+    setSavingNotifications(true);
+
+    try {
+      const { error } = await supabase
+        .from('user_settings')
+        .update({ notification_preferences: newPrefs })
+        .eq('user_id', user!.id);
+
+      if (error) throw error;
+      toast.success('Notification preferences saved');
+    } catch (error) {
+      console.error('Error saving notification preferences:', error);
+      setNotificationPrefs(notificationPrefs);
+      toast.error('Failed to save notification preferences');
+    } finally {
+      setSavingNotifications(false);
     }
   };
 
@@ -313,59 +381,103 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">Daily Email Limit</label>
-              <input
-                type="number"
-                value={settings?.daily_email_limit || 50}
-                className="w-full bg-slate-900/50 text-white border border-slate-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition"
-              />
-              <p className="mt-1 text-xs text-slate-500">Maximum emails to send per day</p>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="number"
+                  min="1"
+                  max="500"
+                  value={dailyEmailLimit}
+                  onChange={(e) => setDailyEmailLimit(parseInt(e.target.value) || 50)}
+                  className="flex-1 bg-slate-900/50 text-white border border-slate-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition"
+                />
+                <button
+                  onClick={handleSaveEmailSettings}
+                  disabled={savingEmail}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-medium transition disabled:opacity-50"
+                >
+                  {savingEmail ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">Maximum emails to send per day (1-500)</p>
             </div>
 
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
               <h3 className="text-white font-medium mb-2">Connect Gmail Account</h3>
               <p className="text-slate-400 text-sm mb-4">Connect your Gmail account to start sending emails</p>
-              <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition">
-                Connect Gmail
-              </button>
+              <Link
+                to="/dashboard/accounts"
+                className="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition"
+              >
+                Manage Email Accounts
+              </Link>
             </div>
           </div>
         </div>
 
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
-              <Bell className="w-5 h-5 text-orange-400" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                <Bell className="w-5 h-5 text-orange-400" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Notifications</h2>
+                <p className="text-slate-400 text-sm">Choose what notifications you receive</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-white">Notifications</h2>
-              <p className="text-slate-400 text-sm">Choose what notifications you receive</p>
-            </div>
+            {savingNotifications && (
+              <div className="flex items-center space-x-2 text-blue-400 text-sm">
+                <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                <span>Saving...</span>
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
-            <label className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-700 transition">
+            <button
+              onClick={() => handleNotificationChange('email_notifications')}
+              className="w-full flex items-center justify-between p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition text-left"
+            >
               <div>
                 <div className="text-white font-medium mb-1">Email Notifications</div>
                 <div className="text-slate-400 text-sm">Receive email updates about your campaigns</div>
               </div>
-              <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-600 text-blue-500 focus:ring-blue-500" />
-            </label>
+              <div className={`w-12 h-7 rounded-full transition-colors ${notificationPrefs.email_notifications ? 'bg-blue-500' : 'bg-slate-600'} relative`}>
+                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${notificationPrefs.email_notifications ? 'translate-x-6' : 'translate-x-1'}`}>
+                  {notificationPrefs.email_notifications && <Check className="w-3 h-3 text-blue-500 absolute top-1 left-1" />}
+                </div>
+              </div>
+            </button>
 
-            <label className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-700 transition">
+            <button
+              onClick={() => handleNotificationChange('campaign_updates')}
+              className="w-full flex items-center justify-between p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition text-left"
+            >
               <div>
                 <div className="text-white font-medium mb-1">Campaign Updates</div>
                 <div className="text-slate-400 text-sm">Get notified when campaigns complete</div>
               </div>
-              <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-600 text-blue-500 focus:ring-blue-500" />
-            </label>
+              <div className={`w-12 h-7 rounded-full transition-colors ${notificationPrefs.campaign_updates ? 'bg-blue-500' : 'bg-slate-600'} relative`}>
+                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${notificationPrefs.campaign_updates ? 'translate-x-6' : 'translate-x-1'}`}>
+                  {notificationPrefs.campaign_updates && <Check className="w-3 h-3 text-blue-500 absolute top-1 left-1" />}
+                </div>
+              </div>
+            </button>
 
-            <label className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-700 transition">
+            <button
+              onClick={() => handleNotificationChange('reply_alerts')}
+              className="w-full flex items-center justify-between p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition text-left"
+            >
               <div>
                 <div className="text-white font-medium mb-1">Reply Alerts</div>
                 <div className="text-slate-400 text-sm">Be notified when prospects reply</div>
               </div>
-              <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-slate-600 text-blue-500 focus:ring-blue-500" />
-            </label>
+              <div className={`w-12 h-7 rounded-full transition-colors ${notificationPrefs.reply_alerts ? 'bg-blue-500' : 'bg-slate-600'} relative`}>
+                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${notificationPrefs.reply_alerts ? 'translate-x-6' : 'translate-x-1'}`}>
+                  {notificationPrefs.reply_alerts && <Check className="w-3 h-3 text-blue-500 absolute top-1 left-1" />}
+                </div>
+              </div>
+            </button>
           </div>
         </div>
       </div>

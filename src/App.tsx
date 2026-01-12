@@ -22,6 +22,10 @@ import PlansPage from './pages/PlansPage';
 import UnipileCallbackPage from './pages/UnipileCallbackPage';
 import AgentProgressPage from './pages/AgentProgressPage';
 import IntentSignalsPage from './pages/IntentSignalsPage';
+import PricingPage from './pages/PricingPage';
+import AffiliatePage from './pages/AffiliatePage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
 
 function App() {
   return (
@@ -207,10 +211,10 @@ function App() {
               }
             />
 
-            <Route path="/pricing" element={<div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">Pricing page coming soon</div>} />
-            <Route path="/affiliate" element={<div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">Affiliate page coming soon</div>} />
-            <Route path="/privacy" element={<div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">Privacy policy coming soon</div>} />
-            <Route path="/terms" element={<div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">Terms of service coming soon</div>} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/affiliate" element={<AffiliatePage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
