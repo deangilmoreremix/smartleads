@@ -1,6 +1,401 @@
 import { createClient, SupabaseClient } from 'npm:@supabase/supabase-js@2';
-import { RtrvrClient } from '../_shared/rtrvr-client.ts';
-import { GPT5Extractor, BusinessListing, BusinessDetails, ContactInfo } from '../_shared/gpt5-extractor.ts';
+import OpenAI from 'npm:openai@4';
+
+const RTRVR_BASE_URL = 'https://api.rtrvr.ai';
+const MODEL = 'gpt-4o';
+
+interface RtrvrScrapeOptions {
+  onlyTextContent?: boolean;
+  waitForSelector?: string;
+  timeout?: number;
+  proxyMode?: 'default' | 'none';
+}
+
+interface RtrvrScrapeResult {
+  content: string;
+  accessibilityTree?: Record<string, unknown>;
+  url: string;
+  usage: {
+    browserCredits: number;
+    proxyCredits: number;
+  };
+  trajectoryId: string;
+}
+
+interface RtrvrUsageStats {
+  totalScrapes: number;
+  totalAgentTasks: number;
+  totalBrowserCredits: number;
+  totalProxyCredits: number;
+  trajectoryIds: string[];
+}
+
+class RtrvrClient {
+  private apiKey: string;
+  private usageStats: RtrvrUsageStats;
+
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+    this.usageStats = {
+      totalScrapes: 0,
+      totalAgentTasks: 0,
+      totalBrowserCredits: 0,
+      totalProxyCredits: 0,
+      trajectoryIds: [],
+    };
+  }
+
+  async scrape(url: string, options: RtrvrScrapeOptions = {}): Promise<RtrvrScrapeResult> {
+    const {
+      onlyTextContent = false,
+      waitForSelector,
+      timeout = 30000,
+      proxyMode = 'default',
+    } = options;
+
+    const requestBody: Record<string, unknown> = {
+      url,
+      onlyTextContent,
+      proxyMode,
+    };
+
+    if (waitForSelector) {
+      requestBody.waitForSelector = waitForSelector;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await fetch(`${RTRVR_BASE_URL}/scrape`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        if (response.status === 429) {
+          throw new Error('RATE_LIMIT: rtrvr.ai rate limit exceeded');
+        }
+        if (response.status === 401) {
+          throw new Error('AUTH_ERROR: Invalid rtrvr.ai API key');
+        }
+        throw new Error(`SCRAPE_ERROR: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+
+      const result: RtrvrScrapeResult = {
+        content: data.content || data.text || '',
+        accessibilityTree: data.accessibilityTree || data.tree,
+        url: data.url || url,
+        usage: {
+          browserCredits: data.usage?.browserCredits || 0,
+          proxyCredits: data.usage?.proxyCredits || 0,
+        },
+        trajectoryId: data.trajectoryId || crypto.randomUUID(),
+      };
+
+      this.usageStats.totalScrapes++;
+      this.usageStats.totalBrowserCredits += result.usage.browserCredits;
+      this.usageStats.totalProxyCredits += result.usage.proxyCredits;
+      this.usageStats.trajectoryIds.push(result.trajectoryId);
+
+      return result;
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error(`TIMEOUT: Request to ${url} timed out after ${timeout}ms`);
+        }
+        throw error;
+      }
+      throw new Error(`UNKNOWN_ERROR: ${String(error)}`);
+    }
+  }
+
+  async scrapeBatch(
+    urls: string[],
+    options: RtrvrScrapeOptions = {},
+    concurrency: number = 5
+  ): Promise<Map<string, RtrvrScrapeResult | Error>> {
+    const results = new Map<string, RtrvrScrapeResult | Error>();
+
+    for (let i = 0; i < urls.length; i += concurrency) {
+      const batch = urls.slice(i, i + concurrency);
+      const batchPromises = batch.map(async (url) => {
+        try {
+          const result = await this.scrape(url, options);
+          return { url, result };
+        } catch (error) {
+          return { url, error: error instanceof Error ? error : new Error(String(error)) };
+        }
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+
+      for (const { url, result, error } of batchResults) {
+        if (error) {
+          results.set(url, error as Error);
+        } else if (result) {
+          results.set(url, result);
+        }
+      }
+    }
+
+    return results;
+  }
+
+  getUsageStats(): RtrvrUsageStats {
+    return { ...this.usageStats };
+  }
+
+  calculateCost(usage?: RtrvrUsageStats): { browserCost: number; proxyCost: number; total: number } {
+    const stats = usage || this.usageStats;
+    const browserCostPerCredit = 0.001;
+    const proxyCostPerCredit = 0.0005;
+
+    const browserCost = stats.totalBrowserCredits * browserCostPerCredit;
+    const proxyCost = stats.totalProxyCredits * proxyCostPerCredit;
+
+    return {
+      browserCost,
+      proxyCost,
+      total: browserCost + proxyCost,
+    };
+  }
+}
+
+interface BusinessListing {
+  business_name: string;
+  google_maps_url: string;
+  category?: string;
+  rating?: number;
+  review_count?: number;
+  address_preview?: string;
+}
+
+interface BusinessDetails {
+  phone?: string;
+  website?: string;
+  full_address?: string;
+  coordinates?: { lat: number; lng: number };
+  hours?: Array<{ day: string; open: string; close: string }>;
+  amenities?: string[];
+  price_level?: string;
+  reviews_preview?: Array<{ author: string; rating: number; text: string }>;
+}
+
+interface ContactInfo {
+  emails: string[];
+  phones: string[];
+  social_profiles: {
+    facebook?: string;
+    instagram?: string;
+    linkedin?: string;
+    twitter?: string;
+    tiktok?: string;
+    youtube?: string;
+  };
+  business_description?: string;
+  services?: string[];
+  team_members?: Array<{ name: string; role: string; email?: string }>;
+}
+
+interface ExtractionUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+}
+
+class GPT5Extractor {
+  private client: OpenAI;
+  private totalUsage: ExtractionUsage;
+
+  constructor(apiKey: string) {
+    this.client = new OpenAI({ apiKey });
+    this.totalUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+  }
+
+  async extractBusinessListings(
+    pageContent: string,
+    accessibilityTree?: Record<string, unknown>
+  ): Promise<{ listings: BusinessListing[]; usage: ExtractionUsage }> {
+    const contentToAnalyze = accessibilityTree
+      ? `Page Content:\n${pageContent}\n\nAccessibility Tree:\n${JSON.stringify(accessibilityTree, null, 2)}`
+      : pageContent;
+
+    const response = await this.client.chat.completions.create({
+      model: MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: `You are a data extraction specialist. Extract business listings from Google Maps search results.
+Return a JSON object with a "listings" array of businesses found on the page. Each business should have:
+- business_name (required): The name of the business
+- google_maps_url (required): The Google Maps URL for this business
+- category: The business type/category
+- rating: Numeric rating (1-5)
+- review_count: Number of reviews
+- address_preview: Short address snippet
+
+Only extract real businesses visible in the content. Do not hallucinate or make up data.
+Respond ONLY with valid JSON.`
+        },
+        {
+          role: 'user',
+          content: contentToAnalyze.slice(0, 50000)
+        }
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.1
+    });
+
+    const usage = this.trackUsage(response);
+
+    try {
+      const parsed = JSON.parse(response.choices[0]?.message?.content || '{"listings":[]}');
+      return { listings: parsed.listings || [], usage };
+    } catch {
+      return { listings: [], usage };
+    }
+  }
+
+  async extractBusinessDetails(
+    pageContent: string,
+    businessName: string,
+    accessibilityTree?: Record<string, unknown>
+  ): Promise<{ details: BusinessDetails; usage: ExtractionUsage }> {
+    const contentToAnalyze = accessibilityTree
+      ? `Business: ${businessName}\n\nPage Content:\n${pageContent}\n\nAccessibility Tree:\n${JSON.stringify(accessibilityTree, null, 2)}`
+      : `Business: ${businessName}\n\nPage Content:\n${pageContent}`;
+
+    const response = await this.client.chat.completions.create({
+      model: MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: `You are a data extraction specialist. Extract detailed business information from a Google Maps business page.
+Focus on extracting:
+- phone: Business phone number (normalize to standard format)
+- website: Official website URL
+- full_address: Complete street address
+- coordinates: Latitude and longitude if available
+- hours: Business hours by day
+- amenities: Features/services offered
+- price_level: Price range indicator
+- reviews_preview: Top 3 most helpful reviews
+
+Only extract information actually present in the content. Do not hallucinate.
+Respond ONLY with valid JSON.`
+        },
+        {
+          role: 'user',
+          content: contentToAnalyze.slice(0, 50000)
+        }
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.1
+    });
+
+    const usage = this.trackUsage(response);
+
+    try {
+      const parsed = JSON.parse(response.choices[0]?.message?.content || '{}');
+      return { details: parsed, usage };
+    } catch {
+      return { details: {}, usage };
+    }
+  }
+
+  async extractContactInfo(
+    websiteContent: string,
+    businessContext: { name: string; address?: string; category?: string }
+  ): Promise<{ contacts: ContactInfo; usage: ExtractionUsage }> {
+    const response = await this.client.chat.completions.create({
+      model: MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: `You are a contact information extraction specialist. Extract contact details from a business website.
+Business context: ${businessContext.name}${businessContext.category ? ` (${businessContext.category})` : ''}${businessContext.address ? ` at ${businessContext.address}` : ''}
+
+Extract:
+- emails: Business email addresses (prioritize contact@ or info@ over personal emails, validate format)
+- phones: Phone numbers found (normalize format)
+- social_profiles: Social media URLs (facebook, instagram, linkedin, twitter, tiktok, youtube)
+- business_description: 2-3 sentence summary of what the business does
+- services: List of services/products offered
+- team_members: Key team members with roles and emails if available
+
+Only extract real information. Validate email formats. Skip newsletter signup forms.
+Respond ONLY with valid JSON.`
+        },
+        {
+          role: 'user',
+          content: websiteContent.slice(0, 40000)
+        }
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.1
+    });
+
+    const usage = this.trackUsage(response);
+
+    try {
+      const parsed = JSON.parse(response.choices[0]?.message?.content || '{}');
+      return {
+        contacts: {
+          emails: parsed.emails || [],
+          phones: parsed.phones || [],
+          social_profiles: parsed.social_profiles || {},
+          business_description: parsed.business_description,
+          services: parsed.services || [],
+          team_members: parsed.team_members || []
+        },
+        usage
+      };
+    } catch {
+      return {
+        contacts: { emails: [], phones: [], social_profiles: {} },
+        usage
+      };
+    }
+  }
+
+  private trackUsage(response: { usage?: { prompt_tokens?: number; completion_tokens?: number } | null }): ExtractionUsage {
+    const inputTokens = response.usage?.prompt_tokens || 0;
+    const outputTokens = response.usage?.completion_tokens || 0;
+
+    this.totalUsage.inputTokens += inputTokens;
+    this.totalUsage.outputTokens += outputTokens;
+    this.totalUsage.totalTokens += inputTokens + outputTokens;
+
+    return { inputTokens, outputTokens, totalTokens: inputTokens + outputTokens };
+  }
+
+  getTotalUsage(): ExtractionUsage {
+    return { ...this.totalUsage };
+  }
+
+  calculateCost(): number {
+    const inputCostPer1k = 0.0025;
+    const outputCostPer1k = 0.01;
+
+    return (
+      (this.totalUsage.inputTokens / 1000) * inputCostPer1k +
+      (this.totalUsage.outputTokens / 1000) * outputCostPer1k
+    );
+  }
+}
 
 interface RtrvrSettings {
   maxCrawledPlacesPerSearch?: number;
@@ -555,7 +950,7 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     console.error('Scrape error:', error);
 
-    if (jobId && supabase) {
+    if (jobId && supabase!) {
       await supabase.from('agent_jobs').update({
         status: 'failed',
         result_data: {

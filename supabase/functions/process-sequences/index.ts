@@ -30,7 +30,6 @@ Deno.serve(async (req: Request) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Authenticate the user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
@@ -45,7 +44,6 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Verify the user's token
     const authClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -65,7 +63,6 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Use service role key for database operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { batchSize = 50 } = await req.json().catch(() => ({}));
@@ -229,30 +226,24 @@ Deno.serve(async (req: Request) => {
 
 function sanitizeValue(value: string): string {
   if (!value) return "";
-
-  // Remove potentially dangerous characters and scripts
   return value
-    .replace(/[<>]/g, "") // Remove HTML tags
-    .replace(/javascript:/gi, "") // Remove javascript: protocol
-    .replace(/on\w+=/gi, "") // Remove event handlers
+    .replace(/[<>]/g, "")
+    .replace(/javascript:/gi, "")
+    .replace(/on\w+=/gi, "")
     .trim();
 }
 
 function personalizeContent(content: string, leadDetails: any): string {
   let personalized = content;
-
-  // Sanitize all values before replacement
   const businessName = sanitizeValue(leadDetails.business_name || "");
   const email = sanitizeValue(leadDetails.email || "");
   const firstName = sanitizeValue(leadDetails.decision_maker_name?.split(" ")[0] || "");
   const website = sanitizeValue(leadDetails.website || "");
   const phone = sanitizeValue(leadDetails.phone || "");
-
   personalized = personalized.replace(/\{\{business_name\}\}/g, businessName);
   personalized = personalized.replace(/\{\{email\}\}/g, email);
   personalized = personalized.replace(/\{\{first_name\}\}/g, firstName);
   personalized = personalized.replace(/\{\{website\}\}/g, website);
   personalized = personalized.replace(/\{\{phone\}\}/g, phone);
-
   return personalized;
 }
