@@ -1,6 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ArrowRight, ArrowLeft } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, Lightbulb, MousePointer2, Keyboard } from 'lucide-react';
+import AnimatedIllustration from './tour/AnimatedIllustration';
+import TypedText from './tour/TypedText';
+import ProgressTimeline from './tour/ProgressTimeline';
+import SampleDataPreview from './tour/SampleDataPreview';
+import Confetti from './tour/Confetti';
 
 export interface TourStepData {
   target: string;
@@ -8,6 +13,11 @@ export interface TourStepData {
   content: string;
   image?: string;
   position?: 'top' | 'bottom' | 'left' | 'right' | 'auto';
+  illustration?: 'campaign-create' | 'autopilot' | 'email-send' | 'leads-scrape' | 'analytics' | 'template-edit' | 'account-connect' | 'filter-search' | 'schedule' | 'default';
+  proTip?: string;
+  samplePreview?: 'lead-card' | 'email-preview' | 'analytics-mini' | 'campaign-result';
+  highlightWords?: string[];
+  shortcut?: string;
 }
 
 interface TourStepProps {
@@ -18,6 +28,8 @@ interface TourStepProps {
   onPrev: () => void;
   onSkip: () => void;
   isLast: boolean;
+  stepTitles?: string[];
+  onStepClick?: (step: number) => void;
 }
 
 export default function TourStep({
@@ -27,12 +39,25 @@ export default function TourStep({
   onNext,
   onPrev,
   onSkip,
-  isLast
+  isLast,
+  stepTitles = [],
+  onStepClick
 }: TourStepProps) {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [actualPosition, setActualPosition] = useState<'top' | 'bottom' | 'left' | 'right'>('bottom');
+  const [showContent, setShowContent] = useState(false);
+  const [showProTip, setShowProTip] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0, visible: false });
+
+  useEffect(() => {
+    setShowContent(false);
+    setShowProTip(false);
+    const timer = setTimeout(() => setShowContent(true), 100);
+    return () => clearTimeout(timer);
+  }, [step.target]);
 
   useEffect(() => {
     const findTarget = () => {
@@ -42,6 +67,11 @@ export default function TourStep({
         setTargetRect(rect);
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
         calculatePosition(rect);
+        setCursorPosition({
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+          visible: true
+        });
       }
     };
 
@@ -55,11 +85,37 @@ export default function TourStep({
     };
   }, [step.target]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'Enter') {
+        onNext();
+      } else if (e.key === 'ArrowLeft') {
+        if (currentStep > 1) onPrev();
+      } else if (e.key === 'Escape') {
+        onSkip();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onNext, onPrev, onSkip, currentStep]);
+
+  const handleNext = () => {
+    if (isLast) {
+      setShowConfetti(true);
+      setTimeout(() => {
+        onNext();
+      }, 1500);
+    } else {
+      onNext();
+    }
+  };
+
   const calculatePosition = (rect: DOMRect) => {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const tooltipWidth = 340;
-    const tooltipHeight = 200;
+    const tooltipWidth = 380;
+    const tooltipHeight = step.samplePreview || step.illustration ? 380 : 280;
     const padding = 16;
 
     let position = step.position || 'auto';
@@ -130,6 +186,8 @@ export default function TourStep({
 
   return createPortal(
     <>
+      <Confetti active={showConfetti} duration={2000} particleCount={80} />
+
       <div className="fixed inset-0 z-[9990]" onClick={onSkip}>
         <svg className="absolute inset-0 w-full h-full">
           <defs>
@@ -150,7 +208,7 @@ export default function TourStep({
             y="0"
             width="100%"
             height="100%"
-            fill="rgba(0, 0, 0, 0.6)"
+            fill="rgba(0, 0, 0, 0.65)"
             mask="url(#tour-mask)"
           />
         </svg>
@@ -166,27 +224,46 @@ export default function TourStep({
         }}
       >
         <div className="w-full h-full rounded-lg ring-4 ring-yellow-400 ring-opacity-75 animate-pulse" />
+        <div className="absolute inset-0 rounded-lg animate-ping ring-2 ring-yellow-400 ring-opacity-50" style={{ animationDuration: '1.5s' }} />
       </div>
+
+      {cursorPosition.visible && (
+        <div
+          className="fixed z-[9991] pointer-events-none animate-bounce"
+          style={{
+            left: cursorPosition.x + 20,
+            top: cursorPosition.y - 10,
+            animationDuration: '1s'
+          }}
+        >
+          <MousePointer2 className="w-6 h-6 text-yellow-500 drop-shadow-lg" fill="#fbbf24" />
+        </div>
+      )}
 
       <div
         ref={tooltipRef}
-        className="fixed z-[9992] w-[340px]"
-        style={{ left: tooltipPosition.x, top: tooltipPosition.y }}
+        className="fixed z-[9992] w-[380px] transition-all duration-300"
+        style={{
+          left: tooltipPosition.x,
+          top: tooltipPosition.y,
+          opacity: showContent ? 1 : 0,
+          transform: showContent ? 'translateY(0)' : 'translateY(10px)'
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
           <div className={getArrowStyle()} />
 
           <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-yellow-50 to-orange-50 border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center text-white text-xs font-bold">
-                {currentStep}
-              </div>
-              <span className="text-sm text-gray-500">of {totalSteps}</span>
-            </div>
+            <ProgressTimeline
+              currentStep={currentStep}
+              totalSteps={totalSteps}
+              stepTitles={stepTitles}
+              onStepClick={onStepClick}
+            />
             <button
               onClick={onSkip}
-              className="p-1 hover:bg-gray-200 rounded-full transition"
+              className="p-1.5 hover:bg-white/50 rounded-full transition ml-2"
               aria-label="Skip tour"
             >
               <X className="w-4 h-4 text-gray-500" />
@@ -194,18 +271,48 @@ export default function TourStep({
           </div>
 
           <div className="p-4">
-            {step.image && (
+            {step.illustration && (
+              <AnimatedIllustration
+                type={step.illustration}
+                className="h-28 mb-3"
+              />
+            )}
+
+            {step.image && !step.illustration && (
               <div className="mb-3 rounded-lg overflow-hidden bg-gray-100">
                 <img
                   src={step.image}
                   alt={step.title}
-                  className="w-full h-32 object-cover"
+                  className="w-full h-28 object-cover"
                 />
               </div>
             )}
 
             <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
-            <p className="text-gray-600 text-sm leading-relaxed">{step.content}</p>
+
+            <div className="text-gray-600 text-sm leading-relaxed min-h-[48px]">
+              {showContent && (
+                <TypedText
+                  text={step.content}
+                  speed={15}
+                  highlightWords={step.highlightWords}
+                  onComplete={() => setShowProTip(true)}
+                />
+              )}
+            </div>
+
+            {step.samplePreview && showProTip && (
+              <div className="mt-3 animate-fadeIn">
+                <SampleDataPreview type={step.samplePreview} />
+              </div>
+            )}
+
+            {step.proTip && showProTip && (
+              <div className="mt-3 flex items-start gap-2 p-2.5 bg-amber-50 rounded-lg border border-amber-200 animate-fadeIn">
+                <Lightbulb className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-800 leading-relaxed">{step.proTip}</p>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-100">
@@ -222,18 +329,26 @@ export default function TourStep({
               Back
             </button>
 
-            <button
-              onClick={onSkip}
-              className="text-sm text-gray-500 hover:text-gray-700 transition"
-            >
-              Skip tour
-            </button>
+            <div className="flex items-center gap-2">
+              {step.shortcut && (
+                <div className="hidden sm:flex items-center gap-1 text-xs text-gray-400">
+                  <Keyboard className="w-3 h-3" />
+                  <span>{step.shortcut}</span>
+                </div>
+              )}
+              <button
+                onClick={onSkip}
+                className="text-xs text-gray-500 hover:text-gray-700 transition"
+              >
+                Skip
+              </button>
+            </div>
 
             <button
-              onClick={onNext}
-              className="flex items-center gap-1 px-4 py-1.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg text-sm font-medium hover:shadow-lg transition"
+              onClick={handleNext}
+              className="flex items-center gap-1 px-4 py-1.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg text-sm font-medium hover:shadow-lg hover:scale-105 transition-all"
             >
-              {isLast ? 'Finish' : 'Next'}
+              {isLast ? 'Complete' : 'Next'}
               {!isLast && <ArrowRight className="w-4 h-4" />}
             </button>
           </div>
