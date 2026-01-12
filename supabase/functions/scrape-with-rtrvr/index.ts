@@ -2,7 +2,7 @@ import { createClient, SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import OpenAI from 'npm:openai@4';
 
 const RTRVR_BASE_URL = 'https://api.rtrvr.ai';
-const MODEL = 'gpt-4o';
+const MODEL = 'gpt-5.2';
 
 interface RtrvrScrapeOptions {
   onlyTextContent?: boolean;
@@ -257,8 +257,9 @@ Respond ONLY with valid JSON.`
         }
       ],
       response_format: { type: 'json_object' },
+      reasoning_effort: 'none',
       temperature: 0.1
-    });
+    } as Parameters<typeof this.client.chat.completions.create>[0]);
 
     const usage = this.trackUsage(response);
 
@@ -304,8 +305,9 @@ Respond ONLY with valid JSON.`
         }
       ],
       response_format: { type: 'json_object' },
+      reasoning_effort: 'none',
       temperature: 0.1
-    });
+    } as Parameters<typeof this.client.chat.completions.create>[0]);
 
     const usage = this.trackUsage(response);
 
@@ -346,8 +348,9 @@ Respond ONLY with valid JSON.`
         }
       ],
       response_format: { type: 'json_object' },
+      reasoning_effort: 'none',
       temperature: 0.1
-    });
+    } as Parameters<typeof this.client.chat.completions.create>[0]);
 
     const usage = this.trackUsage(response);
 
@@ -582,7 +585,7 @@ Deno.serve(async (req: Request) => {
     await logProgress(supabase, jobId, {
       level: 'info',
       icon: '🚀',
-      message: 'Initializing rtrvr.ai scraping agent with GPT-4o extraction',
+      message: 'Initializing rtrvr.ai scraping agent with GPT-5.2 extraction',
     });
 
     await supabase
@@ -623,7 +626,7 @@ Deno.serve(async (req: Request) => {
     await logProgress(supabase, jobId, {
       level: 'loading',
       icon: '🤖',
-      message: 'GPT-4o analyzing search results to extract business listings...',
+      message: 'GPT-5.2 analyzing search results to extract business listings...',
     });
 
     const { listings } = await extractor.extractBusinessListings(
@@ -636,7 +639,7 @@ Deno.serve(async (req: Request) => {
     await logProgress(supabase, jobId, {
       level: 'success',
       icon: '📊',
-      message: `Extracted ${businessListings.length} businesses using GPT-4o`,
+      message: `Extracted ${businessListings.length} businesses using GPT-5.2`,
     });
 
     await supabase.from('agent_jobs').update({
