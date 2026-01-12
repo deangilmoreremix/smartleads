@@ -48,46 +48,43 @@ Deno.serve(async (req: Request) => {
 
     const openai = new OpenAI({ apiKey: openaiApiKey });
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-5-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      temperature: 0.7,
-      max_tokens: 1000,
-    });
-
-    const content = completion.choices[0]?.message?.content?.trim() || '';
-
     if (generateSubject) {
-      const lines = content.split('\n').filter(line => line.trim());
-      const body = lines.join('\n');
-
-      const subjectCompletion = await openai.chat.completions.create({
+      const jsonSystemPrompt = systemPrompt + `\n\nYou MUST respond with valid JSON: {"subject": "5-8 word subject line", "body": "the email body text"}`;
+      const response = await openai.responses.create({
         model: 'gpt-5-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert at writing compelling email subject lines. Write a short (5-8 words), personalized subject line. Be specific and relevant. Return ONLY the subject line, no quotes.'
-          },
-          {
-            role: 'user',
-            content: `Write a subject line for this email:\n\n${body}`
-          }
-        ],
-        temperature: 0.8,
-        max_tokens: 50,
+        instructions: jsonSystemPrompt,
+        input: userPrompt + '\n\nRespond with JSON only.',
+        reasoning: { effort: 'none' },
+        text: { format: { type: 'json_object' } },
       });
 
-      const subject = subjectCompletion.choices[0]?.message?.content?.trim().replace(/^["']|["']$/g, '') || 'Quick question';
+      const outputText = response.output?.[0]?.content?.[0]?.text || '{}';
+      let parsed: { subject?: string; body?: string };
+      try {
+        parsed = JSON.parse(outputText);
+      } catch {
+        const subjectMatch = outputText.match(/"subject"\s*:\s*"([^"]+)"/);
+        const bodyMatch = outputText.match(/"body"\s*:\s*"([\s\S]*?)(?:"\s*,|\"\s*\})/);
+        parsed = {
+          subject: subjectMatch?.[1] || 'Quick question',
+          body: bodyMatch?.[1]?.replace(/\\n/g, '\n') || outputText,
+        };
+      }
 
       return new Response(
-        JSON.stringify({ subject, body, content }),
+        JSON.stringify({ subject: parsed.subject || 'Quick question', body: parsed.body || '', content: parsed.body || '' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    const response = await openai.responses.create({
+      model: 'gpt-5-mini',
+      instructions: systemPrompt,
+      input: userPrompt,
+      reasoning: { effort: 'none' },
+    });
+
+    const content = response.output?.[0]?.content?.[0]?.text?.trim() || '';
     const contentArray = content.split('\n').filter(line => line.trim());
 
     return new Response(

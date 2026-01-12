@@ -563,8 +563,6 @@ async function generatePersonalizedEmail(
     };
   }
 
-  const aiModel = userPrefs?.ai_model || 'gpt-5.2';
-  const creativityLevel = userPrefs?.creativity_level || 0.75;
   const brandVoice = userPrefs?.brand_voice || '';
   const avoidPhrases = userPrefs?.avoid_phrases || [];
   const customInstructions = userPrefs?.custom_instructions || '';
@@ -607,7 +605,14 @@ Then write a personalized, compelling email that:
 - References specific details about their business (not generic)
 - Naturally incorporates intent signals without being obvious
 - Ends with a simple, low-friction call to action
-- Avoids marketing jargon, excessive enthusiasm, and spam triggers`;
+- Avoids marketing jargon, excessive enthusiasm, and spam triggers
+
+You MUST respond with valid JSON in this exact format:
+{
+  "subject": "5-8 word compelling subject line",
+  "body": "The full email body text",
+  "quality_score": 0-100 rating based on personalization depth, spam trigger avoidance, clarity, value proposition, and likelihood to get a response
+}`;
 
   if (brandVoice) {
     systemPrompt += `\n\nBrand Voice: ${brandVoice}`;
@@ -640,7 +645,7 @@ Email Goal: ${template.email_goal?.replace('_', ' ') || 'cold outreach'}
 Target Industry: ${template.industry || campaign.niche}
 Target Audience: ${template.target_audience || 'business owners'}`;
 
-    userPrompt = `First, analyze this business data and identify 2-3 specific personalization opportunities:\n\nBusiness: ${businessName}\nIndustry: ${campaign.niche}\nLocation: ${location}\nDecision Maker: ${capitalizedName}\n${rating > 0 ? `Rating: ${rating} stars (${reviewCount} reviews)` : ''}\n${reviewInsight ? `Recent review: "${reviewInsight}"` : ''}\n\nThen, based on your analysis, ${aiPrompt}`;
+    userPrompt = `First, analyze this business data and identify 2-3 specific personalization opportunities:\n\nBusiness: ${businessName}\nIndustry: ${campaign.niche}\nLocation: ${location}\nDecision Maker: ${capitalizedName}\n${rating > 0 ? `Rating: ${rating} stars (${reviewCount} reviews)` : ''}\n${reviewInsight ? `Recent review: "${reviewInsight}"` : ''}\n\nThen, based on your analysis, ${aiPrompt}\n\nRespond with JSON only.`;
   } else {
     userPrompt = `Write a cold email for:
 Business: ${businessName}
@@ -655,73 +660,40 @@ ${tokens.conversation_starter ? `Conversation Starter: ${tokens.conversation_sta
 ${tokens.tech_stack ? `Tech Stack: ${tokens.tech_stack}` : ''}
 ${tokens.company_size ? `Company Size: ${tokens.company_size}` : ''}
 
-Write a personalized email that offers value specifically relevant to their situation.`;
+Write a personalized email that offers value specifically relevant to their situation. Respond with JSON only.`;
   }
 
-  const modelToUse = aiModel === 'gpt-5.2' ? 'gpt-5.2' : 'gpt-5-mini';
-
   try {
-    const completion = await openai.chat.completions.create({
-      model: modelToUse,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      temperature: creativityLevel,
-      max_tokens: 800,
+    const response = await openai.responses.create({
+      model: 'gpt-5.2',
+      instructions: systemPrompt,
+      input: userPrompt,
+      reasoning: { effort: 'medium' },
+      text: { format: { type: 'json_object' } },
     });
 
-    const generatedBody = completion.choices[0]?.message?.content?.trim() || '';
+    const outputText = response.output?.[0]?.content?.[0]?.text || '{}';
+    let parsed: { subject?: string; body?: string; quality_score?: number };
 
-    const subjectCompletion = await openai.chat.completions.create({
-      model: modelToUse,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert at writing compelling email subject lines. Write a short (5-8 words), personalized subject line that will get opened. Be specific and relevant to the business. Avoid generic phrases, hype words, and spam triggers like "Amazing", "Free", "Act now". Focus on curiosity or specific value.'
-        },
-        {
-          role: 'user',
-          content: `Write a subject line for this email to ${capitalizedName} at ${businessName}:\n\n${generatedBody}`
-        }
-      ],
-      temperature: creativityLevel + 0.05,
-      max_tokens: 50,
-    });
-
-    const generatedSubject = subjectCompletion.choices[0]?.message?.content?.trim().replace(/^["']|["']$/g, '') ||
-      `Quick question about ${businessName}`;
-
-    let qualityScore;
-    if (aiModel === 'gpt-5.2') {
-      try {
-        const qualityCompletion = await openai.chat.completions.create({
-          model: 'gpt-5.2',
-          messages: [
-            {
-              role: 'system',
-              content: 'Analyze this cold email and rate its quality on a scale of 0-100. Consider: personalization depth, spam trigger avoidance, clarity, value proposition, and likelihood to get a response. Return ONLY a number.'
-            },
-            {
-              role: 'user',
-              content: `Subject: ${generatedSubject}\n\nBody: ${generatedBody}`
-            }
-          ],
-          temperature: 0.3,
-          max_tokens: 10,
-        });
-        qualityScore = parseInt(qualityCompletion.choices[0]?.message?.content?.trim() || '0');
-      } catch (e) {
-        console.log('Quality scoring failed, continuing without score');
-      }
+    try {
+      parsed = JSON.parse(outputText);
+    } catch {
+      const subjectMatch = outputText.match(/"subject"\s*:\s*"([^"]+)"/);
+      const bodyMatch = outputText.match(/"body"\s*:\s*"([\s\S]*?)(?:"\s*,|\"\s*\})/);
+      const scoreMatch = outputText.match(/"quality_score"\s*:\s*(\d+)/);
+      parsed = {
+        subject: subjectMatch?.[1] || `Quick question about ${businessName}`,
+        body: bodyMatch?.[1]?.replace(/\\n/g, '\n') || outputText,
+        quality_score: scoreMatch ? parseInt(scoreMatch[1]) : undefined,
+      };
     }
 
     return {
-      subject: generatedSubject,
-      body: generatedBody,
+      subject: parsed.subject || `Quick question about ${businessName}`,
+      body: parsed.body || '',
       prompt: userPrompt,
       tokens,
-      qualityScore,
+      qualityScore: parsed.quality_score,
       intelligence: intelligence ? {
         servicesUsed: intelligence.services.length > 0,
         painPointsUsed: intelligence.painPoints.length > 0,

@@ -63,7 +63,6 @@ Deno.serve(async (req: Request) => {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    const aiModel = userPrefs?.ai_model || 'gpt-5.2';
     const openai = new OpenAI({ apiKey: openaiApiKey });
 
     const variants = [];
@@ -95,35 +94,42 @@ Deno.serve(async (req: Request) => {
           userPrompt = `Create a variant of this email using a ${approach} approach:\n\nOriginal Subject: ${template.subject}\n\nOriginal Body: ${template.body}\n\nCreate both a new subject line and body that test this approach while maintaining the core offer.`;
         }
 
-        const completion = await openai.chat.completions.create({
-          model: aiModel === 'gpt-5.2' ? 'gpt-5-2025-12' : 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          temperature: 0.8,
-          max_tokens: 600,
+        const jsonSystemPrompt = systemPrompt + `\n\nYou MUST respond with valid JSON: {"subject": "the subject line", "body": "the email body"}`;
+        const response = await openai.responses.create({
+          model: 'gpt-5-mini',
+          instructions: jsonSystemPrompt,
+          input: userPrompt + '\n\nRespond with JSON only.',
+          reasoning: { effort: 'none' },
+          text: { format: { type: 'json_object' } },
         });
 
-        const generatedContent = completion.choices[0]?.message?.content?.trim() || '';
+        const generatedContent = response.output?.[0]?.content?.[0]?.text || '{}';
 
         let variantSubject = template.subject;
         let variantBody = template.body;
 
-        if (variationType === 'subject') {
-          variantSubject = generatedContent.replace(/^["']|["']$/g, '');
-          variantBody = template.body;
-        } else if (variationType === 'body') {
-          variantSubject = template.subject;
-          variantBody = generatedContent;
-        } else {
-          const lines = generatedContent.split('\n');
-          const subjectLine = lines.find(line => line.toLowerCase().includes('subject'));
-          if (subjectLine) {
-            variantSubject = subjectLine.replace(/subject:?/i, '').trim().replace(/^["']|["']$/g, '');
-            variantBody = lines.slice(lines.indexOf(subjectLine) + 1).join('\n').trim();
+        try {
+          const parsed = JSON.parse(generatedContent);
+          if (variationType === 'subject') {
+            variantSubject = parsed.subject || template.subject;
+            variantBody = template.body;
+          } else if (variationType === 'body') {
+            variantSubject = template.subject;
+            variantBody = parsed.body || generatedContent;
           } else {
-            variantBody = generatedContent;
+            variantSubject = parsed.subject || template.subject;
+            variantBody = parsed.body || template.body;
+          }
+        } catch {
+          const subjectMatch = generatedContent.match(/"subject"\s*:\s*"([^"]+)"/);
+          const bodyMatch = generatedContent.match(/"body"\s*:\s*"([\s\S]*?)(?:"\s*,|\"\s*\})/);
+          if (variationType === 'subject') {
+            variantSubject = subjectMatch?.[1] || template.subject;
+          } else if (variationType === 'body') {
+            variantBody = bodyMatch?.[1]?.replace(/\\n/g, '\n') || generatedContent;
+          } else {
+            variantSubject = subjectMatch?.[1] || template.subject;
+            variantBody = bodyMatch?.[1]?.replace(/\\n/g, '\n') || template.body;
           }
         }
 
