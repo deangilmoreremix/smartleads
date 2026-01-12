@@ -54,7 +54,7 @@ class RtrvrClient {
     } = options;
 
     const requestBody: Record<string, unknown> = {
-      url,
+      urls: [url],
       onlyTextContent,
       proxyMode,
     };
@@ -91,16 +91,17 @@ class RtrvrClient {
       }
 
       const data = await response.json();
+      const pageData = Array.isArray(data.results) ? data.results[0] : data;
 
       const result: RtrvrScrapeResult = {
-        content: data.content || data.text || '',
-        accessibilityTree: data.accessibilityTree || data.tree,
-        url: data.url || url,
+        content: pageData?.content || pageData?.text || data.content || data.text || '',
+        accessibilityTree: pageData?.accessibilityTree || pageData?.tree || data.accessibilityTree || data.tree,
+        url: pageData?.url || data.url || url,
         usage: {
-          browserCredits: data.usage?.browserCredits || 0,
-          proxyCredits: data.usage?.proxyCredits || 0,
+          browserCredits: data.usage?.browserCredits || pageData?.usage?.browserCredits || 0,
+          proxyCredits: data.usage?.proxyCredits || pageData?.usage?.proxyCredits || 0,
         },
-        trajectoryId: data.trajectoryId || crypto.randomUUID(),
+        trajectoryId: data.trajectoryId || pageData?.trajectoryId || crypto.randomUUID(),
       };
 
       this.usageStats.totalScrapes++;
