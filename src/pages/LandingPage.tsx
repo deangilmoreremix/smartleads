@@ -60,7 +60,28 @@ export default function LandingPage() {
             </div>
 
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-700 hover:text-gray-900 transition">Features</a>
+              <div className="relative group">
+                <button className="text-gray-700 hover:text-gray-900 transition flex items-center space-x-1">
+                  <span>Features</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="py-2">
+                    <Link to="/features/lead-finder" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                      <div className="font-semibold">Lead Finder</div>
+                      <div className="text-xs text-gray-600">Find decision-makers instantly</div>
+                    </Link>
+                    <Link to="/features/ai-emails" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                      <div className="font-semibold">AI Emails</div>
+                      <div className="text-xs text-gray-600">Personalized at scale</div>
+                    </Link>
+                    <Link to="/features/automation" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                      <div className="font-semibold">Automation</div>
+                      <div className="text-xs text-gray-600">24/7 autopilot campaigns</div>
+                    </Link>
+                  </div>
+                </div>
+              </div>
               <a href="#demo" className="text-gray-700 hover:text-gray-900 transition">Demo</a>
               <a href="#faq" className="text-gray-700 hover:text-gray-900 transition">FAQ</a>
               <Link to="/pricing" className="text-gray-700 hover:text-gray-900 transition">Pricing</Link>
@@ -161,35 +182,53 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white border border-gray-200 rounded-2xl p-8 hover:border-[#FFD666] hover:shadow-xl transition group">
+            <Link to="/features/lead-finder" className="bg-white border border-gray-200 rounded-2xl p-8 hover:border-[#FFD666] hover:shadow-xl transition group cursor-pointer">
               <div className="w-16 h-16 bg-[#FFD666]/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
                 <Target className="w-8 h-8 text-gray-900" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Find decision-makers instantly</h3>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed mb-4">
                 We scrape local businesses in your niche and target cities, then filter to only personal emails (firstname@gmail.com or name@company.com). These convert far better than generic ones, giving you higher open and reply rates.
               </p>
-            </div>
+              <div className="text-[#FFD666] font-semibold flex items-center space-x-2">
+                <span>Learn more</span>
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </Link>
 
-            <div className="bg-white border border-gray-200 rounded-2xl p-8 hover:border-[#FFD666] hover:shadow-xl transition group">
+            <Link to="/features/ai-emails" className="bg-white border border-gray-200 rounded-2xl p-8 hover:border-[#FFD666] hover:shadow-xl transition group cursor-pointer">
               <div className="w-16 h-16 bg-[#FFD666]/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
                 <Zap className="w-8 h-8 text-gray-900" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Personalized cold emails at scale</h3>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed mb-4">
                 We use Google Maps reviews with GPT-5 to craft unique, hyper-relevant emails for each prospect. This improves deliverability, avoids spam filters, and gets you more replies than generic templates.
               </p>
-            </div>
+              <div className="text-[#FFD666] font-semibold flex items-center space-x-2">
+                <span>Learn more</span>
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </Link>
 
-            <div className="bg-white border border-gray-200 rounded-2xl p-8 hover:border-[#FFD666] hover:shadow-xl transition group">
+            <Link to="/features/automation" className="bg-white border border-gray-200 rounded-2xl p-8 hover:border-[#FFD666] hover:shadow-xl transition group cursor-pointer">
               <div className="w-16 h-16 bg-[#FFD666]/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
                 <Bot className="w-8 h-8 text-gray-900" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Fully automated outreach campaigns</h3>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed mb-4">
                 From scraping leads to sending personalized unique emails, your Outreach Agent works 24/7 on autopilot. You just set your niche and a city, it handles research, writing, and sending for you with multiple gmail inboxes.
               </p>
-            </div>
+              <div className="text-[#FFD666] font-semibold flex items-center space-x-2">
+                <span>Learn more</span>
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
@@ -270,9 +309,10 @@ export default function LandingPage() {
             <div>
               <h3 className="text-white font-semibold mb-4">Product</h3>
               <ul className="space-y-2">
-                <li><a href="#features" className="text-slate-400 hover:text-white transition">Features</a></li>
+                <li><Link to="/features/lead-finder" className="text-slate-400 hover:text-white transition">Lead Finder</Link></li>
+                <li><Link to="/features/ai-emails" className="text-slate-400 hover:text-white transition">AI Emails</Link></li>
+                <li><Link to="/features/automation" className="text-slate-400 hover:text-white transition">Automation</Link></li>
                 <li><a href="#demo" className="text-slate-400 hover:text-white transition">Demo</a></li>
-                <li><a href="#faq" className="text-slate-400 hover:text-white transition">FAQ</a></li>
                 <li><Link to="/pricing" className="text-slate-400 hover:text-white transition">Pricing</Link></li>
                 <li><Link to="/affiliate" className="text-slate-400 hover:text-white transition">Affiliate</Link></li>
               </ul>

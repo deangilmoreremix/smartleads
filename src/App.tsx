@@ -26,6 +26,9 @@ import PricingPage from './pages/PricingPage';
 import AffiliatePage from './pages/AffiliatePage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
+import LeadFinderPage from './pages/LeadFinderPage';
+import AIEmailsPage from './pages/AIEmailsPage';
+import AutomationPage from './pages/AutomationPage';
 
 function App() {
   return (
@@ -215,6 +218,10 @@ function App() {
             <Route path="/affiliate" element={<AffiliatePage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
+
+            <Route path="/features/lead-finder" element={<LeadFinderPage />} />
+            <Route path="/features/ai-emails" element={<AIEmailsPage />} />
+            <Route path="/features/automation" element={<AutomationPage />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
