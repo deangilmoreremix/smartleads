@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ArrowRight, ArrowLeft, MapPin, Mail, Sparkles, TrendingUp, Zap, Target, Clock } from 'lucide-react';
 import { useOnboarding } from '../contexts/OnboardingContext';
-import Confetti from './tour/Confetti';
+
+const Confetti = lazy(() => import('./tour/Confetti'));
 
 const welcomeSteps = [
   {
@@ -107,7 +108,9 @@ export default function WelcomeModal() {
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <Confetti active={showConfetti} duration={2000} particleCount={60} />
+      <Suspense fallback={null}>
+        <Confetti active={showConfetti} duration={2000} particleCount={60} />
+      </Suspense>
 
       <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-scaleIn">
         <button

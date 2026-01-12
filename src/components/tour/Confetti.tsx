@@ -33,7 +33,8 @@ export default function Confetti({
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
-    if (!active || isRunning) return;
+    if (!active) return;
+    if (isRunning) return;
 
     setIsRunning(true);
     const newPieces: ConfettiPiece[] = [];

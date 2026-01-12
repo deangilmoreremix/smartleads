@@ -23,24 +23,26 @@ export default function TypedText({
   useEffect(() => {
     setDisplayedText('');
     setIsComplete(false);
+    let interval: ReturnType<typeof setInterval> | null = null;
 
     const startTimeout = setTimeout(() => {
       let currentIndex = 0;
-      const interval = setInterval(() => {
+      interval = setInterval(() => {
         if (currentIndex < text.length) {
           setDisplayedText(text.slice(0, currentIndex + 1));
           currentIndex++;
         } else {
-          clearInterval(interval);
+          if (interval) clearInterval(interval);
           setIsComplete(true);
           onComplete?.();
         }
       }, speed);
-
-      return () => clearInterval(interval);
     }, delay);
 
-    return () => clearTimeout(startTimeout);
+    return () => {
+      clearTimeout(startTimeout);
+      if (interval) clearInterval(interval);
+    };
   }, [text, speed, delay, onComplete]);
 
   const renderText = () => {
