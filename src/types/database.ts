@@ -878,6 +878,47 @@ export interface Database {
           created_at?: string
         }
       }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          type: 'reply' | 'open' | 'bounce' | 'campaign_complete' | 'leads_scraped' | 'credits_low' | 'system'
+          title: string
+          message: string
+          campaign_id: string | null
+          lead_id: string | null
+          email_id: string | null
+          metadata: Json
+          is_read: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: 'reply' | 'open' | 'bounce' | 'campaign_complete' | 'leads_scraped' | 'credits_low' | 'system'
+          title: string
+          message: string
+          campaign_id?: string | null
+          lead_id?: string | null
+          email_id?: string | null
+          metadata?: Json
+          is_read?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: 'reply' | 'open' | 'bounce' | 'campaign_complete' | 'leads_scraped' | 'credits_low' | 'system'
+          title?: string
+          message?: string
+          campaign_id?: string | null
+          lead_id?: string | null
+          email_id?: string | null
+          metadata?: Json
+          is_read?: boolean
+          created_at?: string
+        }
+      }
     }
   }
 }

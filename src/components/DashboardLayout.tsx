@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { NotificationProvider } from '../contexts/NotificationContext';
 import {
   LayoutDashboard,
   Target,
@@ -11,11 +12,13 @@ import {
   X,
   Zap,
   Brain,
-  UserSearch
+  UserSearch,
+  Settings,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/database';
+import NotificationBell from './NotificationBell';
 
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
 
@@ -77,6 +80,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
+    <NotificationProvider>
     <div className="min-h-screen bg-gray-50">
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-50">
         <div className="flex items-center space-x-2">
@@ -85,12 +89,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
           <span className="text-gray-900 font-bold text-xl">SmartLeads</span>
         </div>
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="text-gray-600 hover:text-gray-900"
-        >
-          {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="flex items-center space-x-2">
+          <NotificationBell />
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       <div className="flex pt-14 lg:pt-0">
@@ -168,10 +175,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           />
         )}
 
-        <main className="flex-1 min-h-screen">
-          {children}
+        <main className="flex-1 min-h-screen flex flex-col">
+          <header className="hidden lg:flex h-14 bg-white border-b border-gray-200 items-center justify-end px-6 gap-3">
+            <NotificationBell />
+            <Link
+              to="/dashboard/settings"
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition"
+              aria-label="Settings"
+            >
+              <Settings className="w-5 h-5" />
+            </Link>
+          </header>
+          <div className="flex-1">
+            {children}
+          </div>
         </main>
       </div>
     </div>
+    </NotificationProvider>
   );
 }
