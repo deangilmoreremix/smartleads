@@ -7,13 +7,16 @@ export default function Dashboard() {
   const { state, activeTour, startTour } = useOnboarding();
 
   useEffect(() => {
-    if (!state.dashboard_tour_completed && state.welcome_completed && !activeTour) {
+    const hasSeenTourThisSession = sessionStorage.getItem('dashboard_tour_shown');
+
+    if (state.welcome_completed && !activeTour && !hasSeenTourThisSession) {
       const timer = setTimeout(() => {
         startTour('dashboard');
+        sessionStorage.setItem('dashboard_tour_shown', 'true');
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [state.dashboard_tour_completed, state.welcome_completed, activeTour, startTour]);
+  }, [state.welcome_completed, activeTour, startTour]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">

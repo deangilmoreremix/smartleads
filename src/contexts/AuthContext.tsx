@@ -29,8 +29,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       (async () => {
+        if (event === 'SIGNED_IN') {
+          sessionStorage.clear();
+        }
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -62,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    sessionStorage.clear();
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
