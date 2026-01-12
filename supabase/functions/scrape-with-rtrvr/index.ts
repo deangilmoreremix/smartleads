@@ -116,13 +116,20 @@ Deno.serve(async (req: Request) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      throw new Error('Unauthorized');
-    }
-    userId = user.id;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    const { campaignId, niche, location, rtrvrSettings: customSettings }: ScrapeRequest = await req.json();
+    const body = await req.json();
+    const { campaignId, niche, location, rtrvrSettings: customSettings, userId: requestUserId }: ScrapeRequest & { userId?: string } = body;
+
+    if (token === serviceRoleKey && requestUserId) {
+      userId = requestUserId;
+    } else {
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !user) {
+        throw new Error('Unauthorized');
+      }
+      userId = user.id;
+    }
 
     if (!campaignId || !niche || !location) {
       throw new Error('Missing required fields: campaignId, niche, location');
@@ -132,7 +139,7 @@ Deno.serve(async (req: Request) => {
       .from('campaigns')
       .select('*')
       .eq('id', campaignId)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
 
     if (campaignError || !campaign) {
@@ -162,7 +169,7 @@ Deno.serve(async (req: Request) => {
     await supabase.from('agent_jobs').insert({
       id: jobId,
       campaign_id: campaignId,
-      user_id: user.id,
+      user_id: userId,
       job_type: 'lead_scraping',
       status: 'initializing',
       progress_percentage: 0,
@@ -179,7 +186,7 @@ Deno.serve(async (req: Request) => {
     await logProgress(supabase, jobId, {
       level: 'info',
       icon: '🚀',
-      message: 'Initializing rtrvr.ai scraping agent with GPT-5.2 extraction',
+      message: 'Initializing rtrvr.ai scraping agent with GPT-4o extraction',
     });
 
     await supabase
@@ -220,7 +227,7 @@ Deno.serve(async (req: Request) => {
     await logProgress(supabase, jobId, {
       level: 'loading',
       icon: '🤖',
-      message: 'GPT-5.2 analyzing search results to extract business listings...',
+      message: 'GPT-4o analyzing search results to extract business listings...',
     });
 
     const { listings } = await extractor.extractBusinessListings(
@@ -233,7 +240,7 @@ Deno.serve(async (req: Request) => {
     await logProgress(supabase, jobId, {
       level: 'success',
       icon: '📊',
-      message: `Extracted ${businessListings.length} businesses using GPT-5.2`,
+      message: `Extracted ${businessListings.length} businesses using GPT-4o`,
     });
 
     await supabase.from('agent_jobs').update({
@@ -372,7 +379,7 @@ Deno.serve(async (req: Request) => {
 
       return {
         campaign_id: campaignId,
-        user_id: user.id,
+        user_id: userId,
         business_name: lead.listing.business_name,
         email: primaryEmail || `contact@${generateDomainFromName(lead.listing.business_name)}`,
         phone: lead.details?.phone || null,
@@ -416,7 +423,7 @@ Deno.serve(async (req: Request) => {
 
         return lead.contacts.team_members.map(member => ({
           lead_id: leadId,
-          user_id: user.id,
+          user_id: userId,
           campaign_id: campaignId,
           full_name: member.name,
           job_title: member.role,
@@ -443,7 +450,7 @@ Deno.serve(async (req: Request) => {
           if (url && typeof url === 'string') {
             entries.push({
               lead_id: leadId,
-              user_id: user.id,
+              user_id: userId,
               platform,
               profile_url: url,
             });
@@ -464,7 +471,7 @@ Deno.serve(async (req: Request) => {
     const openaiCost = extractor.calculateCost();
 
     await supabase.from('rtrvr_usage_logs').insert({
-      user_id: user.id,
+      user_id: userId,
       campaign_id: campaignId,
       agent_job_id: jobId,
       trajectory_id: rtrvrUsage.trajectoryIds[0] || null,

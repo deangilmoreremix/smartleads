@@ -1,6 +1,6 @@
 import OpenAI from 'npm:openai@4';
 
-const MODEL = 'gpt-5.2';
+const MODEL = 'gpt-4o';
 
 export interface BusinessListing {
   business_name: string;
@@ -61,13 +61,13 @@ export class GPT5Extractor {
       ? `Page Content:\n${pageContent}\n\nAccessibility Tree:\n${JSON.stringify(accessibilityTree, null, 2)}`
       : pageContent;
 
-    const response = await this.client.responses.create({
+    const response = await this.client.chat.completions.create({
       model: MODEL,
-      input: [
+      messages: [
         {
           role: 'system',
           content: `You are a data extraction specialist. Extract business listings from Google Maps search results.
-Return a JSON array of businesses found on the page. Each business should have:
+Return a JSON object with a "listings" array of businesses found on the page. Each business should have:
 - business_name (required): The name of the business
 - google_maps_url (required): The Google Maps URL for this business
 - category: The business type/category
@@ -75,49 +75,22 @@ Return a JSON array of businesses found on the page. Each business should have:
 - review_count: Number of reviews
 - address_preview: Short address snippet
 
-Only extract real businesses visible in the content. Do not hallucinate or make up data.`
+Only extract real businesses visible in the content. Do not hallucinate or make up data.
+Respond ONLY with valid JSON.`
         },
         {
           role: 'user',
           content: contentToAnalyze.slice(0, 50000)
         }
       ],
-      reasoning: { effort: 'medium' },
-      text: {
-        verbosity: 'low',
-        format: {
-          type: 'json_schema',
-          name: 'business_listings',
-          schema: {
-            type: 'object',
-            properties: {
-              listings: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    business_name: { type: 'string' },
-                    google_maps_url: { type: 'string' },
-                    category: { type: 'string' },
-                    rating: { type: 'number' },
-                    review_count: { type: 'number' },
-                    address_preview: { type: 'string' }
-                  },
-                  required: ['business_name', 'google_maps_url']
-                }
-              }
-            },
-            required: ['listings']
-          }
-        }
-      }
+      response_format: { type: 'json_object' },
+      temperature: 0.1
     });
 
     const usage = this.trackUsage(response);
 
     try {
-      const textContent = response.output?.find((o: { type: string }) => o.type === 'message')?.content?.[0];
-      const parsed = JSON.parse(textContent?.text || '{"listings":[]}');
+      const parsed = JSON.parse(response.choices[0]?.message?.content || '{"listings":[]}');
       return { listings: parsed.listings || [], usage };
     } catch {
       return { listings: [], usage };
@@ -133,9 +106,9 @@ Only extract real businesses visible in the content. Do not hallucinate or make 
       ? `Business: ${businessName}\n\nPage Content:\n${pageContent}\n\nAccessibility Tree:\n${JSON.stringify(accessibilityTree, null, 2)}`
       : `Business: ${businessName}\n\nPage Content:\n${pageContent}`;
 
-    const response = await this.client.responses.create({
+    const response = await this.client.chat.completions.create({
       model: MODEL,
-      input: [
+      messages: [
         {
           role: 'system',
           content: `You are a data extraction specialist. Extract detailed business information from a Google Maps business page.
@@ -149,67 +122,22 @@ Focus on extracting:
 - price_level: Price range indicator
 - reviews_preview: Top 3 most helpful reviews
 
-Only extract information actually present in the content. Do not hallucinate.`
+Only extract information actually present in the content. Do not hallucinate.
+Respond ONLY with valid JSON.`
         },
         {
           role: 'user',
           content: contentToAnalyze.slice(0, 50000)
         }
       ],
-      reasoning: { effort: 'low' },
-      text: {
-        verbosity: 'low',
-        format: {
-          type: 'json_schema',
-          name: 'business_details',
-          schema: {
-            type: 'object',
-            properties: {
-              phone: { type: 'string' },
-              website: { type: 'string' },
-              full_address: { type: 'string' },
-              coordinates: {
-                type: 'object',
-                properties: {
-                  lat: { type: 'number' },
-                  lng: { type: 'number' }
-                }
-              },
-              hours: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    day: { type: 'string' },
-                    open: { type: 'string' },
-                    close: { type: 'string' }
-                  }
-                }
-              },
-              amenities: { type: 'array', items: { type: 'string' } },
-              price_level: { type: 'string' },
-              reviews_preview: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    author: { type: 'string' },
-                    rating: { type: 'number' },
-                    text: { type: 'string' }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      response_format: { type: 'json_object' },
+      temperature: 0.1
     });
 
     const usage = this.trackUsage(response);
 
     try {
-      const textContent = response.output?.find((o: { type: string }) => o.type === 'message')?.content?.[0];
-      const parsed = JSON.parse(textContent?.text || '{}');
+      const parsed = JSON.parse(response.choices[0]?.message?.content || '{}');
       return { details: parsed, usage };
     } catch {
       return { details: {}, usage };
@@ -220,9 +148,9 @@ Only extract information actually present in the content. Do not hallucinate.`
     websiteContent: string,
     businessContext: { name: string; address?: string; category?: string }
   ): Promise<{ contacts: ContactInfo; usage: ExtractionUsage }> {
-    const response = await this.client.responses.create({
+    const response = await this.client.chat.completions.create({
       model: MODEL,
-      input: [
+      messages: [
         {
           role: 'system',
           content: `You are a contact information extraction specialist. Extract contact details from a business website.
@@ -236,59 +164,22 @@ Extract:
 - services: List of services/products offered
 - team_members: Key team members with roles and emails if available
 
-Only extract real information. Validate email formats. Skip newsletter signup forms.`
+Only extract real information. Validate email formats. Skip newsletter signup forms.
+Respond ONLY with valid JSON.`
         },
         {
           role: 'user',
           content: websiteContent.slice(0, 40000)
         }
       ],
-      reasoning: { effort: 'medium' },
-      text: {
-        verbosity: 'low',
-        format: {
-          type: 'json_schema',
-          name: 'contact_info',
-          schema: {
-            type: 'object',
-            properties: {
-              emails: { type: 'array', items: { type: 'string' } },
-              phones: { type: 'array', items: { type: 'string' } },
-              social_profiles: {
-                type: 'object',
-                properties: {
-                  facebook: { type: 'string' },
-                  instagram: { type: 'string' },
-                  linkedin: { type: 'string' },
-                  twitter: { type: 'string' },
-                  tiktok: { type: 'string' },
-                  youtube: { type: 'string' }
-                }
-              },
-              business_description: { type: 'string' },
-              services: { type: 'array', items: { type: 'string' } },
-              team_members: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    name: { type: 'string' },
-                    role: { type: 'string' },
-                    email: { type: 'string' }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      response_format: { type: 'json_object' },
+      temperature: 0.1
     });
 
     const usage = this.trackUsage(response);
 
     try {
-      const textContent = response.output?.find((o: { type: string }) => o.type === 'message')?.content?.[0];
-      const parsed = JSON.parse(textContent?.text || '{}');
+      const parsed = JSON.parse(response.choices[0]?.message?.content || '{}');
       return {
         contacts: {
           emails: parsed.emails || [],
@@ -308,59 +199,9 @@ Only extract real information. Validate email formats. Skip newsletter signup fo
     }
   }
 
-  async classifyEmail(
-    email: string,
-    businessName: string,
-    website?: string
-  ): Promise<{ type: 'personal' | 'generic' | 'unknown'; confidence: number; usage: ExtractionUsage }> {
-    const response = await this.client.responses.create({
-      model: MODEL,
-      input: [
-        {
-          role: 'system',
-          content: 'Classify the email type and confidence. Return JSON with type (personal/generic/unknown) and confidence (0-1).'
-        },
-        {
-          role: 'user',
-          content: `Email: ${email}\nBusiness: ${businessName}${website ? `\nWebsite: ${website}` : ''}`
-        }
-      ],
-      reasoning: { effort: 'none' },
-      text: {
-        verbosity: 'low',
-        format: {
-          type: 'json_schema',
-          name: 'email_classification',
-          schema: {
-            type: 'object',
-            properties: {
-              type: { type: 'string', enum: ['personal', 'generic', 'unknown'] },
-              confidence: { type: 'number' }
-            },
-            required: ['type', 'confidence']
-          }
-        }
-      }
-    });
-
-    const usage = this.trackUsage(response);
-
-    try {
-      const textContent = response.output?.find((o: { type: string }) => o.type === 'message')?.content?.[0];
-      const parsed = JSON.parse(textContent?.text || '{}');
-      return {
-        type: parsed.type || 'unknown',
-        confidence: parsed.confidence || 0.5,
-        usage
-      };
-    } catch {
-      return { type: 'unknown', confidence: 0.5, usage };
-    }
-  }
-
-  private trackUsage(response: { usage?: { input_tokens?: number; output_tokens?: number } }): ExtractionUsage {
-    const inputTokens = response.usage?.input_tokens || 0;
-    const outputTokens = response.usage?.output_tokens || 0;
+  private trackUsage(response: { usage?: { prompt_tokens?: number; completion_tokens?: number } | null }): ExtractionUsage {
+    const inputTokens = response.usage?.prompt_tokens || 0;
+    const outputTokens = response.usage?.completion_tokens || 0;
 
     this.totalUsage.inputTokens += inputTokens;
     this.totalUsage.outputTokens += outputTokens;
