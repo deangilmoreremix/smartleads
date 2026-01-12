@@ -1,11 +1,27 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense, lazy, Component, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ArrowRight, ArrowLeft, Lightbulb, MousePointer2, Keyboard } from 'lucide-react';
-import AnimatedIllustration from './tour/AnimatedIllustration';
-import TypedText from './tour/TypedText';
-import ProgressTimeline from './tour/ProgressTimeline';
-import SampleDataPreview from './tour/SampleDataPreview';
-import Confetti from './tour/Confetti';
+import { X, ArrowRight, ArrowLeft, Lightbulb, MousePointer2, Keyboard, Check } from 'lucide-react';
+
+const AnimatedIllustration = lazy(() => import('./tour/AnimatedIllustration'));
+const TypedText = lazy(() => import('./tour/TypedText'));
+const SampleDataPreview = lazy(() => import('./tour/SampleDataPreview'));
+const Confetti = lazy(() => import('./tour/Confetti'));
+
+class TourErrorBoundary extends Component<{ children: ReactNode; fallback?: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode; fallback?: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || null;
+    }
+    return this.props.children;
+  }
+}
 
 export interface TourStepData {
   target: string;
@@ -32,6 +48,54 @@ interface TourStepProps {
   onStepClick?: (step: number) => void;
 }
 
+function ProgressTimeline({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
+  return (
+    <div className="flex items-center justify-center gap-1">
+      {Array.from({ length: totalSteps }, (_, i) => {
+        const stepNumber = i + 1;
+        const isCompleted = stepNumber < currentStep;
+        const isCurrent = stepNumber === currentStep;
+
+        return (
+          <div key={i} className="flex items-center">
+            <div
+              className={`
+                relative flex items-center justify-center rounded-full transition-all duration-300
+                ${isCurrent
+                  ? 'w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg scale-110'
+                  : isCompleted
+                    ? 'w-6 h-6 bg-green-500 text-white'
+                    : 'w-6 h-6 bg-gray-200 text-gray-400'
+                }
+              `}
+            >
+              {isCompleted ? (
+                <Check className="w-3 h-3" />
+              ) : (
+                <span className={`text-xs font-bold ${isCurrent ? 'text-white' : ''}`}>
+                  {stepNumber}
+                </span>
+              )}
+              {isCurrent && (
+                <span className="absolute inset-0 rounded-full bg-orange-400 animate-ping opacity-30" />
+              )}
+            </div>
+            {i < totalSteps - 1 && (
+              <div className="relative w-4 h-0.5 mx-0.5">
+                <div className="absolute inset-0 bg-gray-200 rounded-full" />
+                <div
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full transition-all duration-500"
+                  style={{ width: isCompleted ? '100%' : isCurrent ? '50%' : '0%' }}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function TourStep({
   step,
   currentStep,
@@ -39,9 +103,7 @@ export default function TourStep({
   onNext,
   onPrev,
   onSkip,
-  isLast,
-  stepTitles = [],
-  onStepClick
+  isLast
 }: TourStepProps) {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
@@ -55,7 +117,10 @@ export default function TourStep({
   useEffect(() => {
     setShowContent(false);
     setShowProTip(false);
-    const timer = setTimeout(() => setShowContent(true), 100);
+    const timer = setTimeout(() => {
+      setShowContent(true);
+      setTimeout(() => setShowProTip(true), 800);
+    }, 100);
     return () => clearTimeout(timer);
   }, [step.target]);
 
@@ -75,11 +140,12 @@ export default function TourStep({
       }
     };
 
-    findTarget();
+    const timer = setTimeout(findTarget, 50);
     window.addEventListener('resize', findTarget);
     window.addEventListener('scroll', findTarget);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('resize', findTarget);
       window.removeEventListener('scroll', findTarget);
     };
@@ -88,7 +154,7 @@ export default function TourStep({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'Enter') {
-        onNext();
+        handleNext();
       } else if (e.key === 'ArrowLeft') {
         if (currentStep > 1) onPrev();
       } else if (e.key === 'Escape') {
@@ -98,7 +164,7 @@ export default function TourStep({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onNext, onPrev, onSkip, currentStep]);
+  }, [onPrev, onSkip, currentStep, isLast]);
 
   const handleNext = () => {
     if (isLast) {
@@ -115,7 +181,7 @@ export default function TourStep({
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     const tooltipWidth = 380;
-    const tooltipHeight = step.samplePreview || step.illustration ? 380 : 280;
+    const tooltipHeight = step.samplePreview || step.illustration ? 420 : 300;
     const padding = 16;
 
     let position = step.position || 'auto';
@@ -186,7 +252,11 @@ export default function TourStep({
 
   return createPortal(
     <>
-      <Confetti active={showConfetti} duration={2000} particleCount={80} />
+      <TourErrorBoundary>
+        <Suspense fallback={null}>
+          <Confetti active={showConfetti} duration={2000} particleCount={80} />
+        </Suspense>
+      </TourErrorBoundary>
 
       <div className="fixed inset-0 z-[9990]" onClick={onSkip}>
         <svg className="absolute inset-0 w-full h-full">
@@ -255,12 +325,7 @@ export default function TourStep({
           <div className={getArrowStyle()} />
 
           <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-yellow-50 to-orange-50 border-b border-gray-100">
-            <ProgressTimeline
-              currentStep={currentStep}
-              totalSteps={totalSteps}
-              stepTitles={stepTitles}
-              onStepClick={onStepClick}
-            />
+            <ProgressTimeline currentStep={currentStep} totalSteps={totalSteps} />
             <button
               onClick={onSkip}
               className="p-1.5 hover:bg-white/50 rounded-full transition ml-2"
@@ -272,38 +337,40 @@ export default function TourStep({
 
           <div className="p-4">
             {step.illustration && (
-              <AnimatedIllustration
-                type={step.illustration}
-                className="h-28 mb-3"
-              />
+              <TourErrorBoundary fallback={<div className="h-28 mb-3 bg-gray-100 rounded-lg" />}>
+                <Suspense fallback={<div className="h-28 mb-3 bg-gray-100 rounded-lg animate-pulse" />}>
+                  <AnimatedIllustration type={step.illustration} className="h-28 mb-3" />
+                </Suspense>
+              </TourErrorBoundary>
             )}
 
             {step.image && !step.illustration && (
               <div className="mb-3 rounded-lg overflow-hidden bg-gray-100">
-                <img
-                  src={step.image}
-                  alt={step.title}
-                  className="w-full h-28 object-cover"
-                />
+                <img src={step.image} alt={step.title} className="w-full h-28 object-cover" />
               </div>
             )}
 
             <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
 
             <div className="text-gray-600 text-sm leading-relaxed min-h-[48px]">
-              {showContent && (
-                <TypedText
-                  text={step.content}
-                  speed={15}
-                  highlightWords={step.highlightWords}
-                  onComplete={() => setShowProTip(true)}
-                />
-              )}
+              <TourErrorBoundary fallback={<p>{step.content}</p>}>
+                <Suspense fallback={<p>{step.content}</p>}>
+                  <TypedText
+                    text={step.content}
+                    speed={15}
+                    highlightWords={step.highlightWords}
+                  />
+                </Suspense>
+              </TourErrorBoundary>
             </div>
 
             {step.samplePreview && showProTip && (
               <div className="mt-3 animate-fadeIn">
-                <SampleDataPreview type={step.samplePreview} />
+                <TourErrorBoundary fallback={null}>
+                  <Suspense fallback={<div className="h-24 bg-gray-100 rounded-lg animate-pulse" />}>
+                    <SampleDataPreview type={step.samplePreview} />
+                  </Suspense>
+                </TourErrorBoundary>
               </div>
             )}
 
