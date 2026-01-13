@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Target, CheckCircle, MapPin, Filter, Mail, TrendingUp, ArrowRight, Zap } from 'lucide-react';
+import { Target, CheckCircle, MapPin, Filter, Mail, TrendingUp, ArrowRight, Zap, ChevronDown } from 'lucide-react';
 import GoogleMapsBackground from '../components/GoogleMapsBackground';
 import InteractiveMapDemo from '../components/interactive/InteractiveMapDemo';
 import EmailValidator from '../components/interactive/EmailValidator';
@@ -31,16 +31,45 @@ export default function LeadFinderPage() {
               <span className="text-gray-900 font-bold text-xl">Smart Leads</span>
             </Link>
 
+            <div className="hidden md:flex items-center space-x-8">
+              <div className="relative group">
+                <button className="text-gray-700 hover:text-gray-900 transition flex items-center space-x-1">
+                  <span>Features</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="py-2">
+                    <Link to="/features/lead-finder" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                      <div className="font-semibold">Lead Finder</div>
+                      <div className="text-xs text-gray-600">Find decision-makers instantly</div>
+                    </Link>
+                    <Link to="/features/ai-emails" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                      <div className="font-semibold">AI Emails</div>
+                      <div className="text-xs text-gray-600">Personalized at scale</div>
+                    </Link>
+                    <Link to="/features/automation" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition">
+                      <div className="font-semibold">Automation</div>
+                      <div className="text-xs text-gray-600">24/7 autopilot campaigns</div>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+              <Link to="/#demo" className="text-gray-700 hover:text-gray-900 transition">Demo</Link>
+              <Link to="/#faq" className="text-gray-700 hover:text-gray-900 transition">FAQ</Link>
+              <Link to="/pricing" className="text-gray-700 hover:text-gray-900 transition">Pricing</Link>
+              <Link to="/affiliate" className="text-gray-700 hover:text-gray-900 transition">Affiliate</Link>
+            </div>
+
             <div className="flex items-center space-x-4">
-              <Link to="/" className="text-gray-700 hover:text-gray-900 transition">
-                Home
+              <Link to="/dashboard" className="text-gray-700 hover:text-gray-900 transition">
+                Dashboard
               </Link>
-              <MagneticButton
-                onClick={() => window.location.href = '/dashboard/campaigns/new'}
-                className="bg-[#FFD666] text-gray-900 px-6 py-2 rounded-lg font-semibold hover:bg-[#FFC233] hover:shadow-lg transition"
+              <Link
+                to="/dashboard/campaigns/new"
+                className="bg-[#FFD666] text-gray-900 px-6 py-2 rounded-lg font-semibold hover:bg-[#FFC233] hover:shadow-lg transition transform hover:scale-105"
               >
-                Try It Now
-              </MagneticButton>
+                Start for Free
+              </Link>
             </div>
           </div>
         </div>
