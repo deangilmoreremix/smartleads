@@ -1,5 +1,5 @@
 interface GoogleMapsBackgroundProps {
-  variant?: 'default' | 'search-radius' | 'communication-network' | 'activity-map' | 'email-pipeline' | 'email-scheduler' | 'multi-inbox';
+  variant?: 'default' | 'search-radius' | 'communication-network' | 'activity-map' | 'email-pipeline' | 'email-scheduler' | 'multi-inbox' | 'modern-automation';
 }
 
 export default function GoogleMapsBackground({ variant = 'default' }: GoogleMapsBackgroundProps) {
@@ -25,6 +25,10 @@ export default function GoogleMapsBackground({ variant = 'default' }: GoogleMaps
 
   if (variant === 'multi-inbox') {
     return <MultiInboxMap />;
+  }
+
+  if (variant === 'modern-automation') {
+    return <ModernAutomationMap />;
   }
 
   return <DefaultMap />;
@@ -1264,6 +1268,232 @@ function MultiInboxMap() {
 
         <g opacity="0.4">
           <text x="960" y="900" fontSize="20" fontWeight="bold" fill="#6B7280" textAnchor="middle">Load Balanced Distribution</text>
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+function ModernAutomationMap() {
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      <svg
+        className="absolute inset-0 w-full h-full"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 1920 1080"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <defs>
+          <radialGradient id="modernBg1" cx="30%" cy="20%">
+            <stop offset="0%" stopColor="#FFE5B4" stopOpacity="0.3">
+              <animate attributeName="stopColor" values="#FFE5B4;#FFD666;#FFA500;#FFD666;#FFE5B4" dur="15s" repeatCount="indefinite"/>
+            </stop>
+            <stop offset="100%" stopColor="#F5F1E8" stopOpacity="0"/>
+          </radialGradient>
+          <radialGradient id="modernBg2" cx="70%" cy="80%">
+            <stop offset="0%" stopColor="#B8D4E8" stopOpacity="0.25">
+              <animate attributeName="stopColor" values="#B8D4E8;#60A5FA;#93C5FD;#60A5FA;#B8D4E8" dur="18s" repeatCount="indefinite"/>
+            </stop>
+            <stop offset="100%" stopColor="#F5F1E8" stopOpacity="0"/>
+          </radialGradient>
+          <radialGradient id="modernBg3" cx="50%" cy="50%">
+            <stop offset="0%" stopColor="#D4E8D4" stopOpacity="0.2">
+              <animate attributeName="stopColor" values="#D4E8D4;#86EFAC;#4ADE80;#86EFAC;#D4E8D4" dur="20s" repeatCount="indefinite"/>
+            </stop>
+            <stop offset="100%" stopColor="#F5F1E8" stopOpacity="0"/>
+          </radialGradient>
+
+          <filter id="modernGlow">
+            <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+
+          <filter id="glassBlur">
+            <feGaussianBlur stdDeviation="4"/>
+          </filter>
+
+          <linearGradient id="orbGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.8"/>
+            <stop offset="100%" stopColor="#FFD666" stopOpacity="0.6"/>
+          </linearGradient>
+
+          <linearGradient id="orbGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.8"/>
+            <stop offset="100%" stopColor="#60A5FA" stopOpacity="0.6"/>
+          </linearGradient>
+
+          <linearGradient id="orbGradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.8"/>
+            <stop offset="100%" stopColor="#10B981" stopOpacity="0.6"/>
+          </linearGradient>
+
+          <linearGradient id="flowLine" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#FFD666" stopOpacity="0">
+              <animate attributeName="offset" values="-0.5;1.5" dur="3s" repeatCount="indefinite"/>
+            </stop>
+            <stop offset="30%" stopColor="#FFD666" stopOpacity="0.8">
+              <animate attributeName="offset" values="-0.2;1.8" dur="3s" repeatCount="indefinite"/>
+            </stop>
+            <stop offset="50%" stopColor="#FFA500" stopOpacity="1">
+              <animate attributeName="offset" values="0;2" dur="3s" repeatCount="indefinite"/>
+            </stop>
+            <stop offset="70%" stopColor="#FFD666" stopOpacity="0.8">
+              <animate attributeName="offset" values="0.2;2.2" dur="3s" repeatCount="indefinite"/>
+            </stop>
+            <stop offset="100%" stopColor="#FFD666" stopOpacity="0">
+              <animate attributeName="offset" values="0.5;2.5" dur="3s" repeatCount="indefinite"/>
+            </stop>
+          </linearGradient>
+        </defs>
+
+        <rect width="1920" height="1080" fill="#F5F1E8"/>
+
+        <circle cx="600" cy="300" r="400" fill="url(#modernBg1)" opacity="0.6">
+          <animate attributeName="cx" values="600;700;600" dur="25s" repeatCount="indefinite"/>
+          <animate attributeName="cy" values="300;250;300" dur="20s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="1400" cy="800" r="450" fill="url(#modernBg2)" opacity="0.5">
+          <animate attributeName="cx" values="1400;1300;1400" dur="22s" repeatCount="indefinite"/>
+          <animate attributeName="cy" values="800;850;800" dur="28s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="960" cy="540" r="350" fill="url(#modernBg3)" opacity="0.4">
+          <animate attributeName="r" values="350;380;350" dur="18s" repeatCount="indefinite"/>
+        </circle>
+
+        <g filter="url(#modernGlow)">
+          <path d="M 300 400 Q 600 300, 900 400" stroke="url(#flowLine)" strokeWidth="3" fill="none" opacity="0.6"/>
+          <path d="M 900 400 Q 1200 450, 1500 350" stroke="url(#flowLine)" strokeWidth="3" fill="none" opacity="0.6"/>
+          <path d="M 400 700 Q 700 650, 1000 700" stroke="url(#flowLine)" strokeWidth="3" fill="none" opacity="0.6"/>
+          <path d="M 1000 700 Q 1300 750, 1600 680" stroke="url(#flowLine)" strokeWidth="3" fill="none" opacity="0.6"/>
+        </g>
+
+        <g filter="url(#modernGlow)">
+          <g opacity="0.95">
+            <circle cx="300" cy="400" r="60" fill="url(#orbGradient1)" opacity="0.85">
+              <animate attributeName="cy" values="400;380;400" dur="4s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="300" cy="400" r="58" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.5"/>
+            <circle cx="300" cy="400" r="20" fill="#FFD666" opacity="0.9">
+              <animate attributeName="r" values="20;24;20" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <text x="300" y="490" fontSize="12" fontWeight="600" fill="#92400E" textAnchor="middle" opacity="0.8">Prospect Discovery</text>
+          </g>
+
+          <g opacity="0.95">
+            <circle cx="900" cy="400" r="65" fill="url(#orbGradient2)" opacity="0.85">
+              <animate attributeName="cy" values="400;420;400" dur="5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="900" cy="400" r="63" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.5"/>
+            <circle cx="900" cy="400" r="22" fill="#60A5FA" opacity="0.9">
+              <animate attributeName="r" values="22;26;22" dur="2.2s" repeatCount="indefinite"/>
+            </circle>
+            <text x="900" y="490" fontSize="12" fontWeight="600" fill="#1E40AF" textAnchor="middle" opacity="0.8">Data Enrichment</text>
+          </g>
+
+          <g opacity="0.95">
+            <circle cx="1500" cy="350" r="70" fill="url(#orbGradient3)" opacity="0.85">
+              <animate attributeName="cy" values="350;370;350" dur="4.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="1500" cy="350" r="68" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.5"/>
+            <circle cx="1500" cy="350" r="24" fill="#10B981" opacity="0.9">
+              <animate attributeName="r" values="24;28;24" dur="2.1s" repeatCount="indefinite"/>
+            </circle>
+            <text x="1500" y="440" fontSize="12" fontWeight="600" fill="#065F46" textAnchor="middle" opacity="0.8">AI Personalization</text>
+          </g>
+
+          <g opacity="0.95">
+            <circle cx="400" cy="700" r="58" fill="url(#orbGradient1)" opacity="0.85">
+              <animate attributeName="cy" values="700;720;700" dur="4.8s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="400" cy="700" r="56" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.5"/>
+            <circle cx="400" cy="700" r="19" fill="#FFD666" opacity="0.9">
+              <animate attributeName="r" values="19;23;19" dur="2.3s" repeatCount="indefinite"/>
+            </circle>
+            <text x="400" y="780" fontSize="12" fontWeight="600" fill="#92400E" textAnchor="middle" opacity="0.8">Smart Scheduling</text>
+          </g>
+
+          <g opacity="0.95">
+            <circle cx="1000" cy="700" r="63" fill="url(#orbGradient2)" opacity="0.85">
+              <animate attributeName="cy" values="700;680;700" dur="5.2s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="1000" cy="700" r="61" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.5"/>
+            <circle cx="1000" cy="700" r="21" fill="#60A5FA" opacity="0.9">
+              <animate attributeName="r" values="21;25;21" dur="2.4s" repeatCount="indefinite"/>
+            </circle>
+            <text x="1000" y="780" fontSize="12" fontWeight="600" fill="#1E40AF" textAnchor="middle" opacity="0.8">Multi-Channel Send</text>
+          </g>
+
+          <g opacity="0.95">
+            <circle cx="1600" cy="680" r="68" fill="url(#orbGradient3)" opacity="0.85">
+              <animate attributeName="cy" values="680;700;680" dur="4.3s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="1600" cy="680" r="66" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.5"/>
+            <circle cx="1600" cy="680" r="23" fill="#10B981" opacity="0.9">
+              <animate attributeName="r" values="23;27;23" dur="2.5s" repeatCount="indefinite"/>
+            </circle>
+            <text x="1600" y="760" fontSize="12" fontWeight="600" fill="#065F46" textAnchor="middle" opacity="0.8">Response Tracking</text>
+          </g>
+        </g>
+
+        <g opacity="0.4">
+          <circle cx="150" cy="200" r="3" fill="#FFD666">
+            <animate attributeName="cy" values="200;900" dur="12s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;0.6;0" dur="12s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="450" cy="150" r="2.5" fill="#60A5FA">
+            <animate attributeName="cy" values="150;950" dur="15s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;0.5;0" dur="15s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="750" cy="100" r="3" fill="#10B981">
+            <animate attributeName="cy" values="100;1000" dur="14s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;0.6;0" dur="14s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="1100" cy="180" r="2.5" fill="#FFD666">
+            <animate attributeName="cy" values="180;920" dur="13s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;0.5;0" dur="13s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="1400" cy="120" r="3" fill="#60A5FA">
+            <animate attributeName="cy" values="120;980" dur="16s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;0.6;0" dur="16s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="1700" cy="160" r="2.5" fill="#10B981">
+            <animate attributeName="cy" values="160;940" dur="14.5s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;0.5;0" dur="14.5s" repeatCount="indefinite"/>
+          </circle>
+        </g>
+
+        <g opacity="0.3">
+          <circle cx="200" cy="540" r="4" fill="#FFA500">
+            <animateMotion path="M 0 0 Q 300 -100, 600 0 Q 900 100, 1200 0 Q 1400 -80, 1500 0" dur="20s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="300" cy="540" r="3.5" fill="#10B981">
+            <animateMotion path="M 0 0 Q 250 80, 500 0 Q 750 -80, 1000 0 Q 1200 60, 1400 0" dur="18s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="400" cy="540" r="4" fill="#60A5FA">
+            <animateMotion path="M 0 0 Q 200 -60, 400 0 Q 600 60, 800 0 Q 1000 -60, 1200 0" dur="22s" repeatCount="indefinite"/>
+          </circle>
+        </g>
+
+        <g filter="url(#modernGlow)" opacity="0.5">
+          <path d="M 300 400 L 900 400" stroke="#FFD666" strokeWidth="1.5" strokeDasharray="8,8" opacity="0.4">
+            <animate attributeName="stroke-dashoffset" values="0;-16" dur="1s" repeatCount="indefinite"/>
+          </path>
+          <path d="M 900 400 L 1500 350" stroke="#60A5FA" strokeWidth="1.5" strokeDasharray="8,8" opacity="0.4">
+            <animate attributeName="stroke-dashoffset" values="0;-16" dur="1s" repeatCount="indefinite"/>
+          </path>
+          <path d="M 400 700 L 1000 700" stroke="#FFD666" strokeWidth="1.5" strokeDasharray="8,8" opacity="0.4">
+            <animate attributeName="stroke-dashoffset" values="0;-16" dur="1s" repeatCount="indefinite"/>
+          </path>
+          <path d="M 1000 700 L 1600 680" stroke="#10B981" strokeWidth="1.5" strokeDasharray="8,8" opacity="0.4">
+            <animate attributeName="stroke-dashoffset" values="0;-16" dur="1s" repeatCount="indefinite"/>
+          </path>
+        </g>
+
+        <g opacity="0.25">
+          <rect x="0" y="0" width="1920" height="1080" fill="url(#modernBg1)" filter="url(#glassBlur)"/>
         </g>
       </svg>
     </div>
