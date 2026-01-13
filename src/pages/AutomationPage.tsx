@@ -3,6 +3,7 @@ import { Bot, Clock, Zap, ArrowRight, CheckCircle, Target, Mail, Users, Trending
 import GoogleMapsBackground from '../components/GoogleMapsBackground';
 import AutomationTimeline from '../components/interactive/AutomationTimeline';
 import AnimatedCounter from '../components/interactive/AnimatedCounter';
+import AnimatedPipelineFlow from '../components/interactive/AnimatedPipelineFlow';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
 import { TiltCard } from '../components/animations/TiltCard';
 import { MagneticButton } from '../components/animations/MagneticButton';
@@ -286,6 +287,14 @@ export default function AutomationPage() {
             </TiltCard>
           </ScrollReveal>
         </div>
+        </div>
+      </section>
+
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <ScrollReveal direction="up">
+            <AnimatedPipelineFlow />
+          </ScrollReveal>
         </div>
       </section>
 

@@ -5,6 +5,9 @@ import InteractiveMapDemo from '../components/interactive/InteractiveMapDemo';
 import EmailValidator from '../components/interactive/EmailValidator';
 import ROICalculator from '../components/interactive/ROICalculator';
 import AnimatedCounter from '../components/interactive/AnimatedCounter';
+import BusinessCardFlip from '../components/interactive/BusinessCardFlip';
+import InteractiveDataQualityMeter from '../components/interactive/InteractiveDataQualityMeter';
+import InteractiveCostCalculator from '../components/interactive/InteractiveCostCalculator';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
 import { TiltCard } from '../components/animations/TiltCard';
 import { MagneticButton } from '../components/animations/MagneticButton';
@@ -192,6 +195,10 @@ export default function LeadFinderPage() {
             />
           </div>
         </ScrollReveal>
+
+        <ScrollReveal direction="up" delay={600} className="mt-16">
+          <BusinessCardFlip />
+        </ScrollReveal>
         </div>
       </section>
 
@@ -260,7 +267,15 @@ export default function LeadFinderPage() {
             </ScrollReveal>
           </div>
 
-        <ScrollReveal direction="up" delay={500}>
+        <ScrollReveal direction="up" delay={500} className="mb-16">
+          <InteractiveDataQualityMeter />
+        </ScrollReveal>
+
+        <ScrollReveal direction="up" delay={600} className="mb-16">
+          <InteractiveCostCalculator />
+        </ScrollReveal>
+
+        <ScrollReveal direction="up" delay={700}>
           <ROICalculator />
         </ScrollReveal>
         </div>

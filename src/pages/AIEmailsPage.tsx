@@ -4,6 +4,8 @@ import GoogleMapsBackground from '../components/GoogleMapsBackground';
 import LiveTypingAnimation from '../components/interactive/LiveTypingAnimation';
 import PerformanceGauge from '../components/interactive/PerformanceGauge';
 import AnimatedCounter from '../components/interactive/AnimatedCounter';
+import LiveEmailPersonalizationEditor from '../components/interactive/LiveEmailPersonalizationEditor';
+import BeforeAfterEmailSimulator from '../components/interactive/BeforeAfterEmailSimulator';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
 import { TiltCard } from '../components/animations/TiltCard';
 import { MagneticButton } from '../components/animations/MagneticButton';
@@ -93,6 +95,10 @@ export default function AIEmailsPage() {
 
           <ScrollReveal direction="up" delay={200} className="mb-20">
             <LiveTypingAnimation texts={emailExamples} />
+          </ScrollReveal>
+
+          <ScrollReveal direction="up" delay={300}>
+            <LiveEmailPersonalizationEditor />
           </ScrollReveal>
         </div>
       </section>
@@ -262,6 +268,14 @@ export default function AIEmailsPage() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <ScrollReveal direction="up">
+            <BeforeAfterEmailSimulator />
+          </ScrollReveal>
         </div>
       </section>
 
