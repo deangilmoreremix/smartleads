@@ -15,6 +15,7 @@ import {
   Brain,
   UserSearch,
   Settings,
+  Shield,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
@@ -37,6 +38,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { signOut, user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -51,6 +53,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   useEffect(() => {
     if (user) {
       loadSubscription();
+      checkAdminStatus();
     }
   }, [user]);
 
@@ -67,6 +70,22 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       }
     } catch (error) {
       console.error('Error loading subscription:', error);
+    }
+  };
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user!.id)
+        .maybeSingle();
+
+      if (data) {
+        setIsAdmin(data.is_admin || false);
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
     }
   };
 
@@ -144,6 +163,26 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Link>
                 );
               })}
+
+              {isAdmin && (
+                <>
+                  <div className="my-4 border-t border-gray-200"></div>
+                  <Link
+                    to="/dashboard/admin/users"
+                    onClick={() => setSidebarOpen(false)}
+                    className={`
+                      flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                      ${location.pathname.startsWith('/dashboard/admin')
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      }
+                    `}
+                  >
+                    <Shield className="w-5 h-5" />
+                    <span className="font-medium">Admin Panel</span>
+                  </Link>
+                </>
+              )}
             </nav>
 
             <div className="px-4 pb-4 space-y-3 border-t border-gray-200 pt-4">

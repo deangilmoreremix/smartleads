@@ -30,6 +30,7 @@ import TermsPage from './pages/TermsPage';
 import LeadFinderPage from './pages/LeadFinderPage';
 import AIEmailsPage from './pages/AIEmailsPage';
 import AutomationPage from './pages/AutomationPage';
+import AdminUsersPage from './pages/AdminUsersPage';
 
 function App() {
   return (
@@ -192,6 +193,17 @@ function App() {
                 <ProtectedRoute>
                   <DashboardLayout>
                     <PlansPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/admin/users"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <AdminUsersPage />
                   </DashboardLayout>
                 </ProtectedRoute>
               }
