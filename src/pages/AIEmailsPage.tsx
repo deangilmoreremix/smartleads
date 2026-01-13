@@ -4,6 +4,11 @@ import GoogleMapsBackground from '../components/GoogleMapsBackground';
 import LiveTypingAnimation from '../components/interactive/LiveTypingAnimation';
 import PerformanceGauge from '../components/interactive/PerformanceGauge';
 import AnimatedCounter from '../components/interactive/AnimatedCounter';
+import { ScrollReveal } from '../components/animations/ScrollReveal';
+import { TiltCard } from '../components/animations/TiltCard';
+import { MagneticButton } from '../components/animations/MagneticButton';
+import { ScrollProgress } from '../components/ui/ScrollProgress';
+import { AnimatedBackground } from '../components/ui/AnimatedBackground';
 
 export default function AIEmailsPage() {
   const emailExamples = [
@@ -22,8 +27,9 @@ export default function AIEmailsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F5F1E8] relative">
-      <GoogleMapsBackground />
+    <div className="min-h-screen bg-[#F5F1E8] relative overflow-hidden">
+      <ScrollProgress />
+      <AnimatedBackground variant="blobs" />
 
       <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md border-b border-gray-200 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -39,12 +45,12 @@ export default function AIEmailsPage() {
               <Link to="/" className="text-gray-700 hover:text-gray-900 transition">
                 Home
               </Link>
-              <Link
-                to="/dashboard/campaigns/new"
-                className="bg-[#FFD666] text-gray-900 px-6 py-2 rounded-lg font-semibold hover:bg-[#FFC233] hover:shadow-lg transition transform hover:scale-105"
+              <MagneticButton
+                onClick={() => window.location.href = '/dashboard/campaigns/new'}
+                className="bg-[#FFD666] text-gray-900 px-6 py-2 rounded-lg font-semibold hover:bg-[#FFC233] hover:shadow-lg transition"
               >
                 Try It Now
-              </Link>
+              </MagneticButton>
             </div>
           </div>
         </div>
@@ -52,8 +58,8 @@ export default function AIEmailsPage() {
 
       <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 mb-6">
+          <ScrollReveal direction="up" className="text-center mb-16">
+            <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 mb-6 animate-float">
               <Sparkles className="w-5 h-5 text-[#FFD666]" />
               <span className="text-gray-700 font-semibold">AI-Powered Personalization</span>
             </div>
@@ -69,13 +75,13 @@ export default function AIEmailsPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                to="/dashboard/campaigns/new"
-                className="bg-[#FFD666] text-gray-900 px-8 py-4 rounded-xl font-semibold hover:bg-[#FFC233] hover:shadow-2xl transition transform hover:scale-105 flex items-center space-x-2"
+              <MagneticButton
+                onClick={() => window.location.href = '/dashboard/campaigns/new'}
+                className="bg-[#FFD666] text-gray-900 px-8 py-4 rounded-xl font-semibold hover:bg-[#FFC233] hover:shadow-2xl transition flex items-center space-x-2"
               >
                 <span>Generate AI Emails</span>
                 <ArrowRight className="w-5 h-5" />
-              </Link>
+              </MagneticButton>
               <Link
                 to="/#demo"
                 className="bg-white text-gray-900 px-8 py-4 rounded-xl font-semibold hover:shadow-xl transition border border-gray-200"
@@ -83,27 +89,29 @@ export default function AIEmailsPage() {
                 See Examples
               </Link>
             </div>
-          </div>
+          </ScrollReveal>
 
-          <div className="mb-20">
+          <ScrollReveal direction="up" delay={200} className="mb-20">
             <LiveTypingAnimation texts={emailExamples} />
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-white/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <ScrollReveal direction="up" className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
               How <span className="text-[#FFD666]" style={{ WebkitTextStroke: '1px #1A1A1A', paintOrder: 'stroke fill' }}>GPT-5</span> Creates Magic
             </h2>
             <p className="text-gray-700 text-lg max-w-3xl mx-auto">
               Our AI analyzes every detail about a business to craft the perfect outreach message
             </p>
-          </div>
+          </ScrollReveal>
 
           <div className="grid md:grid-cols-3 gap-8 mb-16">
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-8 hover:border-[#FFD666] hover:shadow-lg transition">
+            <ScrollReveal direction="up" delay={100}>
+              <TiltCard className="h-full">
+                <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 h-full hover:border-[#FFD666] hover:shadow-lg transition">
               <div className="w-16 h-16 bg-[#FFD666]/20 rounded-xl flex items-center justify-center mb-6">
                 <Star className="w-8 h-8 text-gray-900" />
               </div>
@@ -115,83 +123,93 @@ export default function AIEmailsPage() {
               <div className="bg-white rounded-lg p-4 border border-gray-200">
                 <p className="text-sm text-gray-600 italic">"Best coffee in town! The owner always remembers my order."</p>
                 <div className="mt-2 text-xs text-[#FFD666] font-semibold">→ Personal touch, quality focus</div>
+                </div>
               </div>
-            </div>
+            </TiltCard>
+          </ScrollReveal>
 
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-8 hover:border-[#FFD666] hover:shadow-lg transition">
-              <div className="w-16 h-16 bg-[#FFD666]/20 rounded-xl flex items-center justify-center mb-6">
-                <Brain className="w-8 h-8 text-gray-900" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Context Building</h3>
-              <p className="text-gray-700 leading-relaxed mb-4">
-                The AI combines review insights with business information to understand the company's values,
-                challenges, and opportunities.
-              </p>
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Industry</span>
-                    <span className="text-gray-900 font-semibold">Coffee Shop</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Focus</span>
-                    <span className="text-gray-900 font-semibold">Quality & Service</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Rating</span>
-                    <span className="text-gray-900 font-semibold">4.8 ⭐</span>
+          <ScrollReveal direction="up" delay={200}>
+            <TiltCard className="h-full">
+              <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 h-full hover:border-[#FFD666] hover:shadow-lg transition">
+                <div className="w-16 h-16 bg-[#FFD666]/20 rounded-xl flex items-center justify-center mb-6">
+                  <Brain className="w-8 h-8 text-gray-900" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Context Building</h3>
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  The AI combines review insights with business information to understand the company's values,
+                  challenges, and opportunities.
+                </p>
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Industry</span>
+                      <span className="text-gray-900 font-semibold">Coffee Shop</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Focus</span>
+                      <span className="text-gray-900 font-semibold">Quality & Service</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Rating</span>
+                      <span className="text-gray-900 font-semibold">4.8 ⭐</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </TiltCard>
+          </ScrollReveal>
 
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-8 hover:border-[#FFD666] hover:shadow-lg transition">
-              <div className="w-16 h-16 bg-[#FFD666]/20 rounded-xl flex items-center justify-center mb-6">
-                <Mail className="w-8 h-8 text-gray-900" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Email Crafting</h3>
-              <p className="text-gray-700 leading-relaxed mb-4">
-                GPT-5 writes a natural, conversational email that references specific details and presents
-                your offering as a genuine solution.
-              </p>
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm text-gray-700">Specific reference</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm text-gray-700">Relevant value prop</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm text-gray-700">Natural tone</span>
+          <ScrollReveal direction="up" delay={300}>
+            <TiltCard className="h-full">
+              <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 h-full hover:border-[#FFD666] hover:shadow-lg transition">
+                <div className="w-16 h-16 bg-[#FFD666]/20 rounded-xl flex items-center justify-center mb-6">
+                  <Mail className="w-8 h-8 text-gray-900" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Email Crafting</h3>
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  GPT-5 writes a natural, conversational email that references specific details and presents
+                  your offering as a genuine solution.
+                </p>
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span className="text-sm text-gray-700">Specific reference</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span className="text-sm text-gray-700">Relevant value prop</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span className="text-sm text-gray-700">Natural tone</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </TiltCard>
+          </ScrollReveal>
+        </div>
         </div>
       </section>
 
       <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-[#F0EBE0]">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <ScrollReveal direction="up" className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
               Results That <span className="text-[#FFD666]" style={{ WebkitTextStroke: '1px #1A1A1A', paintOrder: 'stroke fill' }}>Speak</span> for Themselves
             </h2>
             <p className="text-gray-700 text-lg">
               AI personalization dramatically improves every metric that matters
             </p>
-          </div>
+          </ScrollReveal>
 
-          <div className="grid md:grid-cols-4 gap-6 mb-12">
+          <ScrollReveal direction="up" delay={200} className="grid md:grid-cols-4 gap-6 mb-12">
             <PerformanceGauge label="Open Rate" value={68} max={100} unit="%" color="green" />
             <PerformanceGauge label="Reply Rate" value={12} max={20} unit="%" color="blue" />
             <PerformanceGauge label="Deliverability" value={99} max={100} unit="%" color="yellow" />
             <PerformanceGauge label="Engagement" value={85} max={100} unit="%" color="purple" />
-          </div>
+          </ScrollReveal>
 
           <div className="bg-white border border-gray-200 rounded-2xl p-8">
             <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Why Personalization Matters</h3>
@@ -249,19 +267,21 @@ export default function AIEmailsPage() {
 
       <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gray-900">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Start Sending Personalized Emails Today
-          </h2>
-          <p className="text-gray-300 text-lg mb-8">
-            Let GPT-5 craft unique, high-converting emails for every prospect in your pipeline.
-          </p>
-          <Link
-            to="/dashboard/campaigns/new"
-            className="inline-flex items-center space-x-2 bg-[#FFD666] text-gray-900 px-8 py-4 rounded-xl font-semibold hover:bg-[#FFC233] hover:shadow-2xl transition transform hover:scale-105"
-          >
-            <span>Create Your First Campaign</span>
-            <ArrowRight className="w-5 h-5" />
-          </Link>
+          <ScrollReveal direction="up">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Start Sending Personalized Emails Today
+            </h2>
+            <p className="text-gray-300 text-lg mb-8">
+              Let GPT-5 craft unique, high-converting emails for every prospect in your pipeline.
+            </p>
+            <MagneticButton
+              onClick={() => window.location.href = '/dashboard/campaigns/new'}
+              className="inline-flex items-center space-x-2 bg-[#FFD666] text-gray-900 px-8 py-4 rounded-xl font-semibold hover:bg-[#FFC233] hover:shadow-2xl transition animate-glow"
+            >
+              <span>Create Your First Campaign</span>
+              <ArrowRight className="w-5 h-5" />
+            </MagneticButton>
+          </ScrollReveal>
         </div>
       </section>
     </div>
