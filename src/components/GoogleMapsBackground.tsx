@@ -43,38 +43,97 @@ function DefaultMap() {
           <filter id="shadow">
             <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.05" />
           </filter>
+          <filter id="pinGlow">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+          <radialGradient id="searchRadius1" cx="50%" cy="50%">
+            <stop offset="0%" stopColor="#FFD666" stopOpacity="0.3"/>
+            <stop offset="70%" stopColor="#FFA500" stopOpacity="0.1"/>
+            <stop offset="100%" stopColor="#FFD666" stopOpacity="0"/>
+          </radialGradient>
+          <radialGradient id="searchRadius2" cx="50%" cy="50%">
+            <stop offset="0%" stopColor="#10B981" stopOpacity="0.3"/>
+            <stop offset="70%" stopColor="#10B981" stopOpacity="0.1"/>
+            <stop offset="100%" stopColor="#10B981" stopOpacity="0"/>
+          </radialGradient>
+          <linearGradient id="dayNightBg" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#F5F1E8" stopOpacity="1">
+              <animate attributeName="stop-color"
+                values="#F5F1E8;#FCF8F0;#F5F1E8"
+                dur="20s" repeatCount="indefinite"/>
+            </stop>
+            <stop offset="100%" stopColor="#F5F1E8" stopOpacity="1"/>
+          </linearGradient>
         </defs>
 
-        <rect width="1920" height="1080" fill="#F5F1E8" />
+        <rect width="1920" height="1080" fill="url(#dayNightBg)" />
 
         <g opacity="0.7">
-          <rect x="100" y="80" width="180" height="140" fill="#E8E4DC" rx="2" />
-          <rect x="320" y="90" width="150" height="120" fill="#E8E4DC" rx="2" />
-          <rect x="510" y="70" width="200" height="160" fill="#E8E4DC" rx="2" />
+          <rect x="100" y="80" width="180" height="140" fill="#E8E4DC" rx="2">
+            <animate attributeName="opacity" values="0.7;0.85;0.7" dur="8s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="320" y="90" width="150" height="120" fill="#E8E4DC" rx="2">
+            <animate attributeName="opacity" values="0.7;0.8;0.7" dur="7s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="510" y="70" width="200" height="160" fill="#E8E4DC" rx="2">
+            <animate attributeName="opacity" values="0.7;0.9;0.7" dur="9s" repeatCount="indefinite"/>
+          </rect>
           <rect x="760" y="100" width="140" height="130" fill="#E8E4DC" rx="2" />
-          <rect x="950" y="85" width="190" height="145" fill="#E8E4DC" rx="2" />
+          <rect x="950" y="85" width="190" height="145" fill="#E8E4DC" rx="2">
+            <animate attributeName="opacity" values="0.7;0.85;0.7" dur="8.5s" repeatCount="indefinite"/>
+          </rect>
           <rect x="1180" y="95" width="160" height="135" fill="#E8E4DC" rx="2" />
-          <rect x="1390" y="75" width="170" height="155" fill="#E8E4DC" rx="2" />
+          <rect x="1390" y="75" width="170" height="155" fill="#E8E4DC" rx="2">
+            <animate attributeName="opacity" values="0.7;0.8;0.7" dur="7.5s" repeatCount="indefinite"/>
+          </rect>
           <rect x="1610" y="90" width="200" height="140" fill="#E8E4DC" rx="2" />
 
-          <rect x="80" y="380" width="190" height="150" fill="#E8E4DC" rx="2" />
+          <rect x="80" y="380" width="190" height="150" fill="#E8E4DC" rx="2">
+            <animate attributeName="opacity" values="0.7;0.9;0.7" dur="8s" repeatCount="indefinite"/>
+          </rect>
           <rect x="310" y="390" width="170" height="140" fill="#E8E4DC" rx="2" />
-          <rect x="530" y="370" width="180" height="160" fill="#E8E4DC" rx="2" />
+          <rect x="530" y="370" width="180" height="160" fill="#E8E4DC" rx="2">
+            <animate attributeName="opacity" values="0.7;0.85;0.7" dur="7s" repeatCount="indefinite"/>
+          </rect>
           <rect x="760" y="400" width="200" height="130" fill="#E8E4DC" rx="2" />
-          <rect x="1010" y="385" width="150" height="145" fill="#E8E4DC" rx="2" />
+          <rect x="1010" y="385" width="150" height="145" fill="#E8E4DC" rx="2">
+            <animate attributeName="opacity" values="0.7;0.8;0.7" dur="9s" repeatCount="indefinite"/>
+          </rect>
           <rect x="1210" y="395" width="180" height="135" fill="#E8E4DC" rx="2" />
           <rect x="1440" y="375" width="160" height="155" fill="#E8E4DC" rx="2" />
-          <rect x="1650" y="390" width="190" height="140" fill="#E8E4DC" rx="2" />
+          <rect x="1650" y="390" width="190" height="140" fill="#E8E4DC" rx="2">
+            <animate attributeName="opacity" values="0.7;0.85;0.7" dur="8.5s" repeatCount="indefinite"/>
+          </rect>
 
           <rect x="90" y="680" width="200" height="160" fill="#E8E4DC" rx="2" />
-          <rect x="340" y="690" width="160" height="150" fill="#E8E4DC" rx="2" />
+          <rect x="340" y="690" width="160" height="150" fill="#E8E4DC" rx="2">
+            <animate attributeName="opacity" values="0.7;0.8;0.7" dur="7.5s" repeatCount="indefinite"/>
+          </rect>
           <rect x="550" y="670" width="190" height="170" fill="#E8E4DC" rx="2" />
-          <rect x="790" y="700" width="170" height="140" fill="#E8E4DC" rx="2" />
+          <rect x="790" y="700" width="170" height="140" fill="#E8E4DC" rx="2">
+            <animate attributeName="opacity" values="0.7;0.9;0.7" dur="8s" repeatCount="indefinite"/>
+          </rect>
           <rect x="1010" y="685" width="180" height="155" fill="#E8E4DC" rx="2" />
           <rect x="1240" y="695" width="200" height="145" fill="#E8E4DC" rx="2" />
-          <rect x="1490" y="675" width="150" height="165" fill="#E8E4DC" rx="2" />
+          <rect x="1490" y="675" width="150" height="165" fill="#E8E4DC" rx="2">
+            <animate attributeName="opacity" values="0.7;0.85;0.7" dur="7s" repeatCount="indefinite"/>
+          </rect>
           <rect x="1690" y="690" width="190" height="150" fill="#E8E4DC" rx="2" />
         </g>
+
+        <ellipse cx="450" cy="350" rx="220" ry="160" fill="url(#searchRadius1)">
+          <animate attributeName="rx" values="220;260;220" dur="4s" repeatCount="indefinite"/>
+          <animate attributeName="ry" values="160;190;160" dur="4s" repeatCount="indefinite"/>
+        </ellipse>
+
+        <ellipse cx="1450" cy="600" rx="200" ry="150" fill="url(#searchRadius2)">
+          <animate attributeName="rx" values="200;240;200" dur="4.5s" repeatCount="indefinite"/>
+          <animate attributeName="ry" values="150;180;150" dur="4.5s" repeatCount="indefinite"/>
+        </ellipse>
 
         <g opacity="0.5">
           <path
@@ -96,6 +155,21 @@ function DefaultMap() {
             strokeWidth="14"
             strokeLinecap="round"
           />
+          <circle cx="200" cy="278" r="5" fill="#10B981">
+            <animateMotion
+              path="M 0 0 Q 200 -5, 400 2.5 Q 600 7.5, 800 5 L 1720 -5"
+              dur="12s"
+              repeatCount="indefinite"
+            />
+          </circle>
+          <circle cx="100" cy="277" r="4" fill="#FFA500">
+            <animateMotion
+              path="M 0 0 Q 200 -5, 400 2.5 Q 600 7.5, 800 5 L 1820 -5"
+              dur="15s"
+              repeatCount="indefinite"
+            />
+          </circle>
+
           <path
             d="M 0 580 Q 500 575, 1000 585 Q 1500 590, 1920 580"
             fill="none"
@@ -103,6 +177,14 @@ function DefaultMap() {
             strokeWidth="14"
             strokeLinecap="round"
           />
+          <circle cx="300" cy="578" r="5" fill="#10B981">
+            <animateMotion
+              path="M 0 0 Q 250 -2.5, 500 2.5 Q 750 5, 1000 2.5 L 1620 0"
+              dur="14s"
+              repeatCount="indefinite"
+            />
+          </circle>
+
           <path
             d="M 0 100 Q 300 200, 600 350 Q 900 500, 1200 700 Q 1500 900, 1920 1080"
             fill="none"
@@ -117,6 +199,14 @@ function DefaultMap() {
             strokeWidth="14"
             strokeLinecap="round"
           />
+          <circle cx="302" cy="200" r="5" fill="#10B981">
+            <animateMotion
+              path="M 0 0 Q -3.5 150, 1.5 300 Q 4 450, -1 600 Q -5 750, -1 880"
+              dur="16s"
+              repeatCount="indefinite"
+            />
+          </circle>
+
           <path
             d="M 960 0 Q 955 350, 965 700 Q 970 900, 960 1080"
             fill="none"
@@ -124,6 +214,14 @@ function DefaultMap() {
             strokeWidth="14"
             strokeLinecap="round"
           />
+          <circle cx="962" cy="150" r="4" fill="#FFA500">
+            <animateMotion
+              path="M 0 0 Q -2.5 175, 2.5 350 Q 5 525, 0 930"
+              dur="18s"
+              repeatCount="indefinite"
+            />
+          </circle>
+
           <path
             d="M 1600 0 Q 1595 300, 1605 600 Q 1610 900, 1600 1080"
             fill="none"
@@ -162,13 +260,159 @@ function DefaultMap() {
           />
         </g>
 
+        <g filter="url(#pinGlow)">
+          <g opacity="0">
+            <path d="M 250 130 L 250 115 L 240 125 L 260 125 Z" fill="#FF6B35"/>
+            <circle cx="250" cy="135" r="8" fill="#FF6B35"/>
+            <circle cx="250" cy="135" r="12" fill="none" stroke="#FF6B35" strokeWidth="2" opacity="0.4"/>
+            <animate attributeName="opacity" values="0;1;1;0" dur="6s" repeatCount="indefinite"/>
+          </g>
+
+          <g opacity="0">
+            <path d="M 620 150 L 620 135 L 610 145 L 630 145 Z" fill="#10B981"/>
+            <circle cx="620" cy="155" r="8" fill="#10B981"/>
+            <circle cx="620" cy="155" r="12" fill="none" stroke="#10B981" strokeWidth="2" opacity="0.4"/>
+            <animate attributeName="opacity" values="0;1;1;0" dur="6s" begin="1s" repeatCount="indefinite"/>
+          </g>
+
+          <g opacity="0">
+            <path d="M 1050 130 L 1050 115 L 1040 125 L 1060 125 Z" fill="#FFA500"/>
+            <circle cx="1050" cy="135" r="8" fill="#FFA500"/>
+            <circle cx="1050" cy="135" r="12" fill="none" stroke="#FFA500" strokeWidth="2" opacity="0.4"/>
+            <animate attributeName="opacity" values="0;1;1;0" dur="6s" begin="2s" repeatCount="indefinite"/>
+          </g>
+
+          <g opacity="0">
+            <path d="M 1520 195 L 1520 180 L 1510 190 L 1530 190 Z" fill="#8B5CF6"/>
+            <circle cx="1520" cy="200" r="8" fill="#8B5CF6"/>
+            <circle cx="1520" cy="200" r="12" fill="none" stroke="#8B5CF6" strokeWidth="2" opacity="0.4"/>
+            <animate attributeName="opacity" values="0;1;1;0" dur="6s" begin="3s" repeatCount="indefinite"/>
+          </g>
+
+          <g opacity="0">
+            <path d="M 420 450 L 420 435 L 410 445 L 430 445 Z" fill="#10B981"/>
+            <circle cx="420" cy="455" r="8" fill="#10B981"/>
+            <circle cx="420" cy="455" r="12" fill="none" stroke="#10B981" strokeWidth="2" opacity="0.4"/>
+            <animate attributeName="opacity" values="0;1;1;0" dur="6s" begin="1.5s" repeatCount="indefinite"/>
+          </g>
+
+          <g opacity="0">
+            <path d="M 860 470 L 860 455 L 850 465 L 870 465 Z" fill="#FF6B35"/>
+            <circle cx="860" cy="475" r="8" fill="#FF6B35"/>
+            <circle cx="860" cy="475" r="12" fill="none" stroke="#FF6B35" strokeWidth="2" opacity="0.4"/>
+            <animate attributeName="opacity" values="0;1;1;0" dur="6s" begin="2.5s" repeatCount="indefinite"/>
+          </g>
+
+          <g opacity="0">
+            <path d="M 1300 460 L 1300 445 L 1290 455 L 1310 455 Z" fill="#FFA500"/>
+            <circle cx="1300" cy="465" r="8" fill="#FFA500"/>
+            <circle cx="1300" cy="465" r="12" fill="none" stroke="#FFA500" strokeWidth="2" opacity="0.4"/>
+            <animate attributeName="opacity" values="0;1;1;0" dur="6s" begin="0.5s" repeatCount="indefinite"/>
+          </g>
+
+          <g opacity="0">
+            <path d="M 1700 480 L 1700 465 L 1690 475 L 1710 475 Z" fill="#10B981"/>
+            <circle cx="1700" cy="485" r="8" fill="#10B981"/>
+            <circle cx="1700" cy="485" r="12" fill="none" stroke="#10B981" strokeWidth="2" opacity="0.4"/>
+            <animate attributeName="opacity" values="0;1;1;0" dur="6s" begin="3.5s" repeatCount="indefinite"/>
+          </g>
+
+          <g opacity="0">
+            <path d="M 180 750 L 180 735 L 170 745 L 190 745 Z" fill="#8B5CF6"/>
+            <circle cx="180" cy="755" r="8" fill="#8B5CF6"/>
+            <circle cx="180" cy="755" r="12" fill="none" stroke="#8B5CF6" strokeWidth="2" opacity="0.4"/>
+            <animate attributeName="opacity" values="0;1;1;0" dur="6s" begin="1s" repeatCount="indefinite"/>
+          </g>
+
+          <g opacity="0">
+            <path d="M 650 760 L 650 745 L 640 755 L 660 755 Z" fill="#FF6B35"/>
+            <circle cx="650" cy="765" r="8" fill="#FF6B35"/>
+            <circle cx="650" cy="765" r="12" fill="none" stroke="#FF6B35" strokeWidth="2" opacity="0.4"/>
+            <animate attributeName="opacity" values="0;1;1;0" dur="6s" begin="2s" repeatCount="indefinite"/>
+          </g>
+
+          <g opacity="0">
+            <path d="M 1100 770 L 1100 755 L 1090 765 L 1110 765 Z" fill="#10B981"/>
+            <circle cx="1100" cy="775" r="8" fill="#10B981"/>
+            <circle cx="1100" cy="775" r="12" fill="none" stroke="#10B981" strokeWidth="2" opacity="0.4"/>
+            <animate attributeName="opacity" values="0;1;1;0" dur="6s" begin="3s" repeatCount="indefinite"/>
+          </g>
+
+          <g opacity="0">
+            <path d="M 1580 750 L 1580 735 L 1570 745 L 1590 745 Z" fill="#FFA500"/>
+            <circle cx="1580" cy="755" r="8" fill="#FFA500"/>
+            <circle cx="1580" cy="755" r="12" fill="none" stroke="#FFA500" strokeWidth="2" opacity="0.4"/>
+            <animate attributeName="opacity" values="0;1;1;0" dur="6s" begin="0.5s" repeatCount="indefinite"/>
+          </g>
+        </g>
+
+        <g stroke="#60A5FA" strokeWidth="2" opacity="0.3" fill="none">
+          <line x1="450" y1="350" x2="250" y2="135">
+            <animate attributeName="opacity" values="0;0.4;0" dur="6s" repeatCount="indefinite"/>
+          </line>
+          <line x1="450" y1="350" x2="620" y2="155">
+            <animate attributeName="opacity" values="0;0.4;0" dur="6s" begin="1s" repeatCount="indefinite"/>
+          </line>
+          <line x1="450" y1="350" x2="420" y2="455">
+            <animate attributeName="opacity" values="0;0.4;0" dur="6s" begin="1.5s" repeatCount="indefinite"/>
+          </line>
+
+          <line x1="1450" y1="600" x2="1520" y2="200">
+            <animate attributeName="opacity" values="0;0.4;0" dur="6s" begin="3s" repeatCount="indefinite"/>
+          </line>
+          <line x1="1450" y1="600" x2="1300" y2="465">
+            <animate attributeName="opacity" values="0;0.4;0" dur="6s" begin="0.5s" repeatCount="indefinite"/>
+          </line>
+          <line x1="1450" y1="600" x2="1700" y2="485">
+            <animate attributeName="opacity" values="0;0.4;0" dur="6s" begin="3.5s" repeatCount="indefinite"/>
+          </line>
+        </g>
+
         <g fill="#FFD666" opacity="0.9">
-          <circle cx="300" cy="280" r="8" />
-          <circle cx="960" cy="280" r="8" />
-          <circle cx="1600" cy="280" r="8" />
-          <circle cx="300" cy="580" r="8" />
-          <circle cx="960" cy="580" r="8" />
-          <circle cx="1600" cy="580" r="8" />
+          <circle cx="300" cy="280" r="8">
+            <animate attributeName="r" values="8;12;8" dur="3s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="960" cy="280" r="8">
+            <animate attributeName="r" values="8;12;8" dur="3.2s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="1600" cy="280" r="8">
+            <animate attributeName="r" values="8;12;8" dur="3.4s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="300" cy="580" r="8">
+            <animate attributeName="r" values="8;12;8" dur="3.6s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="960" cy="580" r="8">
+            <animate attributeName="r" values="8;12;8" dur="3.8s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="1600" cy="580" r="8">
+            <animate attributeName="r" values="8;12;8" dur="4s" repeatCount="indefinite"/>
+          </circle>
+        </g>
+
+        <g opacity="0.6">
+          <circle cx="450" cy="350" r="60" fill="none" stroke="#FFD666" strokeWidth="2">
+            <animate attributeName="r" values="40;80;40" dur="4s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.6;0;0.6" dur="4s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="1450" cy="600" r="60" fill="none" stroke="#10B981" strokeWidth="2">
+            <animate attributeName="r" values="40;80;40" dur="4.5s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.6;0;0.6" dur="4.5s" repeatCount="indefinite"/>
+          </circle>
+        </g>
+
+        <g filter="url(#pinGlow)" opacity="0.7">
+          <g>
+            <circle cx="190" cy="150" r="3" fill="#FFD666"/>
+            <animate attributeName="opacity" values="0;0.7;0" dur="4s" repeatCount="indefinite"/>
+          </g>
+          <g>
+            <circle cx="1200" cy="280" r="3" fill="#FFD666"/>
+            <animate attributeName="opacity" values="0;0.7;0" dur="4.5s" begin="1s" repeatCount="indefinite"/>
+          </g>
+          <g>
+            <circle cx="600" cy="730" r="3" fill="#FFD666"/>
+            <animate attributeName="opacity" values="0;0.7;0" dur="5s" begin="2s" repeatCount="indefinite"/>
+          </g>
         </g>
       </svg>
     </div>
