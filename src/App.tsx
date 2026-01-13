@@ -60,8 +60,7 @@ function App() {
             }}
           />
           <Routes>
-            <Route path="/" element={<EnhancedLandingPage />} />
-            <Route path="/landing-classic" element={<LandingPage />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
