@@ -93,13 +93,45 @@ WITH CHECK (
 - **Before**: `WITH CHECK (true)` - could unsubscribe any email
 - **After**: Verifies the email exists in the system before allowing unsubscribe
 
-### 4. Additional Security Notes
+### 4. Function Search Path Security Fixed (68 functions)
+**Issue**: Functions without explicit `search_path` settings are vulnerable to SQL injection through schema manipulation
+**Fix**: Set `search_path = pg_catalog, public` for all database functions
 
-**Function Search Paths**:
-While we attempted to fix function search paths for SQL injection protection, some functions have multiple signatures which prevented blanket updates. This should be addressed on a per-function basis as needed.
+**Impact**:
+- Prevents attackers from creating malicious functions in higher-priority schemas
+- Functions now explicitly use objects only from pg_catalog and public schemas
+- Defense-in-depth security measure protecting against schema-based attacks
+
+**Functions Secured**:
+- 5 Locking & Concurrency functions
+- 6 Queue Management functions
+- 7 Job Processing functions (including overloaded signatures)
+- 3 Rate Limiting functions
+- 3 Circuit Breaker functions
+- 6 Email Processing functions
+- 5 Lead & Campaign functions
+- 6 System Monitoring functions
+- 5 Cleanup & Maintenance functions
+- 4 Notification functions
+- 4 Authentication & Authorization functions
+- 11 Trigger functions
+- 7 Miscellaneous functions
+
+**Example**:
+```sql
+-- Before (vulnerable)
+CREATE FUNCTION update_job_progress(...)
+RETURNS void AS $$ ... $$;
+
+-- After (secure)
+ALTER FUNCTION public.update_job_progress(...)
+SET search_path = pg_catalog, public;
+```
+
+### 5. Additional Security Notes
 
 **Unused Indexes**:
-There are 172 unused indexes in the database. These should be monitored and potentially removed if they remain unused after observing production traffic patterns.
+There are 172 unused indexes in the database. These are expected with minimal test data and should be monitored and potentially removed only after observing production traffic patterns for 30+ days.
 
 **Auth Configuration**:
 The Auth DB Connection Strategy is not percentage-based. Consider switching to percentage-based connection allocation for better scalability.
@@ -129,6 +161,7 @@ Leaked password protection via HaveIBeenPwned is currently disabled. Enable this
 6. `optimize_remaining_rls_policies` - Optimized policies for competitors, templates, multi-source leads
 7. `optimize_final_rls_policies` - Optimized final batch of policies for automation, previews, monitoring
 8. `fix_always_true_rls_policies` - Fixed critical security vulnerabilities in 5 tables
+9. `fix_function_search_paths_security` - Secured 68 functions against SQL injection via schema manipulation
 
 ## Testing Recommendations
 
@@ -159,9 +192,10 @@ Leaked password protection via HaveIBeenPwned is currently disabled. Enable this
 ## Conclusion
 
 These fixes represent a major improvement in both security and performance:
-- **Security**: Fixed 5 critical RLS vulnerabilities
+- **Security**: Fixed 5 critical RLS vulnerabilities + secured 68 functions against SQL injection
 - **Performance**: Added 30 indexes, optimized 150+ RLS policies
 - **Scalability**: System now ready to handle 10x more users with better response times
 - **Maintainability**: Policies now follow best practices and are easier to understand
+- **Defense-in-Depth**: Multiple layers of security protection implemented
 
 All changes are backwards compatible and require no application code changes.
