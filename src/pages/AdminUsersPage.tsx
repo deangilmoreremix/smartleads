@@ -5,13 +5,14 @@ import { usePermissions } from '../hooks/usePermissions';
 import {
   Users,
   Search,
-  Filter,
   Shield,
   Crown,
   Edit,
-  ChevronDown,
   CheckCircle,
   XCircle,
+  UserPlus,
+  Copy,
+  Loader2,
 } from 'lucide-react';
 import type { Database } from '../types/database';
 import { rbacService, Role } from '../services/rbac-service';
@@ -39,6 +40,18 @@ export default function AdminUsersPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteForm, setInviteForm] = useState({
+    email: '',
+    fullName: '',
+    companyName: '',
+    planType: 'free',
+  });
+  const [inviting, setInviting] = useState(false);
+  const [inviteResult, setInviteResult] = useState<{
+    email: string;
+    tempPassword: string;
+  } | null>(null);
 
   useEffect(() => {
     if (isAdmin || hasPermission('view_users')) {
@@ -185,6 +198,59 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleInviteUser = async () => {
+    if (!inviteForm.email) {
+      toast.error('Email is required');
+      return;
+    }
+
+    setInviting(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify(inviteForm),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to invite user');
+      }
+
+      setInviteResult({
+        email: inviteForm.email,
+        tempPassword: data.tempPassword,
+      });
+      toast.success('User created successfully!');
+      loadUsers();
+    } catch (error) {
+      console.error('Error inviting user:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to invite user');
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const resetInviteModal = () => {
+    setShowInviteModal(false);
+    setInviteForm({ email: '', fullName: '', companyName: '', planType: 'free' });
+    setInviteResult(null);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard!');
+  };
+
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-screen">
@@ -218,9 +284,20 @@ export default function AdminUsersPage() {
             <h1 className="text-3xl font-bold text-white mb-2">User Management</h1>
             <p className="text-slate-400">Manage users, roles, and permissions</p>
           </div>
-          <div className="flex items-center space-x-2 text-slate-400">
-            <Users className="w-5 h-5" />
-            <span className="font-medium">{filteredUsers.length} users</span>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 text-slate-400">
+              <Users className="w-5 h-5" />
+              <span className="font-medium">{filteredUsers.length} users</span>
+            </div>
+            {isAdmin && (
+              <button
+                onClick={() => setShowInviteModal(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition"
+              >
+                <UserPlus className="w-5 h-5" />
+                <span>Invite User</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -488,6 +565,162 @@ export default function AdminUsersPage() {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {showInviteModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 max-w-md w-full">
+            {!inviteResult ? (
+              <>
+                <h3 className="text-xl font-bold text-white mb-4">Invite New User</h3>
+                <p className="text-slate-400 text-sm mb-6">
+                  Create a new user account with a temporary password.
+                </p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      value={inviteForm.email}
+                      onChange={(e) =>
+                        setInviteForm({ ...inviteForm, email: e.target.value })
+                      }
+                      placeholder="user@example.com"
+                      className="w-full bg-slate-900 text-white border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      value={inviteForm.fullName}
+                      onChange={(e) =>
+                        setInviteForm({ ...inviteForm, fullName: e.target.value })
+                      }
+                      placeholder="John Doe"
+                      className="w-full bg-slate-900 text-white border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Company Name
+                    </label>
+                    <input
+                      type="text"
+                      value={inviteForm.companyName}
+                      onChange={(e) =>
+                        setInviteForm({ ...inviteForm, companyName: e.target.value })
+                      }
+                      placeholder="Acme Inc."
+                      className="w-full bg-slate-900 text-white border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Subscription Plan
+                    </label>
+                    <select
+                      value={inviteForm.planType}
+                      onChange={(e) =>
+                        setInviteForm({ ...inviteForm, planType: e.target.value })
+                      }
+                      className="w-full bg-slate-900 text-white border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="free">Free - 50 leads/month</option>
+                      <option value="starter">Starter - 500 leads/month</option>
+                      <option value="professional">Professional - 2,000 leads/month</option>
+                      <option value="enterprise">Enterprise - 10,000+ leads/month</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex items-center justify-end space-x-3 mt-6">
+                  <button
+                    onClick={resetInviteModal}
+                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleInviteUser}
+                    disabled={inviting || !inviteForm.email}
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition"
+                  >
+                    {inviting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Creating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4" />
+                        <span>Create User</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-green-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">User Created!</h3>
+                  <p className="text-slate-400 text-sm">
+                    Share these credentials with the new user.
+                  </p>
+                </div>
+                <div className="space-y-4 bg-slate-900 rounded-lg p-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1">
+                      Email
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <code className="flex-1 text-white bg-slate-800 rounded px-3 py-2 text-sm">
+                        {inviteResult.email}
+                      </code>
+                      <button
+                        onClick={() => copyToClipboard(inviteResult.email)}
+                        className="p-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1">
+                      Temporary Password
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <code className="flex-1 text-white bg-slate-800 rounded px-3 py-2 text-sm font-mono">
+                        {inviteResult.tempPassword}
+                      </code>
+                      <button
+                        onClick={() => copyToClipboard(inviteResult.tempPassword)}
+                        className="p-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-amber-400 text-xs mt-4 text-center">
+                  The user should change their password after first login.
+                </p>
+                <button
+                  onClick={resetInviteModal}
+                  className="w-full mt-6 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition"
+                >
+                  Done
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
