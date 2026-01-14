@@ -1,4 +1,7 @@
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, Outlet, Navigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard,
   Users,
@@ -8,6 +11,7 @@ import {
   Activity,
   ChevronLeft,
   Shield,
+  ShieldX,
 } from 'lucide-react';
 
 const adminNavigation = [
@@ -21,6 +25,73 @@ const adminNavigation = [
 
 export default function AdminLayout() {
   const location = useLocation();
+  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      checkAdminAccess();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const checkAdminAccess = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user!.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      setIsAdmin(data?.is_admin || false);
+    } catch (error) {
+      console.error('Error checking admin access:', error);
+      setIsAdmin(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-400">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <ShieldX className="w-8 h-8 text-red-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
+          <p className="text-slate-400 mb-6">
+            You do not have administrator privileges to access this section.
+          </p>
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Return to Dashboard</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -74,7 +145,7 @@ export default function AdminLayout() {
 
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700 bg-slate-800">
             <div className="text-xs text-slate-500 text-center">
-              Admin access enabled
+              Admin access verified
             </div>
           </div>
         </aside>
