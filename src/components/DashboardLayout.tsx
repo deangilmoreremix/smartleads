@@ -168,7 +168,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <>
                   <div className="my-4 border-t border-gray-200"></div>
                   <Link
-                    to="/dashboard/admin/users"
+                    to="/dashboard/admin"
                     onClick={() => setSidebarOpen(false)}
                     className={`
                       flex items-center space-x-3 px-4 py-3 rounded-lg transition

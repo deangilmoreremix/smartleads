@@ -31,6 +31,12 @@ import LeadFinderPage from './pages/LeadFinderPage';
 import AIEmailsPage from './pages/AIEmailsPage';
 import AutomationPage from './pages/AutomationPage';
 import AdminUsersPage from './pages/AdminUsersPage';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminSubscriptionsPage from './pages/AdminSubscriptionsPage';
+import AdminFeatureFlagsPage from './pages/AdminFeatureFlagsPage';
+import AdminAuditLogsPage from './pages/AdminAuditLogsPage';
+import AdminSystemHealthPage from './pages/AdminSystemHealthPage';
+import AdminLayout from './components/AdminLayout';
 import AutopilotDashboard from './pages/AutopilotDashboard';
 
 function App() {
@@ -211,15 +217,20 @@ function App() {
             />
 
             <Route
-              path="/dashboard/admin/users"
+              path="/dashboard/admin"
               element={
                 <ProtectedRoute>
-                  <DashboardLayout>
-                    <AdminUsersPage />
-                  </DashboardLayout>
+                  <AdminLayout />
                 </ProtectedRoute>
               }
-            />
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsersPage />} />
+              <Route path="subscriptions" element={<AdminSubscriptionsPage />} />
+              <Route path="features" element={<AdminFeatureFlagsPage />} />
+              <Route path="audit" element={<AdminAuditLogsPage />} />
+              <Route path="health" element={<AdminSystemHealthPage />} />
+            </Route>
 
             <Route
               path="/auth/callback/unipile"
