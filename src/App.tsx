@@ -31,6 +31,7 @@ import LeadFinderPage from './pages/LeadFinderPage';
 import AIEmailsPage from './pages/AIEmailsPage';
 import AutomationPage from './pages/AutomationPage';
 import AdminUsersPage from './pages/AdminUsersPage';
+import AutopilotDashboard from './pages/AutopilotDashboard';
 
 function App() {
   return (
@@ -193,6 +194,17 @@ function App() {
                 <ProtectedRoute>
                   <DashboardLayout>
                     <PlansPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/autopilot"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <AutopilotDashboard />
                   </DashboardLayout>
                 </ProtectedRoute>
               }
