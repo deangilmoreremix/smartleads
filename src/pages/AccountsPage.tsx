@@ -1,22 +1,74 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Plus, Mail, CheckCircle, XCircle, Clock, Trash2 } from 'lucide-react';
+import { Plus, Mail, CheckCircle, XCircle, Clock, Trash2, Lock, Linkedin, Send } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import type { Database } from '../types/database';
+import { subscriptionService, type UserSubscription } from '../services/subscription-service';
 
 type GmailAccount = Database['public']['Tables']['gmail_accounts']['Row'];
+
+interface Provider {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  color: string;
+  bgColor: string;
+  feature: string;
+  description: string;
+}
+
+const PROVIDERS: Provider[] = [
+  {
+    id: 'gmail',
+    name: 'Gmail',
+    icon: <Mail className="w-6 h-6" />,
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
+    feature: 'gmail',
+    description: 'Send emails from your Gmail account',
+  },
+  {
+    id: 'linkedin',
+    name: 'LinkedIn',
+    icon: <Linkedin className="w-6 h-6" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    feature: 'linkedin',
+    description: 'Send direct messages on LinkedIn',
+  },
+  {
+    id: 'outlook',
+    name: 'Outlook',
+    icon: <Send className="w-6 h-6" />,
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-50',
+    feature: 'outlook',
+    description: 'Send emails from your Outlook account',
+  },
+];
 
 export default function AccountsPage() {
   const { user } = useAuth();
   const [accounts, setAccounts] = useState<GmailAccount[]>([]);
+  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showProviderSelect, setShowProviderSelect] = useState(false);
 
   useEffect(() => {
     if (user) {
-      loadAccounts();
+      loadData();
     }
   }, [user]);
+
+  const loadData = async () => {
+    try {
+      await Promise.all([loadAccounts(), loadSubscription()]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadAccounts = async () => {
     try {
@@ -31,18 +83,35 @@ export default function AccountsPage() {
     } catch (error) {
       console.error('Error loading accounts:', error);
       toast.error('Failed to load accounts');
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleConnectAccount = async () => {
+  const loadSubscription = async () => {
     try {
+      const sub = await subscriptionService.getUserSubscription(user!.id);
+      setSubscription(sub);
+    } catch (error) {
+      console.error('Error loading subscription:', error);
+    }
+  };
+
+  const handleConnectProvider = async (providerId: string) => {
+    try {
+      const provider = PROVIDERS.find(p => p.id === providerId);
+      if (!provider) return;
+
+      const hasAccess = subscription?.features?.[provider.feature] === true;
+
+      if (!hasAccess && providerId !== 'gmail') {
+        toast.error(`${provider.name} requires a Pro or Enterprise plan`);
+        return;
+      }
+
       const redirectUrl = `${window.location.origin}/auth/callback/unipile`;
 
       const { data, error } = await supabase.functions.invoke('connect-unipile', {
         body: {
-          provider: 'GMAIL',
+          provider: providerId.toUpperCase(),
           redirectUrl,
         },
       });
@@ -56,7 +125,8 @@ export default function AccountsPage() {
       }
     } catch (error) {
       console.error('Error connecting account:', error);
-      toast.error('Failed to initiate account connection');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to initiate account connection';
+      toast.error(errorMessage);
     }
   };
 
@@ -90,17 +160,34 @@ export default function AccountsPage() {
     );
   }
 
+  const getProviderIcon = (providerType?: string | null) => {
+    const provider = PROVIDERS.find(p => p.id === providerType);
+    return provider?.icon || <Mail className="w-6 h-6" />;
+  };
+
+  const getProviderColor = (providerType?: string | null) => {
+    const provider = PROVIDERS.find(p => p.id === providerType);
+    return provider?.bgColor || 'bg-gray-100';
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Accounts</h1>
-            <p className="text-gray-600">Manage your connected Gmail accounts for sending emails</p>
+            <p className="text-gray-600">Manage your connected accounts for sending emails and messages</p>
+            {subscription && (
+              <div className="mt-2">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${subscriptionService.getPlanBadgeColor(subscription.plan_name)}`}>
+                  {subscription.plan_display_name} Plan
+                </span>
+              </div>
+            )}
           </div>
           <button
-            onClick={handleConnectAccount}
-            className="flex items-center space-x-2 bg-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-600 transition shadow-sm"
+            onClick={() => setShowProviderSelect(true)}
+            className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 transition shadow-sm"
           >
             <Plus className="w-5 h-5" />
             <span>Connect Account</span>
@@ -109,19 +196,19 @@ export default function AccountsPage() {
 
         {accounts.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-100">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Mail className="w-8 h-8 text-purple-600" />
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-8 h-8 text-blue-600" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No accounts connected</h3>
             <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              Connect your Gmail account to start sending automated emails to your leads
+              Connect your Gmail, LinkedIn, or Outlook account to start sending automated outreach
             </p>
             <button
-              onClick={handleConnectAccount}
-              className="inline-flex items-center space-x-2 bg-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-600 transition"
+              onClick={() => setShowProviderSelect(true)}
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 transition"
             >
               <Plus className="w-5 h-5" />
-              <span>Connect Gmail Account</span>
+              <span>Connect Account</span>
             </button>
           </div>
         ) : (
@@ -133,8 +220,8 @@ export default function AccountsPage() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4 flex-1">
-                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-6 h-6 text-purple-600" />
+                    <div className={`w-12 h-12 ${getProviderColor(account.provider_type)} rounded-full flex items-center justify-center flex-shrink-0`}>
+                      {getProviderIcon(account.provider_type)}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
@@ -181,22 +268,97 @@ export default function AccountsPage() {
         )}
 
         <div className="mt-8 bg-blue-50 rounded-xl p-6 border border-blue-100">
-          <h3 className="font-semibold text-blue-900 mb-2">About Gmail Accounts</h3>
+          <h3 className="font-semibold text-blue-900 mb-2">About Connected Accounts</h3>
           <ul className="space-y-2 text-sm text-blue-800">
             <li className="flex items-start space-x-2">
               <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <span>Connect multiple Gmail accounts to increase your sending capacity</span>
+              <span>Connect multiple accounts to increase your outreach capacity</span>
             </li>
             <li className="flex items-start space-x-2">
               <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <span>Each account has a daily sending limit to prevent spam flags</span>
+              <span>Each account has daily sending limits to maintain good reputation</span>
             </li>
             <li className="flex items-start space-x-2">
               <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <span>Emails are automatically rotated across your connected accounts</span>
+              <span>Messages are automatically rotated across your connected accounts</span>
             </li>
           </ul>
         </div>
+
+        {showProviderSelect && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowProviderSelect(false)}>
+            <div className="bg-white rounded-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Connect an Account</h2>
+              <p className="text-gray-600 mb-6">Choose which platform you'd like to connect for your outreach</p>
+
+              <div className="space-y-4">
+                {PROVIDERS.map((provider) => {
+                  const hasAccess = subscription?.features?.[provider.feature] === true;
+                  const isLocked = !hasAccess && provider.id !== 'gmail';
+
+                  return (
+                    <button
+                      key={provider.id}
+                      onClick={() => {
+                        if (isLocked) {
+                          return;
+                        }
+                        setShowProviderSelect(false);
+                        handleConnectProvider(provider.id);
+                      }}
+                      className={`w-full text-left p-6 rounded-xl border-2 transition ${
+                        isLocked
+                          ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
+                          : 'border-gray-200 hover:border-blue-500 hover:shadow-md cursor-pointer'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className={`w-12 h-12 ${provider.bgColor} rounded-full flex items-center justify-center ${provider.color}`}>
+                            {provider.icon}
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-2 mb-1">
+                              <h3 className="text-lg font-semibold text-gray-900">{provider.name}</h3>
+                              {isLocked && (
+                                <Lock className="w-4 h-4 text-gray-400" />
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600">{provider.description}</p>
+                            {isLocked && (
+                              <Link
+                                to="/plans"
+                                className="inline-flex items-center mt-2 text-sm font-medium text-blue-600 hover:text-blue-700"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                Upgrade to Pro
+                                <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                        {hasAccess && (
+                          <CheckCircle className="w-6 h-6 text-green-500" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <button
+                  onClick={() => setShowProviderSelect(false)}
+                  className="w-full px-4 py-2 text-gray-700 font-medium hover:bg-gray-50 rounded-lg transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -45,6 +45,24 @@ Deno.serve(async (req: Request) => {
 
     const { code, provider = "GMAIL", redirectUrl }: ConnectRequest = await req.json();
 
+    const providerType = provider.toLowerCase();
+
+    if (providerType !== 'gmail') {
+      const { data: subscription } = await supabase
+        .rpc('get_user_subscription', { p_user_id: user.id })
+        .maybeSingle();
+
+      if (!subscription) {
+        throw new Error("No active subscription found");
+      }
+
+      const hasAccess = subscription.features?.[providerType] === true;
+
+      if (!hasAccess) {
+        throw new Error(`${provider} integration requires a Pro or Enterprise plan. Please upgrade your subscription.`);
+      }
+    }
+
     if (req.method === "POST" && !code) {
       const origin = new URL(req.url).origin;
       const callbackUrl = `${origin}/auth/callback/unipile`;
@@ -94,33 +112,39 @@ Deno.serve(async (req: Request) => {
       .eq("email", accountData.email)
       .maybeSingle();
 
+    const accountUpdate: Record<string, any> = {
+      unipile_account_id: accountData.account_id,
+      unipile_provider: provider,
+      unipile_connected_at: new Date().toISOString(),
+      is_active: true,
+      webhook_enabled: true,
+      provider_type: providerType,
+    };
+
+    if (providerType === 'linkedin') {
+      accountUpdate.linkedin_profile_url = accountData.profile_url || null;
+      accountUpdate.connection_quota_daily = 50;
+    }
+
     if (existingAccount) {
       const { error: updateError } = await supabase
         .from("gmail_accounts")
-        .update({
-          unipile_account_id: accountData.account_id,
-          unipile_provider: provider,
-          unipile_connected_at: new Date().toISOString(),
-          is_active: true,
-          webhook_enabled: true,
-        })
+        .update(accountUpdate)
         .eq("id", existingAccount.id);
 
       if (updateError) throw updateError;
     } else {
+      const accountInsert = {
+        ...accountUpdate,
+        user_id: user.id,
+        email: accountData.email,
+        daily_limit: providerType === 'gmail' ? 500 : null,
+        emails_sent_today: 0,
+      };
+
       const { error: insertError } = await supabase
         .from("gmail_accounts")
-        .insert({
-          user_id: user.id,
-          email: accountData.email,
-          unipile_account_id: accountData.account_id,
-          unipile_provider: provider,
-          unipile_connected_at: new Date().toISOString(),
-          is_active: true,
-          webhook_enabled: true,
-          daily_limit: 500,
-          emails_sent_today: 0,
-        });
+        .insert(accountInsert);
 
       if (insertError) throw insertError;
     }
