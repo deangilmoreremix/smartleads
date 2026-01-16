@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { Mail, Lock, User } from 'lucide-react';
-import { validateEmail, sanitizeInput } from '../lib/utils';
+import { validateEmail, sanitizeInput, getErrorMessage } from '../lib/utils';
 import { ERROR_MESSAGES, MIN_PASSWORD_LENGTH } from '../lib/constants';
 import SEOHead from '../components/SEOHead';
 
@@ -42,14 +42,14 @@ export default function SignupPage() {
       await signUp(sanitizedEmail, password, sanitizedName);
       toast.success('Account created successfully!');
       navigate('/dashboard');
-    } catch (err: any) {
-      console.error('Signup error:', err);
-      let errorMessage = ERROR_MESSAGES.GENERIC;
+    } catch (err: unknown) {
+      const message = getErrorMessage(err);
 
-      if (err.message?.includes('already registered')) {
+      let errorMessage = ERROR_MESSAGES.GENERIC;
+      if (message.includes('already registered')) {
         errorMessage = ERROR_MESSAGES.EMAIL_EXISTS;
-      } else if (err.message) {
-        errorMessage = err.message;
+      } else if (message) {
+        errorMessage = message;
       }
 
       toast.error(errorMessage);

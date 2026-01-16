@@ -190,14 +190,32 @@ export default function EmailPreviewPanel({ campaignId, onApprove, onReject }: E
     }
   }
 
+  function escapeHtml(unsafe: string): string {
+    return unsafe
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   function replaceTokensWithValues(content: string, tokens: Record<string, string>): string {
-    let result = content;
+    let result = escapeHtml(content);
     Object.entries(tokens).forEach(([key, value]) => {
       if (value) {
-        result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), `<span class="bg-amber-100 px-1 rounded">${value}</span>`);
+        const escapedValue = escapeHtml(value);
+        const escapedKey = escapeHtml(key);
+        result = result.replace(
+          new RegExp(`\\{\\{${escapedKey}\\}\\}`, 'g'),
+          `<span class="bg-amber-100 px-1 rounded">${escapedValue}</span>`
+        );
       }
     });
-    return result;
+    return result.replace(/\n/g, '<br>');
+  }
+
+  function safeHtmlContent(content: string): string {
+    return escapeHtml(content).replace(/\n/g, '<br>');
   }
 
   if (loading) {
@@ -307,7 +325,7 @@ export default function EmailPreviewPanel({ campaignId, onApprove, onReject }: E
                   dangerouslySetInnerHTML={{
                     __html: showTokens
                       ? replaceTokensWithValues(displaySubject, currentPreview.tokens_used)
-                      : displaySubject,
+                      : escapeHtml(displaySubject),
                   }}
                 />
               )}
@@ -327,7 +345,7 @@ export default function EmailPreviewPanel({ campaignId, onApprove, onReject }: E
                 dangerouslySetInnerHTML={{
                   __html: showTokens
                     ? replaceTokensWithValues(displayBody, currentPreview.tokens_used)
-                    : displayBody.replace(/\n/g, '<br>'),
+                    : safeHtmlContent(displayBody),
                 }}
               />
             )}

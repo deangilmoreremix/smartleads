@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, BarChart3, Gift, Mail, Zap, TrendingUp, Users, Send } from 'lucide-react';
+import { Plus, BarChart3, Gift, Mail, Zap, TrendingUp, Users, Send, AlertCircle, RefreshCw } from 'lucide-react';
 import { useOnboarding } from '../contexts/OnboardingContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { getErrorMessage } from '../lib/utils';
 import InboxWidget from '../components/InboxWidget';
 
 interface DashboardStats {
@@ -22,6 +23,8 @@ export default function Dashboard() {
     emailsSent: 0,
     responseRate: 0,
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const hasSeenTourThisSession = sessionStorage.getItem('dashboard_tour_shown');
@@ -35,40 +38,65 @@ export default function Dashboard() {
     }
   }, [state.welcome_completed, activeTour, startTour]);
 
-  useEffect(() => {
+  const loadStats = async () => {
     if (!user) return;
 
-    const loadStats = async () => {
-      try {
-        const [campaignsResult, leadsResult, emailsResult] = await Promise.all([
-          supabase
-            .from('campaigns')
-            .select('id', { count: 'exact', head: true })
-            .eq('user_id', user.id),
-          supabase
-            .from('leads')
-            .select('id', { count: 'exact', head: true })
-            .eq('user_id', user.id),
-          supabase
-            .from('email_sends')
-            .select('id, status', { count: 'exact' })
-            .eq('user_id', user.id),
-        ]);
+    setLoading(true);
+    setError(null);
 
-        const sentEmails = emailsResult.count || 0;
-        const repliedEmails = emailsResult.data?.filter(e => e.status === 'replied').length || 0;
+    try {
+      const results = await Promise.allSettled([
+        supabase
+          .from('campaigns')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id),
+        supabase
+          .from('leads')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id),
+        supabase
+          .from('email_sends')
+          .select('id, status', { count: 'exact' })
+          .eq('user_id', user.id),
+      ]);
 
-        setStats({
-          totalCampaigns: campaignsResult.count || 0,
-          activeLeads: leadsResult.count || 0,
-          emailsSent: sentEmails,
-          responseRate: sentEmails > 0 ? Math.round((repliedEmails / sentEmails) * 100) : 0,
-        });
-      } catch (error) {
-        console.error('Error loading stats:', error);
+      const campaignsResult = results[0].status === 'fulfilled' ? results[0].value : null;
+      const leadsResult = results[1].status === 'fulfilled' ? results[1].value : null;
+      const emailsResult = results[2].status === 'fulfilled' ? results[2].value : null;
+
+      const hasAnyError = results.some(
+        r => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.error)
+      );
+
+      if (hasAnyError) {
+        const firstError = results.find(
+          r => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.error)
+        );
+        const errorMsg = firstError?.status === 'rejected'
+          ? getErrorMessage(firstError.reason)
+          : firstError?.status === 'fulfilled'
+          ? firstError.value.error?.message
+          : 'Failed to load some data';
+        setError(errorMsg || 'Failed to load dashboard stats');
       }
-    };
 
+      const sentEmails = emailsResult?.count || 0;
+      const repliedEmails = emailsResult?.data?.filter(e => e.status === 'replied').length || 0;
+
+      setStats({
+        totalCampaigns: campaignsResult?.count || 0,
+        activeLeads: leadsResult?.count || 0,
+        emailsSent: sentEmails,
+        responseRate: sentEmails > 0 ? Math.round((repliedEmails / sentEmails) * 100) : 0,
+      });
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadStats();
   }, [user]);
 
@@ -80,6 +108,22 @@ export default function Dashboard() {
           <p className="text-gray-600">Welcome to your SmartLeads dashboard</p>
         </div>
 
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <span className="text-red-700">{error}</span>
+            </div>
+            <button
+              onClick={loadStats}
+              className="flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-sm font-medium"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Retry
+            </button>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center gap-3 mb-2">
@@ -88,7 +132,11 @@ export default function Dashboard() {
               </div>
               <span className="text-sm text-gray-500">Campaigns</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stats.totalCampaigns}</p>
+            {loading ? (
+              <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
+            ) : (
+              <p className="text-2xl font-bold text-gray-900">{stats.totalCampaigns}</p>
+            )}
           </div>
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center gap-3 mb-2">
@@ -97,7 +145,11 @@ export default function Dashboard() {
               </div>
               <span className="text-sm text-gray-500">Active Leads</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stats.activeLeads}</p>
+            {loading ? (
+              <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
+            ) : (
+              <p className="text-2xl font-bold text-gray-900">{stats.activeLeads}</p>
+            )}
           </div>
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center gap-3 mb-2">
@@ -106,7 +158,11 @@ export default function Dashboard() {
               </div>
               <span className="text-sm text-gray-500">Emails Sent</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stats.emailsSent}</p>
+            {loading ? (
+              <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
+            ) : (
+              <p className="text-2xl font-bold text-gray-900">{stats.emailsSent}</p>
+            )}
           </div>
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center gap-3 mb-2">
@@ -115,7 +171,11 @@ export default function Dashboard() {
               </div>
               <span className="text-sm text-gray-500">Response Rate</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stats.responseRate}%</p>
+            {loading ? (
+              <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
+            ) : (
+              <p className="text-2xl font-bold text-gray-900">{stats.responseRate}%</p>
+            )}
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { Mail, Lock } from 'lucide-react';
-import { validateEmail, sanitizeInput } from '../lib/utils';
+import { validateEmail, sanitizeInput, getErrorMessage } from '../lib/utils';
 import { ERROR_MESSAGES } from '../lib/constants';
 import SEOHead from '../components/SEOHead';
 
@@ -35,10 +35,9 @@ export default function LoginPage() {
       await signIn(sanitizedEmail, password);
       toast.success('Welcome back!');
       navigate('/dashboard');
-    } catch (err: any) {
-      console.error('Login error:', err);
-      const errorMessage = err.message || ERROR_MESSAGES.AUTH_FAILED;
-      toast.error(errorMessage);
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      toast.error(errorMessage || ERROR_MESSAGES.AUTH_FAILED);
     } finally {
       setLoading(false);
     }

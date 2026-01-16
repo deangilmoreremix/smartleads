@@ -123,3 +123,92 @@ export function clamp(value: number, min: number, max: number): number {
 export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+export interface AppError {
+  message: string;
+  code?: string;
+  status?: number;
+}
+
+export function isAppError(error: unknown): error is AppError {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof (error as AppError).message === 'string'
+  );
+}
+
+export function getErrorMessage(error: unknown): string {
+  if (isAppError(error)) {
+    return error.message;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return 'An unexpected error occurred';
+}
+
+export interface FetchWithTimeoutOptions extends RequestInit {
+  timeout?: number;
+}
+
+export async function fetchWithTimeout(
+  url: string,
+  options: FetchWithTimeoutOptions = {}
+): Promise<Response> {
+  const { timeout = 30000, ...fetchOptions } = options;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...fetchOptions,
+      signal: controller.signal,
+    });
+    return response;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timed out after ${timeout}ms`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+export async function fetchWithRetry(
+  url: string,
+  options: FetchWithTimeoutOptions & { retries?: number; retryDelay?: number } = {}
+): Promise<Response> {
+  const { retries = 3, retryDelay = 1000, ...fetchOptions } = options;
+
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await fetchWithTimeout(url, fetchOptions);
+
+      if (response.status === 429) {
+        const retryAfter = response.headers.get('Retry-After');
+        const delay = retryAfter ? parseInt(retryAfter, 10) * 1000 : retryDelay * Math.pow(2, attempt);
+        await sleep(delay);
+        continue;
+      }
+
+      return response;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      if (attempt < retries - 1) {
+        await sleep(retryDelay * Math.pow(2, attempt));
+      }
+    }
+  }
+
+  throw lastError || new Error('Request failed after retries');
+}
