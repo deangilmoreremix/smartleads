@@ -151,7 +151,7 @@ Deno.serve(async (req: Request) => {
     </div>
     <h1>Successfully Unsubscribed</h1>
     <p class="email">You've been removed from our mailing list</p>
-    <p class="email"><strong>${email}</strong></p>
+    <p class="email"><strong>${email.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;')}</strong></p>
     <div class="message">
       <p>You will no longer receive emails from us. This change is effective immediately.</p>
       <p style="margin-top: 16px;">If you unsubscribed by mistake, please contact us and we'll be happy to help.</p>
