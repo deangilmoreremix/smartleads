@@ -15,11 +15,13 @@ export default function InboxWidget() {
   const [stats, setStats] = useState<InboxStats | null>(null);
   const [recentConversations, setRecentConversations] = useState<InboxConversation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
 
     const loadData = async () => {
+      setError(null);
       try {
         const [statsData, conversationsData] = await Promise.all([
           fetchInboxStats(user.id),
@@ -27,8 +29,9 @@ export default function InboxWidget() {
         ]);
         setStats(statsData);
         setRecentConversations(conversationsData);
-      } catch (error) {
-        console.error('Error loading inbox data:', error);
+      } catch (err) {
+        console.error('Error loading inbox data:', err);
+        setError('Unable to load inbox');
       } finally {
         setLoading(false);
       }
@@ -59,6 +62,31 @@ export default function InboxWidget() {
           <div className="h-16 bg-gray-100 rounded-xl"></div>
           <div className="h-16 bg-gray-100 rounded-xl"></div>
           <div className="h-16 bg-gray-100 rounded-xl"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center">
+            <Inbox className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Inbox</h2>
+            <p className="text-sm text-gray-500">Recent conversations</p>
+          </div>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-gray-500 text-sm">{error}</p>
+          <Link
+            to="/dashboard/inbox"
+            className="inline-block mt-3 text-sm text-amber-600 hover:text-amber-700"
+          >
+            Open Inbox
+          </Link>
         </div>
       </div>
     );

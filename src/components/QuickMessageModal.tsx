@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, Send, Wand2, Mail, MessageSquare } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { X, Send, Wand2, Mail, MessageSquare, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { createOrGetConversation, sendMessage } from '../services/messaging-service';
 import toast from 'react-hot-toast';
@@ -66,9 +66,40 @@ export default function QuickMessageModal({
   const [sending, setSending] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
 
-  if (!isOpen) return null;
-
   const firstName = lead.decision_maker_name?.split(' ')[0] || 'there';
+
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const emailValid = isValidEmail(lead.email);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSubject('');
+      setBody('');
+      setSelectedTemplate(null);
+    }
+  }, [isOpen]);
+
+  const handleClose = useCallback(() => {
+    if (!sending) {
+      onClose();
+    }
+  }, [sending, onClose]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, handleClose]);
+
+  if (!isOpen) return null;
 
   const applyTemplate = (index: number) => {
     const template = QUICK_TEMPLATES[index];
@@ -86,7 +117,12 @@ export default function QuickMessageModal({
   };
 
   const handleSend = async () => {
-    if (!subject.trim() || !body.trim() || !user) return;
+    if (!subject.trim() || !body.trim() || !user || !emailValid) {
+      if (!emailValid) {
+        toast.error('Invalid email address');
+      }
+      return;
+    }
 
     setSending(true);
     try {
@@ -102,15 +138,12 @@ export default function QuickMessageModal({
         body,
       });
 
-      toast.success('Message sent successfully!');
+      toast.success('Message queued for sending!');
       onMessageSent?.();
       onClose();
-      setSubject('');
-      setBody('');
-      setSelectedTemplate(null);
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Failed to send message');
+      toast.error('Failed to send message. Please try again.');
     } finally {
       setSending(false);
     }
@@ -118,7 +151,7 @@ export default function QuickMessageModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
       <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden mx-4">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -131,8 +164,9 @@ export default function QuickMessageModal({
             </div>
           </div>
           <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+            onClick={handleClose}
+            disabled={sending}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition disabled:opacity-50"
           >
             <X className="w-5 h-5" />
           </button>
@@ -165,11 +199,25 @@ export default function QuickMessageModal({
               <Mail className="w-4 h-4 inline mr-2" />
               To
             </label>
-            <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-700 border border-gray-200">
-              {lead.decision_maker_name && (
-                <span className="font-medium">{lead.decision_maker_name} - </span>
-              )}
-              {lead.email}
+            <div className={`px-4 py-3 rounded-xl border ${
+              emailValid
+                ? 'bg-gray-50 text-gray-700 border-gray-200'
+                : 'bg-red-50 text-red-700 border-red-200'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  {lead.decision_maker_name && (
+                    <span className="font-medium">{lead.decision_maker_name} - </span>
+                  )}
+                  {lead.email}
+                </div>
+                {!emailValid && (
+                  <div className="flex items-center gap-1 text-red-600 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>Invalid email</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -206,15 +254,16 @@ export default function QuickMessageModal({
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={onClose}
-                className="px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-xl font-medium transition"
+                onClick={handleClose}
+                disabled={sending}
+                className="px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-xl font-medium transition disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSend}
-                disabled={!subject.trim() || !body.trim() || sending}
-                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-orange-500/30 disabled:opacity-50 transition"
+                disabled={!subject.trim() || !body.trim() || sending || !emailValid}
+                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 <Send className="w-4 h-4" />
                 {sending ? 'Sending...' : 'Send Message'}

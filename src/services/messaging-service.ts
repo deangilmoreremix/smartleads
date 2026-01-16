@@ -240,7 +240,7 @@ export async function fetchInboxStats(userId: string): Promise<InboxStats> {
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
 
-  const [conversationsResult, unreadResult, repliesResult] = await Promise.all([
+  const [conversationsResult, unreadResult] = await Promise.all([
     supabase
       .from('inbox_conversations')
       .select('id', { count: 'exact', head: true })
@@ -252,19 +252,32 @@ export async function fetchInboxStats(userId: string): Promise<InboxStats> {
       .eq('user_id', userId)
       .eq('is_archived', false)
       .gt('unread_count', 0),
-    supabase
+  ]);
+
+  const { data: userConversationIds } = await supabase
+    .from('inbox_conversations')
+    .select('id')
+    .eq('user_id', userId);
+
+  let repliesThisWeek = 0;
+  if (userConversationIds && userConversationIds.length > 0) {
+    const conversationIds = userConversationIds.map(c => c.id);
+    const { count } = await supabase
       .from('inbox_messages')
       .select('id', { count: 'exact', head: true })
+      .in('conversation_id', conversationIds)
       .eq('direction', 'inbound')
-      .gte('sent_at', weekAgo.toISOString()),
-  ]);
+      .gte('sent_at', weekAgo.toISOString());
+
+    repliesThisWeek = count || 0;
+  }
 
   const unreadCount = unreadResult.data?.reduce((sum, c) => sum + (c.unread_count || 0), 0) || 0;
 
   return {
     totalConversations: conversationsResult.count || 0,
     unreadCount,
-    repliesThisWeek: repliesResult.count || 0,
+    repliesThisWeek,
   };
 }
 
@@ -292,10 +305,25 @@ export async function createOrGetConversation(
   contact: { name: string; email: string; company?: string },
   platform: Platform = 'email'
 ): Promise<InboxConversation> {
+  if (!userId) {
+    throw new Error('User ID is required');
+  }
+
+  if (!contact.email || !contact.email.includes('@')) {
+    throw new Error('Valid email address is required');
+  }
+
+  if (!contact.name || contact.name.trim().length === 0) {
+    throw new Error('Contact name is required');
+  }
+
+  const sanitizedEmail = contact.email.toLowerCase().trim();
+  const sanitizedName = contact.name.trim();
+
   const existingContact = await supabase
     .from('inbox_contacts')
     .select('*')
-    .eq('email', contact.email)
+    .eq('email', sanitizedEmail)
     .maybeSingle();
 
   let contactId: string;
@@ -306,9 +334,9 @@ export async function createOrGetConversation(
     const { data: newContact, error: contactError } = await supabase
       .from('inbox_contacts')
       .insert({
-        name: contact.name,
-        email: contact.email,
-        company: contact.company,
+        name: sanitizedName,
+        email: sanitizedEmail,
+        company: contact.company?.trim() || null,
       })
       .select()
       .single();
