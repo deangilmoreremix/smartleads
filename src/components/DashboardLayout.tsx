@@ -16,6 +16,7 @@ import {
   UserSearch,
   Settings,
   Shield,
+  Inbox,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
@@ -43,6 +44,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Campaigns', href: '/dashboard/campaigns', icon: Target },
+    { name: 'Inbox', href: '/dashboard/inbox', icon: Inbox },
     { name: 'Leads', href: '/dashboard/leads', icon: UserSearch },
     { name: 'Intent Signals', href: '/dashboard/signals', icon: Brain },
     { name: 'Templates', href: '/dashboard/templates', icon: Mail },

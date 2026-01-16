@@ -1,5 +1,5 @@
 import { CheckCircle } from 'lucide-react';
-import { PlatformIcon, Platform } from './PlatformIcon';
+import PlatformIcon, { type Platform } from './PlatformIcon';
 
 interface MessageSentToastProps {
   platform: Platform;

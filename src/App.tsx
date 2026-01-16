@@ -38,6 +38,7 @@ import AdminAuditLogsPage from './pages/AdminAuditLogsPage';
 import AdminSystemHealthPage from './pages/AdminSystemHealthPage';
 import AdminLayout from './components/AdminLayout';
 import AutopilotDashboard from './pages/AutopilotDashboard';
+import UnifiedInboxPage from './pages/UnifiedInboxPage';
 
 function App() {
   return (
@@ -112,6 +113,28 @@ function App() {
                 <ProtectedRoute>
                   <DashboardLayout>
                     <CampaignDetailPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/inbox"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <UnifiedInboxPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard/inbox/:conversationId"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <UnifiedInboxPage />
                   </DashboardLayout>
                 </ProtectedRoute>
               }

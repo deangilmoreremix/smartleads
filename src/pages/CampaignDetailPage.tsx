@@ -19,7 +19,7 @@ import type { Database } from '../types/database';
 import { startAutomatedCampaign, scrapeGoogleMapsLeads, generateAIEmails, sendEmails } from '../services/automation';
 import ConfirmDialog from '../components/ConfirmDialog';
 import LoadingSpinner from '../components/LoadingSpinner';
-import EmailSequenceBuilder from '../components/EmailSequenceBuilder';
+import { VisualSequenceBuilder } from '../components/messaging';
 
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
 type Lead = Database['public']['Tables']['leads']['Row'];
@@ -486,7 +486,7 @@ export default function CampaignDetailPage() {
         </div>
 
         <div className="mb-8">
-          <EmailSequenceBuilder
+          <VisualSequenceBuilder
             campaignId={campaign.id}
             onSequenceCreated={loadCampaignDetails}
           />
