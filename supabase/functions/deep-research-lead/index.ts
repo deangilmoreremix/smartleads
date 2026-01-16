@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from 'npm:@supabase/supabase-js@2';
+import OpenAI from 'npm:openai@4';
 
 const RTRVR_BASE_URL = 'https://api.rtrvr.ai';
 
@@ -166,6 +167,7 @@ Deno.serve(async (req: Request) => {
     if (!openaiApiKey) throw new Error('OPENAI_API_KEY not configured');
 
     const rtrvr = new RtrvrClient(rtrvrApiKey);
+    const openai = new OpenAI({ apiKey: openaiApiKey });
 
     jobId = crypto.randomUUID();
     await supabase.from('research_jobs').insert({ id: jobId, user_id: user.id, lead_id: leadId, campaign_id: lead.campaign_id, job_type: 'deep_research', status: 'running', progress_percentage: 0, config: { depth } });
@@ -197,23 +199,20 @@ Deno.serve(async (req: Request) => {
     await supabase.from('research_jobs').update({ progress_percentage: 50 }).eq('id', jobId);
     await logProgress(supabase, jobId, { level: 'loading', icon: '🤖', message: 'GPT-5.2 analyzing content...' });
 
-    const analysisResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: 'Extract structured business data. Return valid JSON only.' },
-          { role: 'user', content: `Analyze website for ${lead.business_name} (${lead.website}):\n\n${allContent.slice(0, 40000)}\n\nExtract JSON: {main_services: [{name, description}], unique_value_proposition: string, team_members: [{name, role, email?}], company_size_estimate: "solo"|"small"|"medium"|"large", founding_year?: number, tech_stack: string[], identified_pain_points: string[], conversation_starters: string[], decision_makers: [{name, role, email?, linkedin?}]}` }
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.3,
-      }),
+    const systemPrompt = 'You are a business research analyst. Extract structured business data from website content. Be thorough but only include information actually found in the content. Return valid JSON only.';
+    const userPrompt = `Analyze website for ${lead.business_name} (${lead.website}):\n\n${allContent.slice(0, 40000)}\n\nExtract JSON: {main_services: [{name, description}], unique_value_proposition: string, team_members: [{name, role, email?}], company_size_estimate: "solo"|"small"|"medium"|"large", founding_year?: number, tech_stack: string[], identified_pain_points: string[], conversation_starters: string[], decision_makers: [{name, role, email?, linkedin?}]}`;
+
+    const analysisResponse = await openai.responses.create({
+      model: 'gpt-5.2',
+      instructions: systemPrompt,
+      input: userPrompt,
+      reasoning: { effort: 'low' },
+      text: { format: { type: 'json_object' } },
     });
 
-    const analysisData = await analysisResponse.json();
+    const outputText = analysisResponse.output?.[0]?.content?.[0]?.text || '{}';
     let extractedInfo: Record<string, unknown> = {};
-    try { extractedInfo = JSON.parse(analysisData.choices[0]?.message?.content || '{}'); } catch { /* ignore */ }
+    try { extractedInfo = JSON.parse(outputText); } catch { /* ignore */ }
 
     await supabase.from('research_jobs').update({ progress_percentage: 75 }).eq('id', jobId);
 

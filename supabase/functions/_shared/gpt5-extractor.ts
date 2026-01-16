@@ -1,6 +1,6 @@
 import OpenAI from 'npm:openai@4';
 
-const MODEL = 'gpt-4o';
+const MODEL = 'gpt-5.2';
 
 export interface BusinessListing {
   business_name: string;
@@ -61,12 +61,7 @@ export class GPT5Extractor {
       ? `Page Content:\n${pageContent}\n\nAccessibility Tree:\n${JSON.stringify(accessibilityTree, null, 2)}`
       : pageContent;
 
-    const response = await this.client.chat.completions.create({
-      model: MODEL,
-      messages: [
-        {
-          role: 'system',
-          content: `You are a data extraction specialist. Extract business listings from Google Maps search results.
+    const systemPrompt = `You are a data extraction specialist. Extract business listings from Google Maps search results.
 Return a JSON object with a "listings" array of businesses found on the page. Each business should have:
 - business_name (required): The name of the business
 - google_maps_url (required): The Google Maps URL for this business
@@ -76,21 +71,21 @@ Return a JSON object with a "listings" array of businesses found on the page. Ea
 - address_preview: Short address snippet
 
 Only extract real businesses visible in the content. Do not hallucinate or make up data.
-Respond ONLY with valid JSON.`
-        },
-        {
-          role: 'user',
-          content: contentToAnalyze.slice(0, 50000)
-        }
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.1
+Respond ONLY with valid JSON.`;
+
+    const response = await this.client.responses.create({
+      model: MODEL,
+      instructions: systemPrompt,
+      input: contentToAnalyze.slice(0, 50000),
+      reasoning: { effort: 'none' },
+      text: { format: { type: 'json_object' } },
     });
 
-    const usage = this.trackUsage(response);
+    const usage = this.trackResponsesUsage(response);
+    const outputText = response.output?.[0]?.content?.[0]?.text || '{"listings":[]}';
 
     try {
-      const parsed = JSON.parse(response.choices[0]?.message?.content || '{"listings":[]}');
+      const parsed = JSON.parse(outputText);
       return { listings: parsed.listings || [], usage };
     } catch {
       return { listings: [], usage };
@@ -106,12 +101,7 @@ Respond ONLY with valid JSON.`
       ? `Business: ${businessName}\n\nPage Content:\n${pageContent}\n\nAccessibility Tree:\n${JSON.stringify(accessibilityTree, null, 2)}`
       : `Business: ${businessName}\n\nPage Content:\n${pageContent}`;
 
-    const response = await this.client.chat.completions.create({
-      model: MODEL,
-      messages: [
-        {
-          role: 'system',
-          content: `You are a data extraction specialist. Extract detailed business information from a Google Maps business page.
+    const systemPrompt = `You are a data extraction specialist. Extract detailed business information from a Google Maps business page.
 Focus on extracting:
 - phone: Business phone number (normalize to standard format)
 - website: Official website URL
@@ -123,21 +113,21 @@ Focus on extracting:
 - reviews_preview: Top 3 most helpful reviews
 
 Only extract information actually present in the content. Do not hallucinate.
-Respond ONLY with valid JSON.`
-        },
-        {
-          role: 'user',
-          content: contentToAnalyze.slice(0, 50000)
-        }
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.1
+Respond ONLY with valid JSON.`;
+
+    const response = await this.client.responses.create({
+      model: MODEL,
+      instructions: systemPrompt,
+      input: contentToAnalyze.slice(0, 50000),
+      reasoning: { effort: 'none' },
+      text: { format: { type: 'json_object' } },
     });
 
-    const usage = this.trackUsage(response);
+    const usage = this.trackResponsesUsage(response);
+    const outputText = response.output?.[0]?.content?.[0]?.text || '{}';
 
     try {
-      const parsed = JSON.parse(response.choices[0]?.message?.content || '{}');
+      const parsed = JSON.parse(outputText);
       return { details: parsed, usage };
     } catch {
       return { details: {}, usage };
@@ -148,12 +138,7 @@ Respond ONLY with valid JSON.`
     websiteContent: string,
     businessContext: { name: string; address?: string; category?: string }
   ): Promise<{ contacts: ContactInfo; usage: ExtractionUsage }> {
-    const response = await this.client.chat.completions.create({
-      model: MODEL,
-      messages: [
-        {
-          role: 'system',
-          content: `You are a contact information extraction specialist. Extract contact details from a business website.
+    const systemPrompt = `You are a contact information extraction specialist. Extract contact details from a business website.
 Business context: ${businessContext.name}${businessContext.category ? ` (${businessContext.category})` : ''}${businessContext.address ? ` at ${businessContext.address}` : ''}
 
 Extract:
@@ -165,21 +150,21 @@ Extract:
 - team_members: Key team members with roles and emails if available
 
 Only extract real information. Validate email formats. Skip newsletter signup forms.
-Respond ONLY with valid JSON.`
-        },
-        {
-          role: 'user',
-          content: websiteContent.slice(0, 40000)
-        }
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.1
+Respond ONLY with valid JSON.`;
+
+    const response = await this.client.responses.create({
+      model: MODEL,
+      instructions: systemPrompt,
+      input: websiteContent.slice(0, 40000),
+      reasoning: { effort: 'none' },
+      text: { format: { type: 'json_object' } },
     });
 
-    const usage = this.trackUsage(response);
+    const usage = this.trackResponsesUsage(response);
+    const outputText = response.output?.[0]?.content?.[0]?.text || '{}';
 
     try {
-      const parsed = JSON.parse(response.choices[0]?.message?.content || '{}');
+      const parsed = JSON.parse(outputText);
       return {
         contacts: {
           emails: parsed.emails || [],
@@ -199,9 +184,9 @@ Respond ONLY with valid JSON.`
     }
   }
 
-  private trackUsage(response: { usage?: { prompt_tokens?: number; completion_tokens?: number } | null }): ExtractionUsage {
-    const inputTokens = response.usage?.prompt_tokens || 0;
-    const outputTokens = response.usage?.completion_tokens || 0;
+  private trackResponsesUsage(response: { usage?: { input_tokens?: number; output_tokens?: number } | null }): ExtractionUsage {
+    const inputTokens = response.usage?.input_tokens || 0;
+    const outputTokens = response.usage?.output_tokens || 0;
 
     this.totalUsage.inputTokens += inputTokens;
     this.totalUsage.outputTokens += outputTokens;
