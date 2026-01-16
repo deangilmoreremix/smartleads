@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Search, Filter, Mail, Phone, Globe, Star, ExternalLink,
-  Brain, Target, Activity, ChevronRight, X, TrendingUp,
-  CheckCircle, AlertTriangle, Download
+  Brain, Target, Activity, ChevronRight, X,
+  CheckCircle, AlertTriangle, Download, Send
 } from 'lucide-react';
 import type { Database } from '../types/database';
 import EmailVerificationBadge from '../components/EmailVerificationBadge';
 import LeadIntelligencePanel from '../components/LeadIntelligencePanel';
+import QuickMessageModal from '../components/QuickMessageModal';
 import toast from 'react-hot-toast';
 
 type Lead = Database['public']['Tables']['leads']['Row'] & {
@@ -19,6 +21,7 @@ type Lead = Database['public']['Tables']['leads']['Row'] & {
 
 export default function LeadsPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -26,6 +29,7 @@ export default function LeadsPage() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [showIntelligencePanel, setShowIntelligencePanel] = useState(false);
+  const [messageModalLead, setMessageModalLead] = useState<Lead | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -380,17 +384,29 @@ export default function LeadsPage() {
                         <span className="text-xs text-slate-400">Health</span>
                       </div>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openIntelligencePanel(lead);
-                      }}
-                      className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition"
-                    >
-                      <Brain className="w-4 h-4" />
-                      View Intelligence
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMessageModalLead(lead);
+                        }}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-sm font-medium rounded-lg hover:shadow-lg hover:shadow-orange-500/30 transition"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        Message
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openIntelligencePanel(lead);
+                        }}
+                        className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition"
+                      >
+                        <Brain className="w-4 h-4" />
+                        Intelligence
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -421,6 +437,18 @@ export default function LeadsPage() {
           </div>
         )}
       </div>
+
+      {messageModalLead && (
+        <QuickMessageModal
+          isOpen={!!messageModalLead}
+          onClose={() => setMessageModalLead(null)}
+          lead={messageModalLead}
+          onMessageSent={() => {
+            loadLeads();
+            navigate('/dashboard/inbox');
+          }}
+        />
+      )}
     </div>
   );
 }

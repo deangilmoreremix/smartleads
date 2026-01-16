@@ -229,3 +229,118 @@ export function subscribeToMessages(
     supabase.removeChannel(channel);
   };
 }
+
+export interface InboxStats {
+  totalConversations: number;
+  unreadCount: number;
+  repliesThisWeek: number;
+}
+
+export async function fetchInboxStats(userId: string): Promise<InboxStats> {
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+
+  const [conversationsResult, unreadResult, repliesResult] = await Promise.all([
+    supabase
+      .from('inbox_conversations')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_archived', false),
+    supabase
+      .from('inbox_conversations')
+      .select('unread_count')
+      .eq('user_id', userId)
+      .eq('is_archived', false)
+      .gt('unread_count', 0),
+    supabase
+      .from('inbox_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('direction', 'inbound')
+      .gte('sent_at', weekAgo.toISOString()),
+  ]);
+
+  const unreadCount = unreadResult.data?.reduce((sum, c) => sum + (c.unread_count || 0), 0) || 0;
+
+  return {
+    totalConversations: conversationsResult.count || 0,
+    unreadCount,
+    repliesThisWeek: repliesResult.count || 0,
+  };
+}
+
+export async function fetchRecentConversations(
+  userId: string,
+  limit = 5
+): Promise<InboxConversation[]> {
+  const { data, error } = await supabase
+    .from('inbox_conversations')
+    .select(`
+      *,
+      contact:inbox_contacts(*)
+    `)
+    .eq('user_id', userId)
+    .eq('is_archived', false)
+    .order('last_message_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createOrGetConversation(
+  userId: string,
+  contact: { name: string; email: string; company?: string },
+  platform: Platform = 'email'
+): Promise<InboxConversation> {
+  const existingContact = await supabase
+    .from('inbox_contacts')
+    .select('*')
+    .eq('email', contact.email)
+    .maybeSingle();
+
+  let contactId: string;
+
+  if (existingContact.data) {
+    contactId = existingContact.data.id;
+  } else {
+    const { data: newContact, error: contactError } = await supabase
+      .from('inbox_contacts')
+      .insert({
+        name: contact.name,
+        email: contact.email,
+        company: contact.company,
+      })
+      .select()
+      .single();
+
+    if (contactError) throw contactError;
+    contactId = newContact.id;
+  }
+
+  const { data: existingConv } = await supabase
+    .from('inbox_conversations')
+    .select(`*, contact:inbox_contacts(*)`)
+    .eq('user_id', userId)
+    .eq('contact_id', contactId)
+    .eq('platform', platform)
+    .maybeSingle();
+
+  if (existingConv) return existingConv;
+
+  const { data: newConv, error: convError } = await supabase
+    .from('inbox_conversations')
+    .insert({
+      user_id: userId,
+      contact_id: contactId,
+      platform,
+      status: 'active',
+      unread_count: 0,
+      is_archived: false,
+      last_message_at: new Date().toISOString(),
+    })
+    .select(`*, contact:inbox_contacts(*)`)
+    .single();
+
+  if (convError) throw convError;
+  return newConv;
+}
