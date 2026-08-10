@@ -1,5 +1,32 @@
 import { supabase } from '../lib/supabase';
 
+type ABTestCounterField =
+  | 'variant_a_sends'
+  | 'variant_b_sends'
+  | 'variant_a_opens'
+  | 'variant_b_opens'
+  | 'variant_a_replies'
+  | 'variant_b_replies';
+
+type RpcCaller = (fn: string, args: Record<string, unknown>) => Promise<{ error: unknown }>;
+const callRpc = supabase.rpc.bind(supabase) as unknown as RpcCaller;
+
+async function incrementCounter(testId: string, field: ABTestCounterField): Promise<void> {
+  const { data: test } = await supabase
+    .from('sequence_ab_tests')
+    .select(field)
+    .eq('id', testId)
+    .single();
+
+  if (test) {
+    const current = Number((test as unknown as Record<string, number | null>)[field] || 0);
+    await supabase
+      .from('sequence_ab_tests')
+      .update({ [field]: current + 1 } as never)
+      .eq('id', testId);
+  }
+}
+
 export interface ABTest {
   id: string;
   user_id: string;
@@ -68,12 +95,12 @@ export async function createABTest(
       variant_b_body: variantBBody || null,
       min_sample_size: minSampleSize,
       is_active: true,
-    })
+    } as never)
     .select()
     .single();
 
   if (error) throw error;
-  return data;
+  return data as unknown as ABTest;
 }
 
 export async function getABTest(testId: string): Promise<ABTest | null> {
@@ -84,7 +111,7 @@ export async function getABTest(testId: string): Promise<ABTest | null> {
     .maybeSingle();
 
   if (error) throw error;
-  return data;
+  return (data as unknown as ABTest | null) ?? null;
 }
 
 export async function getABTestsForSequence(sequenceId: string): Promise<ABTest[]> {
@@ -95,7 +122,7 @@ export async function getABTestsForSequence(sequenceId: string): Promise<ABTest[
     .order('step_number', { ascending: true });
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as unknown as ABTest[];
 }
 
 export async function getABTestsForUser(userId: string, campaignId?: string): Promise<ABTest[]> {
@@ -112,7 +139,7 @@ export async function getABTestsForUser(userId: string, campaignId?: string): Pr
   const { data, error } = await query;
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as unknown as ABTest[];
 }
 
 export async function assignVariant(testId: string): Promise<'A' | 'B'> {
@@ -130,42 +157,20 @@ export async function assignVariant(testId: string): Promise<'A' | 'B'> {
 export async function recordSend(testId: string, variant: 'A' | 'B'): Promise<void> {
   const field = variant === 'A' ? 'variant_a_sends' : 'variant_b_sends';
 
-  const { error } = await supabase.rpc('increment_ab_test_counter', {
+  const { error } = await callRpc('increment_ab_test_counter', {
     test_id: testId,
     field_name: field,
   });
 
   if (error) {
-    const { data: test } = await supabase
-      .from('sequence_ab_tests')
-      .select(field)
-      .eq('id', testId)
-      .single();
-
-    if (test) {
-      await supabase
-        .from('sequence_ab_tests')
-        .update({ [field]: (test[field] || 0) + 1 })
-        .eq('id', testId);
-    }
+    await incrementCounter(testId, field);
   }
 }
 
 export async function recordOpen(testId: string, variant: 'A' | 'B'): Promise<void> {
   const field = variant === 'A' ? 'variant_a_opens' : 'variant_b_opens';
 
-  const { data: test } = await supabase
-    .from('sequence_ab_tests')
-    .select(field)
-    .eq('id', testId)
-    .single();
-
-  if (test) {
-    await supabase
-      .from('sequence_ab_tests')
-      .update({ [field]: (test[field] || 0) + 1 })
-      .eq('id', testId);
-  }
+  await incrementCounter(testId, field);
 
   await checkForWinner(testId);
 }
@@ -173,18 +178,7 @@ export async function recordOpen(testId: string, variant: 'A' | 'B'): Promise<vo
 export async function recordReply(testId: string, variant: 'A' | 'B'): Promise<void> {
   const field = variant === 'A' ? 'variant_a_replies' : 'variant_b_replies';
 
-  const { data: test } = await supabase
-    .from('sequence_ab_tests')
-    .select(field)
-    .eq('id', testId)
-    .single();
-
-  if (test) {
-    await supabase
-      .from('sequence_ab_tests')
-      .update({ [field]: (test[field] || 0) + 1 })
-      .eq('id', testId);
-  }
+  await incrementCounter(testId, field);
 
   await checkForWinner(testId);
 }
@@ -283,7 +277,7 @@ async function checkForWinner(testId: string): Promise<void> {
       .update({
         winner: stats.winner,
         winner_selected_at: new Date().toISOString(),
-      })
+      } as never)
       .eq('id', testId);
   }
 }
@@ -294,7 +288,7 @@ export async function updateABTest(
 ): Promise<void> {
   const { error } = await supabase
     .from('sequence_ab_tests')
-    .update(updates)
+    .update(updates as never)
     .eq('id', testId);
 
   if (error) throw error;

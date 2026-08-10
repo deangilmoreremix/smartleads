@@ -15,6 +15,9 @@ import {
   ListOrdered
 } from 'lucide-react';
 import RtrvrScrapingSettings, { RtrvrSettings } from '../components/RtrvrScrapingSettings';
+import type { Database, Json } from '../types/database';
+
+type CampaignInsert = Database['public']['Tables']['campaigns']['Insert'];
 import { VisualSequenceBuilder, type SequenceStep } from '../components/messaging';
 import toast from 'react-hot-toast';
 
@@ -34,7 +37,7 @@ export default function NewCampaignPage() {
   const [niche, setNiche] = useState('');
   const [location, setLocation] = useState('');
   const [emailTemplate, setEmailTemplate] = useState('');
-  const [sequenceSteps, setSequenceSteps] = useState<SequenceStep[]>([]);
+  const [, setSequenceSteps] = useState<SequenceStep[]>([]);
   const [rtrvrSettings, setRtrvrSettings] = useState<RtrvrSettings>({
     maxCrawledPlacesPerSearch: 50,
     language: 'en',
@@ -123,9 +126,9 @@ export default function NewCampaignPage() {
           location: location,
           ai_prompt: aiPrompt || null,
           email_template: emailTemplate || null,
-          rtrvr_settings: rtrvrSettings,
+          rtrvr_settings: rtrvrSettings as unknown as Json,
           status: 'draft'
-        })
+        } as CampaignInsert)
         .select()
         .single();
 

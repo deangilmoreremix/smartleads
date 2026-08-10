@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import type { Database } from '../types/database';
 
 export interface SendingWindow {
   startHour: number;
@@ -80,9 +81,8 @@ export function getNextSendTime(
 
   const targetTime = new Date(now.toLocaleString('en-US', { timeZone: targetTimezone }));
   const currentHour = targetTime.getHours();
-  const currentDay = targetTime.getDay();
 
-  let nextSendTime = new Date(targetTime);
+  const nextSendTime = new Date(targetTime);
 
   if (currentHour >= window.endHour) {
     nextSendTime.setDate(nextSendTime.getDate() + 1);
@@ -119,7 +119,7 @@ export async function updateLeadTimezones(campaignId: string): Promise<number> {
     const timezone = detectTimezone(lead.address);
     const { error: updateError } = await supabase
       .from('leads')
-      .update({ timezone })
+      .update({ timezone } as Database['public']['Tables']['leads']['Update'])
       .eq('id', lead.id);
 
     if (!updateError) updated++;

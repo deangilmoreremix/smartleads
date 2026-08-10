@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Target, TrendingUp, Briefcase, DollarSign, Users, Zap,
   Filter, RefreshCw, ExternalLink, CheckCircle, Clock,
-  AlertTriangle, BarChart3, ArrowUpRight, Building
+  AlertTriangle, ArrowUpRight, Building
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
@@ -66,8 +66,9 @@ export default function IntentSignalsDashboard() {
 
       if (error) throw error;
 
-      setSignals(data || []);
-      calculateStats(data || []);
+      const rows = (data || []) as unknown as IntentSignal[];
+      setSignals(rows);
+      calculateStats(rows);
     } catch (error) {
       console.error('Failed to load signals:', error);
       toast.error('Failed to load signals');
@@ -102,7 +103,7 @@ export default function IntentSignalsDashboard() {
     try {
       await supabase
         .from('intent_signals')
-        .update({ action_taken: true, action_notes: 'Marked as acted upon' })
+        .update({ action_taken: true, action_notes: 'Marked as acted upon' } as never)
         .eq('id', signalId);
 
       setSignals(prev =>

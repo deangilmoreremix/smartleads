@@ -1,4 +1,4 @@
-import { useRef, useEffect, TouchEvent } from 'react';
+import { useRef, TouchEvent } from 'react';
 
 interface SwipeHandlers {
   onSwipeLeft?: () => void;

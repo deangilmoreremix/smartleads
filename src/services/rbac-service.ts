@@ -1,5 +1,8 @@
 import { supabase } from '../lib/supabase';
 
+type RpcCaller = (fn: string, args: Record<string, unknown>) => Promise<{ error: unknown }>;
+const callRpc = supabase.rpc.bind(supabase) as unknown as RpcCaller;
+
 export interface Role {
   id: string;
   name: string;
@@ -68,7 +71,7 @@ export const rbacService = {
       .order('level', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as unknown as Role[];
   },
 
   async getAllPermissions(): Promise<Permission[]> {
@@ -78,7 +81,7 @@ export const rbacService = {
       .order('resource', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as unknown as Permission[];
   },
 
   async getUserRoles(userId: string): Promise<UserRole[]> {
@@ -88,11 +91,11 @@ export const rbacService = {
       .eq('user_id', userId);
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as unknown as UserRole[];
   },
 
   async grantRole(userId: string, roleName: string, grantedBy: string): Promise<void> {
-    const { error } = await supabase.rpc('grant_user_role', {
+    const { error } = await callRpc('grant_user_role', {
       p_user_id: userId,
       p_role_name: roleName,
       p_granted_by: grantedBy,
@@ -102,7 +105,7 @@ export const rbacService = {
   },
 
   async revokeRole(userId: string, roleName: string, revokedBy: string): Promise<void> {
-    const { error } = await supabase.rpc('revoke_user_role', {
+    const { error } = await callRpc('revoke_user_role', {
       p_user_id: userId,
       p_role_name: roleName,
       p_revoked_by: revokedBy,
@@ -114,7 +117,7 @@ export const rbacService = {
   async setAdminStatus(userId: string, isAdmin: boolean, changedBy: string): Promise<void> {
     const { error } = await supabase
       .from('profiles')
-      .update({ is_admin: isAdmin })
+      .update({ is_admin: isAdmin } as never)
       .eq('id', userId);
 
     if (error) throw error;
@@ -125,7 +128,7 @@ export const rbacService = {
       action: isAdmin ? 'grant_admin' : 'revoke_admin',
       resource: 'profiles',
       new_value: { is_admin: isAdmin },
-    });
+    } as never);
   },
 
   async getAllFeatureFlags(): Promise<FeatureFlag[]> {
@@ -135,7 +138,7 @@ export const rbacService = {
       .order('flag_name', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as unknown as FeatureFlag[];
   },
 
   async updateFeatureFlag(
@@ -144,7 +147,7 @@ export const rbacService = {
   ): Promise<void> {
     const { error } = await supabase
       .from('feature_flags_v2')
-      .update(updates)
+      .update(updates as never)
       .eq('id', flagId);
 
     if (error) throw error;
@@ -153,12 +156,12 @@ export const rbacService = {
   async createFeatureFlag(flag: Omit<FeatureFlag, 'id' | 'created_at' | 'updated_at'>): Promise<FeatureFlag> {
     const { data, error } = await supabase
       .from('feature_flags_v2')
-      .insert(flag)
+      .insert(flag as never)
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    return data as unknown as FeatureFlag;
   },
 
   async getUserFeatureOverrides(userId: string): Promise<UserFeatureOverride[]> {
@@ -168,7 +171,7 @@ export const rbacService = {
       .eq('user_id', userId);
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as unknown as UserFeatureOverride[];
   },
 
   async setFeatureOverride(
@@ -184,7 +187,7 @@ export const rbacService = {
       enabled,
       granted_by: grantedBy,
       expires_at: expiresAt || null,
-    });
+    } as never);
 
     if (error) throw error;
   },
@@ -207,7 +210,7 @@ export const rbacService = {
       .range(offset, offset + limit - 1);
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as unknown as AuditLog[];
   },
 
   async getUserAuditLogs(userId: string, limit: number = 50): Promise<AuditLog[]> {
@@ -219,6 +222,6 @@ export const rbacService = {
       .limit(limit);
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as unknown as AuditLog[];
   },
 };

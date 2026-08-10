@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Zap, Target, Bot, ChevronDown, Mail, TrendingUp, Users, Award } from 'lucide-react';
+import { Zap, Target, Bot, ChevronDown, Mail, TrendingUp, Users } from 'lucide-react';
 import { useState } from 'react';
-import GoogleMapsBackground from '../components/GoogleMapsBackground';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
 import { ParallaxContainer } from '../components/animations/ParallaxContainer';
 import { TiltCard } from '../components/animations/TiltCard';

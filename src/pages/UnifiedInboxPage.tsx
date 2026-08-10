@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Search,
-  Filter,
   Archive,
   MoreVertical,
   Send,
@@ -14,9 +13,7 @@ import {
   RefreshCw,
   Check,
   MessageSquare,
-  Clock,
   User,
-  Building,
   ExternalLink,
   Inbox as InboxIcon
 } from 'lucide-react';

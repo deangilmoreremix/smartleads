@@ -410,7 +410,7 @@ export function getDefaultRunConfig(): RunConfig {
   };
 }
 
-function validateGeoConfig(input: unknown, errors: string[]): GeoConfig {
+function validateGeoConfig(input: unknown, _errors: string[]): GeoConfig {
   const defaults = getDefaultGeoConfig();
   if (!isObject(input)) return defaults;
 
@@ -424,7 +424,7 @@ function validateGeoConfig(input: unknown, errors: string[]): GeoConfig {
     lat: isNumber(input.lat) ? input.lat : defaults.lat,
     lng: isNumber(input.lng) ? input.lng : defaults.lng,
     radiusKm: isNumber(input.radiusKm) ? input.radiusKm : defaults.radiusKm,
-    geojson: isObject(input.geojson) ? (input.geojson as GeoJSON) : defaults.geojson,
+    geojson: isObject(input.geojson) ? (input.geojson as unknown as GeoJSON) : defaults.geojson,
     mapsUrl: isString(input.mapsUrl) ? input.mapsUrl : defaults.mapsUrl,
     placeUrls: isStringArray(input.placeUrls) ? input.placeUrls : defaults.placeUrls,
     placeIds: isStringArray(input.placeIds) ? input.placeIds : defaults.placeIds,
@@ -435,7 +435,7 @@ function validateGeoConfig(input: unknown, errors: string[]): GeoConfig {
   };
 }
 
-function validateSearchConfig(input: unknown, errors: string[]): SearchConfig {
+function validateSearchConfig(input: unknown, _errors: string[]): SearchConfig {
   const defaults = getDefaultSearchConfig();
   if (!isObject(input)) return defaults;
 
@@ -455,7 +455,7 @@ function validateSearchConfig(input: unknown, errors: string[]): SearchConfig {
   };
 }
 
-function validateExtractionConfig(input: unknown, errors: string[]): ExtractionConfig {
+function validateExtractionConfig(input: unknown, _errors: string[]): ExtractionConfig {
   const defaults = getDefaultExtractionConfig();
   if (!isObject(input)) return defaults;
 
@@ -478,7 +478,7 @@ function validateExtractionConfig(input: unknown, errors: string[]): ExtractionC
   };
 }
 
-function validateReviewsConfig(input: unknown, errors: string[]): ReviewsConfig {
+function validateReviewsConfig(input: unknown, _errors: string[]): ReviewsConfig {
   const defaults = getDefaultReviewsConfig();
   if (!isObject(input)) return defaults;
 
@@ -499,7 +499,7 @@ function validateReviewsConfig(input: unknown, errors: string[]): ReviewsConfig 
   };
 }
 
-function validateImagesConfig(input: unknown, errors: string[]): ImagesConfig {
+function validateImagesConfig(input: unknown, _errors: string[]): ImagesConfig {
   const defaults = getDefaultImagesConfig();
   if (!isObject(input)) return defaults;
 
@@ -530,7 +530,7 @@ function validateSocialsEnabled(input: unknown): SocialsEnabled {
   };
 }
 
-function validateContactsConfig(input: unknown, errors: string[]): ContactsConfig {
+function validateContactsConfig(input: unknown, _errors: string[]): ContactsConfig {
   const defaults = getDefaultContactsConfig();
   if (!isObject(input)) return defaults;
 
@@ -562,7 +562,7 @@ function validateEnrichmentFields(input: unknown): EnrichmentFields {
   };
 }
 
-function validateEnrichmentConfig(input: unknown, errors: string[]): EnrichmentConfig {
+function validateEnrichmentConfig(input: unknown, _errors: string[]): EnrichmentConfig {
   const defaults = getDefaultEnrichmentConfig();
   if (!isObject(input)) return defaults;
 
@@ -576,7 +576,7 @@ function validateEnrichmentConfig(input: unknown, errors: string[]): EnrichmentC
   };
 }
 
-function validateQualityFiltersConfig(input: unknown, errors: string[]): QualityFiltersConfig {
+function validateQualityFiltersConfig(input: unknown, _errors: string[]): QualityFiltersConfig {
   const defaults = getDefaultQualityFiltersConfig();
   if (!isObject(input)) return defaults;
 
@@ -599,7 +599,7 @@ function validateQualityFiltersConfig(input: unknown, errors: string[]): Quality
   };
 }
 
-function validateOutputConfig(input: unknown, errors: string[]): OutputConfig {
+function validateOutputConfig(input: unknown, _errors: string[]): OutputConfig {
   const defaults = getDefaultOutputConfig();
   if (!isObject(input)) return defaults;
 
@@ -617,7 +617,7 @@ function validateOutputConfig(input: unknown, errors: string[]): OutputConfig {
   };
 }
 
-function validateAutomationConfig(input: unknown, errors: string[]): AutomationConfig {
+function validateAutomationConfig(input: unknown, _errors: string[]): AutomationConfig {
   const defaults = getDefaultAutomationConfig();
   if (!isObject(input)) return defaults;
 
@@ -652,7 +652,7 @@ function validateAutomationConfig(input: unknown, errors: string[]): AutomationC
     runMode: VALID_RUN_MODES.includes(input.runMode as RunMode)
       ? (input.runMode as RunMode)
       : defaults.runMode,
-    schedule: isObject(input.schedule) ? (input.schedule as ScheduleConfig) : defaults.schedule,
+    schedule: isObject(input.schedule) ? (input.schedule as unknown as ScheduleConfig) : defaults.schedule,
     webhooks: Array.isArray(input.webhooks) ? (input.webhooks as WebhookConfig[]) : defaults.webhooks,
     maxConcurrency,
     delayRangeMs,
@@ -666,7 +666,7 @@ function validateAutomationConfig(input: unknown, errors: string[]): AutomationC
   };
 }
 
-function validateComplianceConfig(input: unknown, errors: string[]): ComplianceConfig {
+function validateComplianceConfig(input: unknown, _errors: string[]): ComplianceConfig {
   const defaults = getDefaultComplianceConfig();
   if (!isObject(input)) return defaults;
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Mail, CheckCircle, X, RotateCcw } from 'lucide-react';
 
 interface Email {

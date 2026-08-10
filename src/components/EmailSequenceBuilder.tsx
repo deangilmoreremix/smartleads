@@ -85,7 +85,7 @@ export default function EmailSequenceBuilder({
 
       const { error: insertError } = await supabase
         .from('email_sequence_steps')
-        .insert(stepsToInsert);
+        .insert(stepsToInsert as never);
 
       if (insertError) throw insertError;
 

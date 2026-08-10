@@ -87,7 +87,7 @@ export default function AutomationScheduler({ campaignId, onScheduleChange }: Au
 
       const { data, error } = await query;
       if (error) throw error;
-      setSchedules(data || []);
+      setSchedules((data || []) as unknown as Schedule[]);
     } catch (error) {
       console.error('Error loading schedules:', error);
       toast.error('Failed to load schedules');
@@ -110,12 +110,12 @@ export default function AutomationScheduler({ campaignId, onScheduleChange }: Au
       if (schedule.id) {
         const { error } = await supabase
           .from('automation_schedules')
-          .update(scheduleData)
+          .update(scheduleData as never)
           .eq('id', schedule.id);
         if (error) throw error;
         toast.success('Schedule updated');
       } else {
-        const { error } = await supabase.from('automation_schedules').insert(scheduleData);
+        const { error } = await supabase.from('automation_schedules').insert(scheduleData as never);
         if (error) throw error;
         toast.success('Schedule created');
       }
@@ -148,7 +148,7 @@ export default function AutomationScheduler({ campaignId, onScheduleChange }: Au
     try {
       const { error } = await supabase
         .from('automation_schedules')
-        .update({ is_active: !currentState })
+        .update({ is_active: !currentState } as never)
         .eq('id', id);
       if (error) throw error;
       toast.success(currentState ? 'Schedule paused' : 'Schedule activated');

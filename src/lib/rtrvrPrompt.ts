@@ -693,7 +693,7 @@ export async function buildRtrvrRun(config: RunConfig): Promise<RtrvrRunPayload>
 
   return {
     prompt,
-    schema,
+    schema: schema as unknown as Record<string, unknown>,
     safeConfig,
     warnings,
     configHash

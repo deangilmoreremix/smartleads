@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import {
   Users,
-  CreditCard,
-  TrendingUp,
   Mail,
   Target,
   UserPlus,
@@ -11,9 +9,7 @@ import {
   Activity,
   AlertTriangle,
   CheckCircle,
-  Clock,
   ArrowUpRight,
-  ArrowDownRight,
 } from 'lucide-react';
 
 interface PlatformStats {

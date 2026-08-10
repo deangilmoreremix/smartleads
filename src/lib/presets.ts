@@ -100,7 +100,7 @@ export const PRESETS: Preset[] = [
       },
       automation: {
         runMode: 'manual',
-        schedule: { type: 'none', timezone: 'UTC' },
+        schedule: null,
         webhooks: [],
         maxConcurrency: 5,
         delayRangeMs: { min: 1500, max: 3500 },
@@ -108,7 +108,7 @@ export const PRESETS: Preset[] = [
         timeoutMs: 120000,
         logsLevel: 'basic',
         saveScreenshots: false,
-        changeDetection: { enabled: false, alerts: [] }
+        changeDetection: { enabled: false, alerts: false }
       }
     }
   },
@@ -215,7 +215,7 @@ export const PRESETS: Preset[] = [
       },
       automation: {
         runMode: 'manual',
-        schedule: { type: 'none', timezone: 'UTC' },
+        schedule: null,
         webhooks: [],
         maxConcurrency: 10,
         delayRangeMs: { min: 800, max: 2000 },
@@ -223,7 +223,7 @@ export const PRESETS: Preset[] = [
         timeoutMs: 300000,
         logsLevel: 'basic',
         saveScreenshots: false,
-        changeDetection: { enabled: false, alerts: [] }
+        changeDetection: { enabled: false, alerts: false }
       }
     }
   },
@@ -317,7 +317,7 @@ export const PRESETS: Preset[] = [
       },
       automation: {
         runMode: 'manual',
-        schedule: { type: 'none', timezone: 'UTC' },
+        schedule: null,
         webhooks: [],
         maxConcurrency: 3,
         delayRangeMs: { min: 2000, max: 4000 },
@@ -327,7 +327,7 @@ export const PRESETS: Preset[] = [
         saveScreenshots: false,
         changeDetection: {
           enabled: true,
-          alerts: ['ratingChanged', 'reviewCountChanged', 'newOneStarReview', 'hoursChanged', 'closedStatusChanged']
+          alerts: true
         }
       }
     }
@@ -422,7 +422,7 @@ export const PRESETS: Preset[] = [
       },
       automation: {
         runMode: 'manual',
-        schedule: { type: 'none', timezone: 'UTC' },
+        schedule: null,
         webhooks: [],
         maxConcurrency: 5,
         delayRangeMs: { min: 1500, max: 3000 },
@@ -430,7 +430,7 @@ export const PRESETS: Preset[] = [
         timeoutMs: 180000,
         logsLevel: 'basic',
         saveScreenshots: false,
-        changeDetection: { enabled: false, alerts: [] }
+        changeDetection: { enabled: false, alerts: false }
       }
     }
   },
@@ -524,7 +524,7 @@ export const PRESETS: Preset[] = [
       },
       automation: {
         runMode: 'manual',
-        schedule: { type: 'none', timezone: 'UTC' },
+        schedule: null,
         webhooks: [],
         maxConcurrency: 3,
         delayRangeMs: { min: 2000, max: 4000 },
@@ -532,7 +532,7 @@ export const PRESETS: Preset[] = [
         timeoutMs: 180000,
         logsLevel: 'basic',
         saveScreenshots: false,
-        changeDetection: { enabled: false, alerts: [] }
+        changeDetection: { enabled: false, alerts: false }
       }
     }
   }
@@ -550,7 +550,11 @@ export function applyPreset(presetId: string, currentConfig?: Partial<RunConfig>
     return { ...base, ...currentConfig } as RunConfig;
   }
 
-  return deepMerge(base, preset.config, currentConfig || {}) as RunConfig;
+  return deepMerge(
+    base as unknown as Record<string, unknown>,
+    preset.config as unknown as Partial<Record<string, unknown>>,
+    (currentConfig || {}) as unknown as Partial<Record<string, unknown>>
+  ) as unknown as RunConfig;
 }
 
 function deepMerge<T extends Record<string, unknown>>(...objects: Partial<T>[]): T {

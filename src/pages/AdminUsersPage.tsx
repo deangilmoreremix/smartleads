@@ -22,6 +22,14 @@ import PermissionGuard from '../components/PermissionGuard';
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
 
+type SubscriptionUpdate = Database['public']['Tables']['subscriptions']['Update'];
+type AuditLogInsert = Database['public']['Tables']['audit_logs']['Insert'];
+
+const callRpc = (fn: string, args: Record<string, unknown>) =>
+  (supabase as unknown as {
+    rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+  }).rpc(fn, args);
+
 interface UserWithDetails extends Profile {
   subscription?: Subscription;
   roles?: string[];
@@ -93,14 +101,15 @@ export default function AdminUsersPage() {
               .eq('user_id', profile.id)
               .maybeSingle();
 
-            const { data: userRoles } = await supabase.rpc('get_user_roles', {
+            const { data: userRoles } = await callRpc('get_user_roles', {
               p_user_id: profile.id,
             });
 
             return {
               ...profile,
               subscription: subscription || undefined,
-              roles: userRoles?.map((r: { role_name: string }) => r.role_name) || [],
+              roles:
+                (userRoles as { role_name: string }[] | null)?.map((r) => r.role_name) || [],
             };
           })
         );
@@ -154,7 +163,7 @@ export default function AdminUsersPage() {
     try {
       const { error } = await supabase
         .from('subscriptions')
-        .update({ plan_type: newPlan })
+        .update({ plan_type: newPlan as Subscription['plan_type'] } as SubscriptionUpdate)
         .eq('user_id', userId);
 
       if (error) throw error;
@@ -165,7 +174,7 @@ export default function AdminUsersPage() {
         action: 'update_plan',
         resource: 'subscriptions',
         new_value: { plan_type: newPlan },
-      });
+      } as unknown as AuditLogInsert);
 
       toast.success('Plan updated successfully');
       loadUsers();
@@ -452,7 +461,7 @@ export default function AdminUsersPage() {
                       </PermissionGuard>
                       {isAdmin && user.id !== currentUser?.id && (
                         <button
-                          onClick={() => handleToggleAdmin(user.id, user.is_admin)}
+                          onClick={() => handleToggleAdmin(user.id, !!user.is_admin)}
                           className={`p-2 rounded-lg transition ${
                             user.is_admin
                               ? 'bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400'

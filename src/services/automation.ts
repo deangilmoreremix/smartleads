@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import type { Database } from '../types/database';
 
 const EDGE_FUNCTION_BASE = import.meta.env.VITE_SUPABASE_URL + '/functions/v1';
 
@@ -158,7 +159,7 @@ export async function startAutomatedCampaign(campaignId: string, niche: string, 
       automation_enabled: true,
       status: 'active',
       launched_at: new Date().toISOString(),
-    })
+    } as Database['public']['Tables']['campaigns']['Update'])
     .eq('id', campaignId);
 
   return {

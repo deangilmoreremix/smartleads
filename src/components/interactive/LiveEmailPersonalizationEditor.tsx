@@ -6,7 +6,7 @@ export default function LiveEmailPersonalizationEditor() {
   const [reviewSnippet, setReviewSnippet] = useState('');
   const [yourOffer, setYourOffer] = useState('');
   const [generatedEmail, setGeneratedEmail] = useState('');
-  const [highlightedWords, setHighlightedWords] = useState<number[]>([]);
+  const [, setHighlightedWords] = useState<number[]>([]);
   const [showComparison, setShowComparison] = useState(false);
 
   const genericTemplate = `Hi there,

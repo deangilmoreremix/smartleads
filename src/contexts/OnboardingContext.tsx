@@ -88,16 +88,16 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
       if (data) {
         setState({
-          welcome_completed: data.welcome_completed,
-          dashboard_tour_completed: data.dashboard_tour_completed,
-          campaign_tour_completed: data.campaign_tour_completed,
-          leads_tour_completed: data.leads_tour_completed,
-          templates_tour_completed: data.templates_tour_completed,
-          accounts_tour_completed: data.accounts_tour_completed,
-          autopilot_tour_completed: data.autopilot_tour_completed,
-          first_campaign_created: data.first_campaign_created,
-          first_email_sent: data.first_email_sent,
-          first_reply_received: data.first_reply_received
+          welcome_completed: data.welcome_completed ?? false,
+          dashboard_tour_completed: data.dashboard_tour_completed ?? false,
+          campaign_tour_completed: data.campaign_tour_completed ?? false,
+          leads_tour_completed: data.leads_tour_completed ?? false,
+          templates_tour_completed: data.templates_tour_completed ?? false,
+          accounts_tour_completed: data.accounts_tour_completed ?? false,
+          autopilot_tour_completed: data.autopilot_tour_completed ?? false,
+          first_campaign_created: data.first_campaign_created ?? false,
+          first_email_sent: data.first_email_sent ?? false,
+          first_reply_received: data.first_reply_received ?? false
         });
         if (!data.welcome_completed) {
           setShowWelcome(true);
@@ -105,7 +105,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       } else {
         const { error: insertError } = await supabase
           .from('user_onboarding')
-          .insert({ user_id: user.id });
+          .insert({ user_id: user.id } as never);
 
         if (insertError) throw insertError;
         setState(defaultState);
@@ -154,7 +154,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     try {
       const { error } = await supabase
         .from('user_onboarding')
-        .update({ [field]: true })
+        .update({ [field]: true } as never)
         .eq('user_id', user.id);
 
       if (error) throw error;
@@ -173,7 +173,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     try {
       const { error } = await supabase
         .from('user_onboarding')
-        .update({ [milestone]: true })
+        .update({ [milestone]: true } as never)
         .eq('user_id', user.id);
 
       if (error) throw error;
@@ -202,7 +202,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     try {
       const { error } = await supabase
         .from('user_onboarding')
-        .update({ [field]: false })
+        .update({ [field]: false } as never)
         .eq('user_id', user.id);
 
       if (error) throw error;

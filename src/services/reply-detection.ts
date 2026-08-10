@@ -18,7 +18,7 @@ export async function handleReplyDetected(replyInfo: ReplyInfo): Promise<void> {
       has_replied: true,
       replied_at: repliedAt,
       status: 'replied',
-    })
+    } as never)
     .eq('id', leadId);
 
   await pauseLeadSequence(leadId, 'Lead replied to email');
@@ -28,7 +28,7 @@ export async function handleReplyDetected(replyInfo: ReplyInfo): Promise<void> {
     .update({
       status: 'replied',
       replied_at: repliedAt,
-    })
+    } as never)
     .eq('id', replyInfo.emailId);
 
   await supabase.from('analytics_events').insert({
@@ -41,7 +41,7 @@ export async function handleReplyDetected(replyInfo: ReplyInfo): Promise<void> {
       replied_at: repliedAt,
       sentiment: replyInfo.sentiment || 'neutral',
     },
-  });
+  } as never);
 
   const { data: campaign } = await supabase
     .from('campaigns')
@@ -54,7 +54,7 @@ export async function handleReplyDetected(replyInfo: ReplyInfo): Promise<void> {
       .from('campaigns')
       .update({
         emails_replied: (campaign.emails_replied || 0) + 1,
-      })
+      } as never)
       .eq('id', campaignId);
   }
 }
@@ -87,7 +87,7 @@ export async function pauseLeadSequence(
       is_paused: true,
       pause_reason: reason,
       updated_at: new Date().toISOString(),
-    })
+    } as never)
     .eq('lead_id', leadId);
 
   if (updateError) {
@@ -125,7 +125,7 @@ export async function resumeLeadSequence(leadId: string): Promise<{
       pause_reason: null,
       next_send_date: nextSendDate.toISOString(),
       updated_at: new Date().toISOString(),
-    })
+    } as never)
     .eq('lead_id', leadId);
 
   if (updateError) {
@@ -240,7 +240,7 @@ function analyzeSentiment(text: string): 'positive' | 'negative' | 'neutral' {
   return 'neutral';
 }
 
-export async function getPausedSequences(userId: string): Promise<Array<{
+export async function getPausedSequences(_userId: string): Promise<Array<{
   leadId: string;
   businessName: string;
   campaignName: string;

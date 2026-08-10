@@ -1,4 +1,13 @@
 import { supabase } from '../lib/supabase';
+import type { Database } from '../types/database';
+
+type UserSubscriptionInsert = Database['public']['Tables']['user_subscriptions']['Insert'];
+type UserSubscriptionUpdate = Database['public']['Tables']['user_subscriptions']['Update'];
+
+const rpc = supabase.rpc.bind(supabase) as (
+  fn: string,
+  args?: Record<string, unknown>
+) => ReturnType<typeof supabase.rpc>;
 
 export interface SubscriptionPlan {
   id: string;
@@ -30,24 +39,21 @@ export interface UserSubscription {
 
 export const subscriptionService = {
   async getUserSubscription(userId: string): Promise<UserSubscription | null> {
-    const { data, error } = await supabase
-      .rpc('get_user_subscription', { p_user_id: userId })
-      .maybeSingle();
+    const { data, error } = await rpc('get_user_subscription', { p_user_id: userId }).maybeSingle();
 
     if (error) {
       console.error('Error fetching subscription:', error);
       return null;
     }
 
-    return data;
+    return data as UserSubscription | null;
   },
 
   async hasFeatureAccess(userId: string, feature: string): Promise<boolean> {
-    const { data, error } = await supabase
-      .rpc('user_has_feature', {
-        p_user_id: userId,
-        p_feature: feature
-      });
+    const { data, error } = await rpc('user_has_feature', {
+      p_user_id: userId,
+      p_feature: feature
+    });
 
     if (error) {
       console.error('Error checking feature access:', error);
@@ -69,7 +75,7 @@ export const subscriptionService = {
       return [];
     }
 
-    return data || [];
+    return (data || []) as unknown as SubscriptionPlan[];
   },
 
   async createSubscription(
@@ -84,9 +90,9 @@ export const subscriptionService = {
         user_id: userId,
         plan_id: planId,
         status: 'active',
-        stripe_customer_id: stripeCustomerId,
-        stripe_subscription_id: stripeSubscriptionId,
-      })
+        stripe_customer_id: stripeCustomerId ?? null,
+        stripe_subscription_id: stripeSubscriptionId ?? null,
+      } as UserSubscriptionInsert)
       .select()
       .single();
 
@@ -109,7 +115,7 @@ export const subscriptionService = {
   ) {
     const { data, error } = await supabase
       .from('user_subscriptions')
-      .update(updates)
+      .update(updates as UserSubscriptionUpdate)
       .eq('id', subscriptionId)
       .select()
       .single();

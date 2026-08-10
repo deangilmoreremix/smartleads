@@ -40,7 +40,6 @@ export default function AnimatedCounter({
     if (!isVisible) return;
 
     const startTime = Date.now();
-    const endTime = startTime + duration;
 
     const updateCount = () => {
       const now = Date.now();

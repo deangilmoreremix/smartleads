@@ -20,7 +20,6 @@ export default function PerformanceGauge({
   useEffect(() => {
     const duration = 1500;
     const startTime = Date.now();
-    const endTime = startTime + duration;
 
     const animate = () => {
       const now = Date.now();

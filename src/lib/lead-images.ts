@@ -3,7 +3,6 @@ import { uploadFile, createThumbnail, deleteFile, STORAGE_BUCKETS, ALLOWED_IMAGE
 import type { Database } from '../types/database';
 
 type LeadImage = Database['public']['Tables']['lead_images']['Row'];
-type LeadImageInsert = Database['public']['Tables']['lead_images']['Insert'];
 
 export interface UploadLeadImageOptions {
   file: File;
@@ -65,6 +64,7 @@ export async function uploadLeadImage({
     .from('lead_images')
     .insert({
       lead_id: leadId,
+      user_id: user.id,
       image_url: uploadResult.url,
       is_local_storage: true,
       file_size: file.size,
@@ -111,6 +111,7 @@ export async function addExternalLeadImage(
     .from('lead_images')
     .insert({
       lead_id: leadId,
+      user_id: user.id,
       image_url: imageUrl,
       is_local_storage: false,
       caption: options?.caption,
@@ -134,14 +135,14 @@ export async function deleteLeadImage(imageId: string): Promise<void> {
 
   const { data: image, error: fetchError } = await supabase
     .from('lead_images')
-    .select('*, leads!inner(user_id)')
+    .select('*')
     .eq('id', imageId)
     .maybeSingle();
 
   if (fetchError) throw fetchError;
   if (!image) throw new Error('Image not found');
 
-  if (image.leads.user_id !== user.id) {
+  if (image.user_id !== user.id) {
     throw new Error('Access denied');
   }
 
@@ -177,9 +178,9 @@ export async function getLeadImages(leadId: string): Promise<LeadImage[]> {
 
   const { data, error } = await supabase
     .from('lead_images')
-    .select('*, leads!inner(user_id)')
+    .select('*')
     .eq('lead_id', leadId)
-    .eq('leads.user_id', user.id)
+    .eq('user_id', user.id)
     .order('is_primary', { ascending: false })
     .order('created_at', { ascending: false });
 

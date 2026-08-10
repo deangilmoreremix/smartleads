@@ -17,7 +17,6 @@ import {
   Globe,
   TrendingUp,
   RefreshCw,
-  Send,
 } from 'lucide-react';
 
 interface EmailPreview {
@@ -80,10 +79,10 @@ export default function EmailPreviewPanel({ campaignId, onApprove, onReject }: E
 
       if (error) throw error;
 
-      const formattedPreviews = (data || []).map((p: Record<string, unknown>) => ({
+      const formattedPreviews = ((data || []) as unknown as Record<string, unknown>[]).map((p) => ({
         ...p,
         lead: p.leads as EmailPreview['lead'],
-      })) as EmailPreview[];
+      })) as unknown as EmailPreview[];
 
       setPreviews(formattedPreviews);
       if (formattedPreviews.length > 0) {
@@ -115,7 +114,7 @@ export default function EmailPreviewPanel({ campaignId, onApprove, onReject }: E
 
       const { error } = await supabase
         .from('email_previews')
-        .update(updateData)
+        .update(updateData as never)
         .eq('id', preview.id);
 
       if (error) throw error;
@@ -143,7 +142,7 @@ export default function EmailPreviewPanel({ campaignId, onApprove, onReject }: E
           status: 'rejected',
           rejection_reason: reason,
           reviewed_at: new Date().toISOString(),
-        })
+        } as never)
         .eq('id', preview.id);
 
       if (error) throw error;
@@ -167,7 +166,7 @@ export default function EmailPreviewPanel({ campaignId, onApprove, onReject }: E
         .update({
           status: 'approved',
           reviewed_at: new Date().toISOString(),
-        })
+        } as never)
         .in('id', pendingIds);
 
       if (error) throw error;
@@ -425,7 +424,7 @@ export default function EmailPreviewPanel({ campaignId, onApprove, onReject }: E
               </div>
             )}
 
-            {currentPreview.lead?.intent_score !== null && currentPreview.lead?.intent_score > 0 && (
+            {(currentPreview.lead?.intent_score ?? 0) > 0 && (
               <div className="bg-white rounded-lg p-3 border border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
                   <Target className="w-4 h-4 text-gray-400" />
@@ -435,16 +434,16 @@ export default function EmailPreviewPanel({ campaignId, onApprove, onReject }: E
                   <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
-                        currentPreview.lead.intent_score >= 70
+                        (currentPreview.lead?.intent_score ?? 0) >= 70
                           ? 'bg-green-500'
-                          : currentPreview.lead.intent_score >= 40
+                          : (currentPreview.lead?.intent_score ?? 0) >= 40
                           ? 'bg-amber-500'
                           : 'bg-gray-400'
                       }`}
-                      style={{ width: `${currentPreview.lead.intent_score}%` }}
+                      style={{ width: `${currentPreview.lead?.intent_score ?? 0}%` }}
                     />
                   </div>
-                  <span className="text-sm font-medium">{currentPreview.lead.intent_score}</span>
+                  <span className="text-sm font-medium">{currentPreview.lead?.intent_score ?? 0}</span>
                 </div>
               </div>
             )}

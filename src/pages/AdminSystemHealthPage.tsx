@@ -5,7 +5,6 @@ import {
   Server,
   Database,
   Mail,
-  Clock,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -13,10 +12,12 @@ import {
   Zap,
   HardDrive,
   Cpu,
-  TrendingUp,
   BarChart3,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import type { Database as DatabaseSchema } from '../types/database';
+
+type EmailUpdate = DatabaseSchema['public']['Tables']['emails']['Update'];
 
 interface SystemHealth {
   database: {
@@ -51,7 +52,7 @@ interface QueueItem {
   status: string;
   created_at: string;
   campaign_name?: string;
-  error_message?: string;
+  error_message?: string | null;
 }
 
 export default function AdminSystemHealthPage() {
@@ -189,7 +190,7 @@ export default function AdminSystemHealthPage() {
     try {
       const { error } = await supabase
         .from('emails')
-        .update({ status: 'queued', error_message: null })
+        .update({ status: 'queued', error_message: null } as EmailUpdate)
         .eq('status', 'failed');
 
       if (error) throw error;

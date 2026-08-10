@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Bot, Clock, Zap, ArrowRight, CheckCircle, Target, Mail, Users, TrendingUp, Calendar, Shield, ChevronDown } from 'lucide-react';
+import { Bot, Clock, ArrowRight, CheckCircle, Users, TrendingUp, ChevronDown } from 'lucide-react';
 import GoogleMapsBackground from '../components/GoogleMapsBackground';
 import AutomationTimeline from '../components/interactive/AutomationTimeline';
 import AnimatedCounter from '../components/interactive/AnimatedCounter';
@@ -8,7 +8,6 @@ import { ScrollReveal } from '../components/animations/ScrollReveal';
 import { TiltCard } from '../components/animations/TiltCard';
 import { MagneticButton } from '../components/animations/MagneticButton';
 import { ScrollProgress } from '../components/ui/ScrollProgress';
-import { AnimatedBackground } from '../components/ui/AnimatedBackground';
 
 export default function AutomationPage() {
   return (

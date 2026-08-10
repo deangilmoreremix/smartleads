@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import type { Database } from '../types/database';
 
 const DISPOSABLE_EMAIL_DOMAINS = [
   // Common disposable email services
@@ -194,8 +195,8 @@ export async function verifyLeadEmail(leadId: string): Promise<EmailVerification
       email_verified: result.isValid,
       verification_status: result.status,
       verification_date: new Date().toISOString(),
-      verification_details: result.details,
-    })
+      verification_details: result.details as unknown as Database['public']['Tables']['leads']['Update']['verification_details'],
+    } as Database['public']['Tables']['leads']['Update'])
     .eq('id', leadId);
 
   return result;

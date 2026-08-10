@@ -3,7 +3,6 @@ import { supabase } from '../lib/supabase';
 import {
   History,
   Search,
-  Filter,
   User,
   Calendar,
   ChevronDown,
@@ -96,7 +95,7 @@ export default function AdminAuditLogsPage() {
         })
       );
 
-      setLogs(logsWithUsers);
+      setLogs(logsWithUsers as unknown as AuditLog[]);
       setHasMore((data?.length || 0) === pageSize);
     } catch (error) {
       console.error('Error loading audit logs:', error);

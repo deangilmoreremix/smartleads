@@ -38,7 +38,7 @@ export async function getCampaignGroups(userId: string): Promise<CampaignGroup[]
     .order('priority', { ascending: true });
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as unknown as CampaignGroup[];
 }
 
 export async function createCampaignGroup(
@@ -59,12 +59,12 @@ export async function createCampaignGroup(
       priority: priority || 1,
       global_daily_limit: globalDailyLimit || 100,
       is_active: true,
-    })
+    } as never)
     .select()
     .single();
 
   if (error) throw error;
-  return data;
+  return data as unknown as CampaignGroup;
 }
 
 export async function updateCampaignGroup(
@@ -73,7 +73,7 @@ export async function updateCampaignGroup(
 ): Promise<void> {
   const { error } = await supabase
     .from('campaign_groups')
-    .update(updates)
+    .update(updates as never)
     .eq('id', groupId);
 
   if (error) throw error;
@@ -82,7 +82,7 @@ export async function updateCampaignGroup(
 export async function deleteCampaignGroup(groupId: string): Promise<void> {
   await supabase
     .from('campaigns')
-    .update({ group_id: null })
+    .update({ group_id: null } as never)
     .eq('group_id', groupId);
 
   const { error } = await supabase
@@ -99,7 +99,7 @@ export async function assignCampaignToGroup(
 ): Promise<void> {
   const { error } = await supabase
     .from('campaigns')
-    .update({ group_id: groupId })
+    .update({ group_id: groupId } as never)
     .eq('id', campaignId);
 
   if (error) throw error;
@@ -158,7 +158,7 @@ export async function reorderGroups(groups: { id: string; priority: number }[]):
   for (const group of groups) {
     await supabase
       .from('campaign_groups')
-      .update({ priority: group.priority })
+      .update({ priority: group.priority } as never)
       .eq('id', group.id);
   }
 }

@@ -30,7 +30,7 @@ export async function getPipelineStages(userId: string): Promise<PipelineStage[]
     .order('position', { ascending: true });
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as unknown as PipelineStage[];
 }
 
 export async function createPipelineStage(
@@ -49,12 +49,12 @@ export async function createPipelineStage(
       position,
       auto_advance_on: autoAdvanceOn || null,
       is_default: false,
-    })
+    } as never)
     .select()
     .single();
 
   if (error) throw error;
-  return data;
+  return data as unknown as PipelineStage;
 }
 
 export async function updatePipelineStage(
@@ -63,7 +63,7 @@ export async function updatePipelineStage(
 ): Promise<void> {
   const { error } = await supabase
     .from('lead_pipeline_stages')
-    .update(updates)
+    .update(updates as never)
     .eq('id', stageId);
 
   if (error) throw error;
@@ -84,7 +84,7 @@ export async function reorderPipelineStages(
   for (const stage of stages) {
     await supabase
       .from('lead_pipeline_stages')
-      .update({ position: stage.position })
+      .update({ position: stage.position } as never)
       .eq('id', stage.id);
   }
 }
@@ -98,7 +98,7 @@ export async function moveLeadToStage(
     .update({
       pipeline_stage: stageName,
       pipeline_stage_changed_at: new Date().toISOString(),
-    })
+    } as never)
     .eq('id', leadId);
 
   if (error) throw error;
@@ -113,7 +113,7 @@ export async function bulkMoveLeadsToStage(
     .update({
       pipeline_stage: stageName,
       pipeline_stage_changed_at: new Date().toISOString(),
-    })
+    } as never)
     .in('id', leadIds);
 
   if (error) throw error;
@@ -135,7 +135,7 @@ export async function getLeadsByPipelineStage(
   for (const lead of data || []) {
     const stage = lead.pipeline_stage || 'new';
     if (!grouped[stage]) grouped[stage] = [];
-    grouped[stage].push(lead);
+    grouped[stage].push(lead as unknown as LeadWithPipeline);
   }
 
   return grouped;

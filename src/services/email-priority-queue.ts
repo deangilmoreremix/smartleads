@@ -1,5 +1,8 @@
 import { supabase } from '../lib/supabase';
 
+type RpcCaller = (fn: string, args: Record<string, unknown>) => Promise<{ error: unknown }>;
+const callRpc = supabase.rpc.bind(supabase) as unknown as RpcCaller;
+
 export interface QueuedLead {
   id: string;
   lead_id: string;
@@ -34,7 +37,11 @@ export async function getQueueStats(campaignId?: string): Promise<QueueStats> {
     query = query.eq('campaign_id', campaignId);
   }
 
-  const { data, error } = await query;
+  const { data: rawData, error } = await query;
+  const data = rawData as unknown as Array<{
+    queue_status: string | null;
+    priority_score: number | null;
+  }> | null;
 
   if (error || !data) {
     return {
@@ -157,13 +164,15 @@ export async function addLeadsToQueue(
       .order('relevance_score', { ascending: false })
       .limit(5);
 
-    const { data: healthScore } = await supabase
+    const { data: rawHealthScore } = await supabase
       .from('website_health_scores')
       .select('overall_score')
       .eq('lead_id', lead.id)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
+
+    const healthScore = rawHealthScore as unknown as { overall_score: number | null } | null;
 
     const queueItem = {
       user_id: lead.user_id,
@@ -184,7 +193,7 @@ export async function addLeadsToQueue(
 
     const { error: insertError } = await supabase
       .from('email_priority_queue')
-      .upsert(queueItem, { onConflict: 'lead_id,campaign_id' });
+      .upsert(queueItem as never, { onConflict: 'lead_id,campaign_id' });
 
     if (insertError) {
       errors.push(`Lead ${lead.id}: ${insertError.message}`);
@@ -213,7 +222,7 @@ export async function updateQueuePriorities(campaignId: string): Promise<{ updat
     return { updated: 0 };
   }
 
-  const { error: rpcError } = await supabase.rpc('update_campaign_priority_scores', {
+  const { error: rpcError } = await callRpc('update_campaign_priority_scores', {
     p_campaign_id: campaignId,
   });
 
@@ -246,7 +255,7 @@ export async function updateQueueStatus(
 ): Promise<{ success: boolean }> {
   const { error } = await supabase
     .from('email_priority_queue')
-    .update({ queue_status: status, updated_at: new Date().toISOString() })
+    .update({ queue_status: status, updated_at: new Date().toISOString() } as never)
     .in('id', queueIds);
 
   return { success: !error };
@@ -262,7 +271,7 @@ export async function scheduleQueueItems(
       scheduled_for: scheduledFor,
       queue_status: 'ready',
       updated_at: new Date().toISOString(),
-    })
+    } as never)
     .in('id', queueIds);
 
   return { success: !error };

@@ -1,16 +1,14 @@
 import { Link } from 'react-router-dom';
-import { Sparkles, Mail, Brain, Star, ArrowRight, Zap, TrendingUp, CheckCircle, Shield, ChevronDown } from 'lucide-react';
+import { Sparkles, Mail, Brain, Star, ArrowRight, CheckCircle, ChevronDown } from 'lucide-react';
 import GoogleMapsBackground from '../components/GoogleMapsBackground';
 import LiveTypingAnimation from '../components/interactive/LiveTypingAnimation';
 import PerformanceGauge from '../components/interactive/PerformanceGauge';
-import AnimatedCounter from '../components/interactive/AnimatedCounter';
 import LiveEmailPersonalizationEditor from '../components/interactive/LiveEmailPersonalizationEditor';
 import BeforeAfterEmailSimulator from '../components/interactive/BeforeAfterEmailSimulator';
 import { ScrollReveal } from '../components/animations/ScrollReveal';
 import { TiltCard } from '../components/animations/TiltCard';
 import { MagneticButton } from '../components/animations/MagneticButton';
 import { ScrollProgress } from '../components/ui/ScrollProgress';
-import { AnimatedBackground } from '../components/ui/AnimatedBackground';
 
 export default function AIEmailsPage() {
   const emailExamples = [

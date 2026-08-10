@@ -82,7 +82,7 @@ export interface QualityMetrics {
 
 export async function analyzeEmailQuality(
   prompt: string,
-  context: { tone?: string; emailGoal?: string; industry?: string }
+  _context: { tone?: string; emailGoal?: string; industry?: string }
 ): Promise<QualityMetrics> {
   const variables = extractVariables(prompt);
   const wordCount = prompt.split(/\s+/).length;

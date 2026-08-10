@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Store, Search, Star, TrendingUp, Copy, Filter, X } from 'lucide-react';
+import { Store, Search, Star, Copy, Filter, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import LoadingSpinner from './LoadingSpinner';
@@ -75,7 +75,7 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
         console.error('Error loading templates:', error);
         setTemplates([]);
       } else {
-        setTemplates(data || []);
+        setTemplates((data || []) as unknown as MarketplaceTemplate[]);
       }
       setLoading(false);
     } catch (error) {

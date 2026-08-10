@@ -41,7 +41,6 @@ export default function Tooltip({
     if (position === 'auto') {
       const spaceAbove = trigger.top;
       const spaceBelow = viewportHeight - trigger.bottom;
-      const spaceLeft = trigger.left;
       const spaceRight = viewportWidth - trigger.right;
 
       if (spaceBelow >= tooltipHeight + padding) {

@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
-interface FeatureFlag {
-  id: string;
-  flag_name: string;
-  description: string;
-  enabled: boolean;
-  rollout_percentage: number;
-  required_plan: string | null;
-}
+type RpcClient = {
+  rpc: (
+    fn: string,
+    args: Record<string, unknown>
+  ) => Promise<{ data: unknown; error: unknown }>;
+};
 
 export function useFeatureAccess(featureName?: string) {
   const { user } = useAuth();
@@ -33,7 +31,7 @@ export function useFeatureAccess(featureName?: string) {
 
   const checkFeatureAccess = async (name: string) => {
     try {
-      const { data, error } = await supabase.rpc('has_feature_access', {
+      const { data, error } = await (supabase as unknown as RpcClient).rpc('has_feature_access', {
         p_user_id: user!.id,
         p_feature_name: name,
       });
@@ -63,7 +61,7 @@ export function useFeatureAccess(featureName?: string) {
         const accessMap = new Map<string, boolean>();
 
         for (const feature of features) {
-          const { data } = await supabase.rpc('has_feature_access', {
+          const { data } = await (supabase as unknown as RpcClient).rpc('has_feature_access', {
             p_user_id: user!.id,
             p_feature_name: feature.flag_name,
           });

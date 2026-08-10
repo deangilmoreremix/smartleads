@@ -13,6 +13,8 @@ import toast from 'react-hot-toast';
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
 type UserSettings = Database['public']['Tables']['user_settings']['Row'];
+type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+type UserSettingsUpdate = Database['public']['Tables']['user_settings']['Update'];
 
 interface NotificationPreferences {
   email_notifications: boolean;
@@ -34,7 +36,7 @@ export default function SettingsPage() {
   const [savingNotifications, setSavingNotifications] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [, setSettings] = useState<UserSettings | null>(null);
   const [dailyEmailLimit, setDailyEmailLimit] = useState(50);
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(defaultNotificationPrefs);
 
@@ -84,7 +86,7 @@ export default function SettingsPage() {
         .update({
           full_name: profile.full_name,
           company_name: profile.company_name
-        })
+        } as ProfileUpdate)
         .eq('id', user!.id);
 
       if (error) throw error;
@@ -107,7 +109,7 @@ export default function SettingsPage() {
 
       const { error } = await supabase
         .from('profiles')
-        .update({ avatar_url: result.url })
+        .update({ avatar_url: result.url } as ProfileUpdate)
         .eq('id', user!.id);
 
       if (error) throw error;
@@ -126,7 +128,7 @@ export default function SettingsPage() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ avatar_url: null })
+        .update({ avatar_url: null } as ProfileUpdate)
         .eq('id', user!.id);
 
       if (error) throw error;
@@ -149,7 +151,7 @@ export default function SettingsPage() {
 
       const { error } = await supabase
         .from('profiles')
-        .update({ company_logo: result.url })
+        .update({ company_logo: result.url } as ProfileUpdate)
         .eq('id', user!.id);
 
       if (error) throw error;
@@ -168,7 +170,7 @@ export default function SettingsPage() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ company_logo: null })
+        .update({ company_logo: null } as ProfileUpdate)
         .eq('id', user!.id);
 
       if (error) throw error;
@@ -186,7 +188,7 @@ export default function SettingsPage() {
     try {
       const { error } = await supabase
         .from('user_settings')
-        .update({ daily_email_limit: dailyEmailLimit })
+        .update({ daily_email_limit: dailyEmailLimit } as UserSettingsUpdate)
         .eq('user_id', user!.id);
 
       if (error) throw error;
@@ -207,7 +209,7 @@ export default function SettingsPage() {
     try {
       const { error } = await supabase
         .from('user_settings')
-        .update({ notification_preferences: newPrefs })
+        .update({ notification_preferences: newPrefs } as unknown as UserSettingsUpdate)
         .eq('user_id', user!.id);
 
       if (error) throw error;

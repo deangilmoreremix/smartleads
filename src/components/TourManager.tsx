@@ -1,4 +1,4 @@
-import { useOnboarding, TourType } from '../contexts/OnboardingContext';
+import { useOnboarding } from '../contexts/OnboardingContext';
 import TourStep from './TourStep';
 import { tourDefinitions } from '../lib/tour-definitions';
 
@@ -8,7 +8,6 @@ export default function TourManager() {
     currentStep,
     nextStep,
     prevStep,
-    endTour,
     markTourCompleted
   } = useOnboarding();
 

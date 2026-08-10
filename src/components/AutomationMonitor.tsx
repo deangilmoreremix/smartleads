@@ -3,12 +3,10 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Activity,
-  Mail,
   Users,
   Zap,
   CheckCircle,
   XCircle,
-  Clock,
   Loader2,
   Play,
   Pause,
@@ -182,7 +180,7 @@ export default function AutomationMonitor({ campaignId, compact = false }: Autom
         .from('emails')
         .select('status')
         .gte('created_at', today.toISOString()),
-      supabase
+      (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('campaign_autopilot_settings')
         .select('is_enabled')
         .eq('is_enabled', true),
@@ -190,7 +188,7 @@ export default function AutomationMonitor({ campaignId, compact = false }: Autom
 
     if (jobsResult.data) {
       setActiveJobs(
-        jobsResult.data.map((j: { id: string; campaign_id: string; job_type: string; status: string; progress_percentage: number; result_data?: Record<string, unknown>; campaigns?: { name: string } }) => ({
+        (jobsResult.data as unknown as Array<ActiveJob & { campaigns?: { name: string } }>).map((j) => ({
           ...j,
           campaign_name: j.campaigns?.name,
         }))

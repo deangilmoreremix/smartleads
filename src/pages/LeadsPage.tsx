@@ -13,11 +13,7 @@ import LeadIntelligencePanel from '../components/LeadIntelligencePanel';
 import QuickMessageModal from '../components/QuickMessageModal';
 import toast from 'react-hot-toast';
 
-type Lead = Database['public']['Tables']['leads']['Row'] & {
-  research_completed?: boolean;
-  website_health_checked?: boolean;
-  intent_score?: number;
-};
+type Lead = Database['public']['Tables']['leads']['Row'];
 
 export default function LeadsPage() {
   const { user } = useAuth();
@@ -101,7 +97,7 @@ export default function LeadsPage() {
         `"${(lead.website || '').replace(/"/g, '""')}"`,
         `"${(lead.address || '').replace(/"/g, '""')}"`,
         lead.rating || '',
-        lead.reviews || '',
+        lead.review_count || '',
         lead.status || '',
         lead.created_at ? new Date(lead.created_at).toLocaleDateString() : ''
       ].join(','));
@@ -300,7 +296,7 @@ export default function LeadsPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-3">
-                      {lead.intent_score !== undefined && lead.intent_score > 0 && (
+                      {lead.intent_score != null && lead.intent_score > 0 && (
                         <div className={`flex items-center gap-1 px-3 py-1 rounded-lg ${
                           lead.intent_score >= 70 ? 'bg-emerald-500/20' :
                           lead.intent_score >= 50 ? 'bg-amber-500/20' : 'bg-slate-700/50'

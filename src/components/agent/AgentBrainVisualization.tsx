@@ -56,7 +56,7 @@ export default function AgentBrainVisualization({
     }
 
     const newConnections: Connection[] = [];
-    newNeurons.forEach((neuron, i) => {
+    newNeurons.forEach((_neuron, i) => {
       const connectionCount = 2 + Math.floor(Math.random() * 3);
       for (let j = 0; j < connectionCount; j++) {
         const targetIndex = Math.floor(Math.random() * newNeurons.length);

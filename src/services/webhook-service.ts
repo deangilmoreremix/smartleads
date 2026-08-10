@@ -57,7 +57,7 @@ export async function getWebhooks(userId: string): Promise<WebhookConfig[]> {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as unknown as WebhookConfig[];
 }
 
 export async function createWebhook(
@@ -78,12 +78,12 @@ export async function createWebhook(
       secret: secret || null,
       headers: headers || {},
       is_active: true,
-    })
+    } as never)
     .select()
     .single();
 
   if (error) throw error;
-  return data;
+  return data as unknown as WebhookConfig;
 }
 
 export async function updateWebhook(
@@ -92,7 +92,7 @@ export async function updateWebhook(
 ): Promise<void> {
   const { error } = await supabase
     .from('webhook_configurations')
-    .update(updates)
+    .update(updates as never)
     .eq('id', webhookId);
 
   if (error) throw error;
@@ -133,7 +133,7 @@ export async function testWebhook(webhookId: string): Promise<{
   try {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...webhook.headers,
+      ...((webhook.headers as Record<string, string> | null) || {}),
     };
 
     if (webhook.secret) {
@@ -153,7 +153,7 @@ export async function testWebhook(webhookId: string): Promise<{
       payload: testPayload,
       status_code: response.status,
       response_body: await response.text().catch(() => null),
-    });
+    } as never);
 
     return {
       success: response.ok,
@@ -166,7 +166,7 @@ export async function testWebhook(webhookId: string): Promise<{
       event_type: 'test',
       payload: testPayload,
       error_message: err.message,
-    });
+    } as never);
 
     return {
       success: false,
@@ -187,7 +187,7 @@ export async function getWebhookDeliveries(
     .limit(limit);
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as unknown as WebhookDelivery[];
 }
 
 export async function triggerWebhooks(
@@ -214,7 +214,7 @@ export async function triggerWebhooks(
     try {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        ...webhook.headers,
+        ...((webhook.headers as Record<string, string> | null) || {}),
       };
 
       if (webhook.secret) {
@@ -232,15 +232,15 @@ export async function triggerWebhooks(
           event_type: eventType,
           payload: fullPayload,
           status_code: response.status,
-        });
+        } as never);
 
         await supabase
           .from('webhook_configurations')
           .update({
             last_triggered_at: new Date().toISOString(),
-            failure_count: response.ok ? 0 : webhook.failure_count + 1,
-          })
-          .eq('id', webhook.id);
+            failure_count: response.ok ? 0 : (webhook.failure_count ?? 0) + 1,
+          } as never)
+          .eq('id', webhook.id ?? '');
       }).catch(async (err) => {
         await supabase.from('webhook_deliveries').insert({
           webhook_id: webhook.id,
@@ -248,14 +248,14 @@ export async function triggerWebhooks(
           event_type: eventType,
           payload: fullPayload,
           error_message: err.message,
-        });
+        } as never);
 
         await supabase
           .from('webhook_configurations')
           .update({
-            failure_count: webhook.failure_count + 1,
-          })
-          .eq('id', webhook.id);
+            failure_count: (webhook.failure_count ?? 0) + 1,
+          } as never)
+          .eq('id', webhook.id ?? '');
       });
     } catch (err) {
       console.error('Error triggering webhook:', err);

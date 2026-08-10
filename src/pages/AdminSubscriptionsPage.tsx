@@ -16,6 +16,11 @@ import {
   Loader2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import type { Database } from '../types/database';
+
+type Subscription = Database['public']['Tables']['subscriptions']['Row'];
+type SubscriptionUpdate = Database['public']['Tables']['subscriptions']['Update'];
+type AuditLogInsert = Database['public']['Tables']['audit_logs']['Insert'];
 
 interface SubscriptionWithUser {
   id: string;
@@ -123,10 +128,10 @@ export default function AdminSubscriptionsPage() {
       const { error } = await supabase
         .from('subscriptions')
         .update({
-          plan_type: newPlan,
+          plan_type: newPlan as Subscription['plan_type'],
           credits_total: planCredits[newPlan],
           credits_remaining: planCredits[newPlan],
-        })
+        } as SubscriptionUpdate)
         .eq('id', subId);
 
       if (error) throw error;
@@ -137,7 +142,7 @@ export default function AdminSubscriptionsPage() {
         action: 'update_subscription_plan',
         resource: 'subscriptions',
         new_value: { plan_type: newPlan },
-      });
+      } as unknown as AuditLogInsert);
 
       toast.success('Plan updated successfully');
       loadSubscriptions();
@@ -162,7 +167,7 @@ export default function AdminSubscriptionsPage() {
 
       const { error } = await supabase
         .from('subscriptions')
-        .update({ credits_remaining: newCredits })
+        .update({ credits_remaining: newCredits } as SubscriptionUpdate)
         .eq('id', selectedSub.id);
 
       if (error) throw error;
@@ -178,7 +183,7 @@ export default function AdminSubscriptionsPage() {
           adjustment: creditAdjustment.amount,
           reason: creditAdjustment.reason,
         },
-      });
+      } as unknown as AuditLogInsert);
 
       toast.success(
         `Credits ${creditAdjustment.amount > 0 ? 'added' : 'removed'} successfully`
@@ -199,7 +204,7 @@ export default function AdminSubscriptionsPage() {
     try {
       const { error } = await supabase
         .from('subscriptions')
-        .update({ status: newStatus })
+        .update({ status: newStatus as Subscription['status'] } as SubscriptionUpdate)
         .eq('id', sub.id);
 
       if (error) throw error;
@@ -211,7 +216,7 @@ export default function AdminSubscriptionsPage() {
         resource: 'subscriptions',
         old_value: { status: sub.status },
         new_value: { status: newStatus },
-      });
+      } as unknown as AuditLogInsert);
 
       toast.success(`Subscription ${newStatus === 'active' ? 'reactivated' : 'cancelled'}`);
       loadSubscriptions();

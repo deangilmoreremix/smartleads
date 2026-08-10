@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import {
-  Search, Brain, Globe, TrendingUp, Users, Zap, Shield,
+  Search, Brain, Globe, TrendingUp, Users, Zap,
   AlertTriangle, CheckCircle, Clock, DollarSign, Building,
-  Mail, Phone, MapPin, ExternalLink, Briefcase, Target,
-  BarChart3, Lightbulb, RefreshCw, ChevronDown, ChevronUp
+  Mail, ExternalLink, Briefcase, Target,
+  Lightbulb, RefreshCw, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
@@ -92,9 +92,9 @@ export default function LeadIntelligencePanel({ leadId, businessName, website, o
         supabase.from('intent_signals').select('*').eq('lead_id', leadId).order('detected_at', { ascending: false }).limit(20),
       ]);
 
-      if (researchRes.data) setResearch(researchRes.data);
-      if (healthRes.data) setHealth(healthRes.data);
-      if (signalsRes.data) setSignals(signalsRes.data);
+      if (researchRes.data) setResearch(researchRes.data as unknown as LeadResearch);
+      if (healthRes.data) setHealth(healthRes.data as unknown as WebsiteHealth);
+      if (signalsRes.data) setSignals(signalsRes.data as unknown as IntentSignal[]);
     } catch (error) {
       console.error('Failed to load intelligence data:', error);
     } finally {

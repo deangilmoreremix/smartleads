@@ -24,7 +24,6 @@ import {
   Folder,
   Webhook,
   Settings,
-  Filter,
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import FunnelVisualization from '../components/FunnelVisualization';
@@ -35,6 +34,11 @@ import WebhookManager from '../components/WebhookManager';
 import AutomationScheduler from '../components/AutomationScheduler';
 import AutomationMonitor from '../components/AutomationMonitor';
 import EmailPreviewPanel from '../components/EmailPreviewPanel';
+
+const untypedTable = (table: string) =>
+  (supabase as unknown as {
+    from: (table: string) => ReturnType<typeof supabase.from>;
+  }).from(table);
 
 interface AutopilotCampaign {
   id: string;
@@ -99,8 +103,7 @@ export default function AutopilotDashboard() {
   async function loadData() {
     try {
       const [campaignsResult, runsResult, analyticsResult] = await Promise.all([
-        supabase
-          .from('campaign_autopilot_settings')
+        untypedTable('campaign_autopilot_settings')
           .select(`
             *,
             campaigns!inner (
@@ -117,8 +120,7 @@ export default function AutopilotDashboard() {
           `)
           .eq('campaigns.user_id', user!.id)
           .order('is_enabled', { ascending: false }),
-        supabase
-          .from('autopilot_runs')
+        untypedTable('autopilot_runs')
           .select(`
             *,
             campaigns (name)
@@ -134,10 +136,11 @@ export default function AutopilotDashboard() {
       ]);
 
       if (campaignsResult.data) {
-        setCampaigns(campaignsResult.data);
+        const autopilotCampaigns = campaignsResult.data as unknown as AutopilotCampaign[];
+        setCampaigns(autopilotCampaigns);
 
-        const activeCampaigns = campaignsResult.data.filter((c) => c.is_enabled).length;
-        const totalEmailsSent = campaignsResult.data.reduce(
+        const activeCampaigns = autopilotCampaigns.filter((c) => c.is_enabled).length;
+        const totalEmailsSent = autopilotCampaigns.reduce(
           (sum, c) => sum + (c.campaigns.total_autopilot_emails_sent || 0),
           0
         );
@@ -150,14 +153,15 @@ export default function AutopilotDashboard() {
       }
 
       if (runsResult.data) {
-        setRecentRuns(runsResult.data);
+        const runs = runsResult.data as unknown as AutopilotRun[];
+        setRecentRuns(runs);
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const runsToday = runsResult.data.filter(
+        const runsToday = runs.filter(
           (r) => new Date(r.created_at) >= today
         ).length;
-        const totalLeadsScraped = runsResult.data.reduce(
+        const totalLeadsScraped = runs.reduce(
           (sum, r) => sum + (r.leads_scraped || 0),
           0
         );
@@ -229,8 +233,7 @@ export default function AutopilotDashboard() {
 
   async function toggleCampaignAutopilot(campaignId: string, currentState: boolean) {
     try {
-      const { error } = await supabase
-        .from('campaign_autopilot_settings')
+      const { error } = await untypedTable('campaign_autopilot_settings')
         .update({ is_enabled: !currentState })
         .eq('campaign_id', campaignId);
 

@@ -19,7 +19,7 @@ type TabType = 'builder' | 'preview' | 'assistant' | 'marketplace' | 'analytics'
 export default function CreateTemplatePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [accounts, setAccounts] = useState<GmailAccount[]>([]);
+  const [, setAccounts] = useState<GmailAccount[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('builder');
   const [emailType, setEmailType] = useState<'manual' | 'ai'>('ai');
   const [isSubmitting, setIsSubmitting] = useState(false);

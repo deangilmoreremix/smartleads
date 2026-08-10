@@ -61,7 +61,7 @@ export async function fetchConversations(
       contact:inbox_contacts(*)
     `)
     .eq('user_id', userId)
-    .eq('is_archived', isArchived)
+    .eq('is_archived', String(isArchived))
     .order('last_message_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -76,7 +76,7 @@ export async function fetchConversations(
   const { data, error } = await query;
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as unknown as InboxConversation[];
 }
 
 export async function fetchConversation(conversationId: string): Promise<InboxConversation | null> {
@@ -90,7 +90,7 @@ export async function fetchConversation(conversationId: string): Promise<InboxCo
     .maybeSingle();
 
   if (error) throw error;
-  return data;
+  return (data as unknown as InboxConversation | null) ?? null;
 }
 
 export async function fetchMessages(
@@ -106,20 +106,20 @@ export async function fetchMessages(
     .range(offset, offset + limit - 1);
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as unknown as InboxMessage[];
 }
 
 export async function markConversationRead(conversationId: string): Promise<void> {
   const { error } = await supabase
     .from('inbox_conversations')
-    .update({ unread_count: 0 })
+    .update({ unread_count: String(0) } as never)
     .eq('id', conversationId);
 
   if (error) throw error;
 
   await supabase
     .from('inbox_messages')
-    .update({ read_at: new Date().toISOString() })
+    .update({ read_at: new Date().toISOString() } as never)
     .eq('conversation_id', conversationId)
     .is('read_at', null);
 }
@@ -135,7 +135,7 @@ interface SendMessageOptions {
 export async function sendMessage(
   userId: string,
   conversationId: string,
-  contactId: string,
+  _contactId: string,
   options: SendMessageOptions
 ): Promise<InboxMessage> {
   const creditsUsed = options.type === 'inmail' ? 1 : 0;
@@ -147,13 +147,13 @@ export async function sendMessage(
       sender_id: userId,
       direction: 'outbound',
       message_type: options.type,
-      subject: options.subject,
+      subject: options.subject ?? null,
       body: options.body,
-      voice_note_url: options.voiceNoteUrl,
-      voice_note_duration: options.voiceNoteDuration,
-      credits_used: creditsUsed,
+      voice_note_url: options.voiceNoteUrl ?? null,
+      voice_note_duration: options.voiceNoteDuration ?? null,
+      credits_used: String(creditsUsed),
       sent_at: new Date().toISOString(),
-    })
+    } as never)
     .select()
     .single();
 
@@ -164,10 +164,10 @@ export async function sendMessage(
     .update({
       last_message: options.body.substring(0, 200),
       last_message_at: new Date().toISOString(),
-    })
+    } as never)
     .eq('id', conversationId);
 
-  return data;
+  return data as unknown as InboxMessage;
 }
 
 export function subscribeToConversations(
@@ -192,7 +192,7 @@ export function subscribeToConversations(
             .eq('id', (payload.new as InboxConversation).id)
             .maybeSingle();
 
-          if (data) callback(data);
+          if (data) callback(data as unknown as InboxConversation);
         }
       }
     )
@@ -245,12 +245,12 @@ export async function fetchInboxStats(userId: string): Promise<InboxStats> {
       .from('inbox_conversations')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
-      .eq('is_archived', false),
+      .eq('is_archived', String(false)),
     supabase
       .from('inbox_conversations')
       .select('unread_count')
       .eq('user_id', userId)
-      .eq('is_archived', false)
+      .eq('is_archived', String(false))
       .gt('unread_count', 0),
   ]);
 
@@ -261,7 +261,9 @@ export async function fetchInboxStats(userId: string): Promise<InboxStats> {
 
   let repliesThisWeek = 0;
   if (userConversationIds && userConversationIds.length > 0) {
-    const conversationIds = userConversationIds.map(c => c.id);
+    const conversationIds = userConversationIds
+      .map(c => c.id)
+      .filter((id): id is string => id !== null);
     const { count } = await supabase
       .from('inbox_messages')
       .select('id', { count: 'exact', head: true })
@@ -272,7 +274,7 @@ export async function fetchInboxStats(userId: string): Promise<InboxStats> {
     repliesThisWeek = count || 0;
   }
 
-  const unreadCount = unreadResult.data?.reduce((sum, c) => sum + (c.unread_count || 0), 0) || 0;
+  const unreadCount = unreadResult.data?.reduce((sum, c) => sum + Number(c.unread_count || 0), 0) || 0;
 
   return {
     totalConversations: conversationsResult.count || 0,
@@ -292,12 +294,12 @@ export async function fetchRecentConversations(
       contact:inbox_contacts(*)
     `)
     .eq('user_id', userId)
-    .eq('is_archived', false)
+    .eq('is_archived', String(false))
     .order('last_message_at', { ascending: false })
     .limit(limit);
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as unknown as InboxConversation[];
 }
 
 export async function createOrGetConversation(
@@ -328,7 +330,7 @@ export async function createOrGetConversation(
 
   let contactId: string;
 
-  if (existingContact.data) {
+  if (existingContact.data?.id) {
     contactId = existingContact.data.id;
   } else {
     const { data: newContact, error: contactError } = await supabase
@@ -337,12 +339,12 @@ export async function createOrGetConversation(
         name: sanitizedName,
         email: sanitizedEmail,
         company: contact.company?.trim() || null,
-      })
+      } as never)
       .select()
       .single();
 
     if (contactError) throw contactError;
-    contactId = newContact.id;
+    contactId = (newContact as { id: string | null } | null)?.id ?? '';
   }
 
   const { data: existingConv } = await supabase
@@ -353,7 +355,7 @@ export async function createOrGetConversation(
     .eq('platform', platform)
     .maybeSingle();
 
-  if (existingConv) return existingConv;
+  if (existingConv) return existingConv as unknown as InboxConversation;
 
   const { data: newConv, error: convError } = await supabase
     .from('inbox_conversations')
@@ -362,13 +364,13 @@ export async function createOrGetConversation(
       contact_id: contactId,
       platform,
       status: 'active',
-      unread_count: 0,
-      is_archived: false,
+      unread_count: String(0),
+      is_archived: String(false),
       last_message_at: new Date().toISOString(),
-    })
+    } as never)
     .select(`*, contact:inbox_contacts(*)`)
     .single();
 
   if (convError) throw convError;
-  return newConv;
+  return newConv as unknown as InboxConversation;
 }

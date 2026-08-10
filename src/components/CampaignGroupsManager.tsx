@@ -9,7 +9,6 @@ import {
   Users,
   Mail,
   GripVertical,
-  MoreVertical,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -28,7 +27,7 @@ interface Props {
   onSelectGroup?: (groupId: string | null) => void;
 }
 
-export default function CampaignGroupsManager({ onSelectGroup }: Props) {
+export default function CampaignGroupsManager({ onSelectGroup: _onSelectGroup }: Props) {
   const { user } = useAuth();
   const [groups, setGroups] = useState<CampaignGroup[]>([]);
   const [ungrouped, setUngrouped] = useState<CampaignInGroup[]>([]);

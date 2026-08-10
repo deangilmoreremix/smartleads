@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   CheckCircle,
   Users,
-  X,
   Check,
   Trash2,
 } from 'lucide-react';

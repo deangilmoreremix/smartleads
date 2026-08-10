@@ -44,12 +44,16 @@ export function usePermissions() {
 
       setIsAdmin(false);
 
-      const { data: userRoles } = await supabase.rpc('get_user_roles', {
+      const { data: userRoles } = await (
+        supabase as unknown as {
+          rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>;
+        }
+      ).rpc('get_user_roles', {
         p_user_id: user!.id,
       });
 
       if (userRoles) {
-        setRoles(userRoles);
+        setRoles(userRoles as UserRole[]);
       }
 
       const { data: roleIds } = await supabase

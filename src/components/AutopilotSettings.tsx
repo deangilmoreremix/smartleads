@@ -24,6 +24,11 @@ import {
   Shield,
 } from 'lucide-react';
 
+const autopilotTable = () =>
+  (supabase as unknown as {
+    from: (table: string) => ReturnType<typeof supabase.from>;
+  }).from('campaign_autopilot_settings');
+
 interface AutopilotSettingsProps {
   campaignId: string;
   onSettingsChange?: () => void;
@@ -98,8 +103,7 @@ export function AutopilotSettings({ campaignId, onSettingsChange }: AutopilotSet
 
   async function loadSettings() {
     try {
-      const { data, error } = await supabase
-        .from('campaign_autopilot_settings')
+      const { data, error } = await autopilotTable()
         .select('*')
         .eq('campaign_id', campaignId)
         .maybeSingle();
@@ -107,9 +111,10 @@ export function AutopilotSettings({ campaignId, onSettingsChange }: AutopilotSet
       if (error) throw error;
 
       if (data) {
+        const row = data as unknown as AutopilotConfig;
         setSettings({
-          ...data,
-          search_queries: data.search_queries || [],
+          ...row,
+          search_queries: row.search_queries || [],
         });
       }
     } catch (error) {
@@ -135,8 +140,7 @@ export function AutopilotSettings({ campaignId, onSettingsChange }: AutopilotSet
   async function saveSettings() {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('campaign_autopilot_settings')
+      const { error } = await autopilotTable()
         .upsert({
           ...settings,
           campaign_id: campaignId,
@@ -170,8 +174,7 @@ export function AutopilotSettings({ campaignId, onSettingsChange }: AutopilotSet
     setSettings((prev) => ({ ...prev, is_enabled: newEnabled }));
 
     try {
-      const { error } = await supabase
-        .from('campaign_autopilot_settings')
+      const { error } = await autopilotTable()
         .upsert({
           ...settings,
           is_enabled: newEnabled,

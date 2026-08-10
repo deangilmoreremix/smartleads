@@ -3,14 +3,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
   FlaskConical,
-  TrendingUp,
   Trophy,
-  BarChart3,
   Plus,
   Trash2,
   Play,
   Pause,
-  RefreshCw,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { calculateABTestStats, type ABTest } from '../services/ab-testing';
@@ -47,7 +44,7 @@ export default function ABTestManager({ sequenceId, campaignId, stepNumber = 1 }
         .order('step_number', { ascending: true });
 
       if (error) throw error;
-      setTests(data || []);
+      setTests((data || []) as unknown as ABTest[]);
     } catch (error) {
       console.error('Error loading A/B tests:', error);
     } finally {
@@ -78,7 +75,7 @@ export default function ABTestManager({ sequenceId, campaignId, stepNumber = 1 }
         variant_b_body: formData.variantBBody || null,
         min_sample_size: formData.minSampleSize,
         is_active: true,
-      });
+      } as never);
 
       if (error) throw error;
 
@@ -102,7 +99,7 @@ export default function ABTestManager({ sequenceId, campaignId, stepNumber = 1 }
     try {
       const { error } = await supabase
         .from('sequence_ab_tests')
-        .update({ is_active: !isActive })
+        .update({ is_active: !isActive } as never)
         .eq('id', testId);
 
       if (error) throw error;

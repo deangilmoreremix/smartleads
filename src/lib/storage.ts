@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import type { Database } from '../types/database';
 
 export const STORAGE_BUCKETS = {
   AVATARS: 'avatars',
@@ -95,7 +94,7 @@ export function validateFileSize(file: File, maxSize: number): boolean {
   return file.size <= maxSize;
 }
 
-export async function uploadFile({ bucket, file, path, onProgress }: UploadOptions): Promise<UploadResult> {
+export async function uploadFile({ bucket, file, path }: UploadOptions): Promise<UploadResult> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
@@ -123,7 +122,6 @@ export async function uploadFile({ bucket, file, path, onProgress }: UploadOptio
   }
 
   const sanitizedFilename = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const fileExt = sanitizedFilename.split('.').pop() || '';
   const fileName = path || `${user.id}/${Date.now()}-${sanitizedFilename}`;
 
   if (!fileName.startsWith(`${user.id}/`)) {
@@ -298,7 +296,7 @@ export async function getFilesByBucket(bucket: StorageBucket): Promise<Array<{
   file_path: string;
   file_size: number;
   mime_type: string;
-  original_filename: string;
+  original_filename: string | null;
   uploaded_at: string;
 }>> {
   const { data: { user } } = await supabase.auth.getUser();

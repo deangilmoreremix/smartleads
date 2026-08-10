@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { Database } from '../types/database';
 
 export enum LogLevel {
   INFO = 'info',
@@ -168,12 +169,14 @@ export class Logger {
           log_level: log.level,
           category: log.category,
           message: log.message,
-          details: log.details || {},
+          details: (log.details || {}) as Database['public']['Tables']['system_logs']['Insert']['details'],
           error_message: log.error?.message || null,
           error_stack: log.error?.stack || null,
         }));
 
-        const { error } = await supabase.from('system_logs').insert(logRecords);
+        const { error } = await supabase
+          .from('system_logs')
+          .insert(logRecords as unknown as Database['public']['Tables']['system_logs']['Insert'][]);
 
         if (error) {
           console.error('Failed to insert logs to database:', error);

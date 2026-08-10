@@ -35,10 +35,10 @@ export function SwipeableCard({
         setOffset(touch.clientX - startX);
         swipeHandlers.onTouchMove(e);
       }}
-      onTouchEnd={(e) => {
+      onTouchEnd={() => {
         setIsDragging(false);
         setOffset(0);
-        swipeHandlers.onTouchEnd(e);
+        swipeHandlers.onTouchEnd();
       }}
       className={`
         ${className}

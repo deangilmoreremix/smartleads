@@ -20,7 +20,6 @@ export default function ImageUploader({
   onImageRemove,
   maxSize = 5 * 1024 * 1024,
   shape = 'square',
-  aspectRatio = 1,
   disabled = false,
   className = '',
 }: ImageUploaderProps) {

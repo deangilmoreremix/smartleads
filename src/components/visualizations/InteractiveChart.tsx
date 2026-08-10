@@ -14,7 +14,6 @@ interface InteractiveChartProps {
 
 export function InteractiveChart({
   data,
-  type = 'bar',
   height = 200,
 }: InteractiveChartProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);

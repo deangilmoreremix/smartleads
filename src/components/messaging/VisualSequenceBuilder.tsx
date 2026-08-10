@@ -6,7 +6,6 @@ import {
   GripVertical,
   ChevronDown,
   ChevronUp,
-  Mail,
   Clock,
   Eye,
   Sparkles,
@@ -79,7 +78,6 @@ export default function VisualSequenceBuilder({
   }, [onSequenceChange]);
 
   const addStep = () => {
-    const lastStep = steps[steps.length - 1];
     const newStep: SequenceStep = {
       id: generateId(),
       step_number: steps.length + 1,
@@ -224,7 +222,7 @@ export default function VisualSequenceBuilder({
 
       const { error: insertError } = await supabase
         .from('email_sequence_steps')
-        .insert(stepsToInsert);
+        .insert(stepsToInsert as never);
 
       if (insertError) throw insertError;
 

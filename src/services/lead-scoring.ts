@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import type { Database } from '../types/database';
 
 export interface QualityFactors {
   rating_points: number;
@@ -109,7 +110,7 @@ export async function recalculateLeadScores(campaignId: string): Promise<number>
       lead.review_count,
       !!lead.website,
       !!lead.real_email,
-      lead.social_profiles && Object.keys(lead.social_profiles).length > 0,
+      !!lead.social_profiles && typeof lead.social_profiles === 'object' && Object.keys(lead.social_profiles).length > 0,
       lead.employee_count
     );
 
@@ -117,8 +118,8 @@ export async function recalculateLeadScores(campaignId: string): Promise<number>
       .from('leads')
       .update({
         quality_score: result.score,
-        quality_factors: result.factors,
-      })
+        quality_factors: result.factors as unknown as Database['public']['Tables']['leads']['Update']['quality_factors'],
+      } as Database['public']['Tables']['leads']['Update'])
       .eq('id', lead.id);
 
     if (!updateError) updated++;

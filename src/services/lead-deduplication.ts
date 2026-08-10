@@ -51,7 +51,7 @@ export async function checkForDuplicateLead(
     existingLeadId: lead.id,
     existingCampaignId: lead.campaign_id,
     existingCampaignName: campaign?.name,
-    lastContactedAt: lead.last_contacted_at,
+    lastContactedAt: lead.last_contacted_at ?? undefined,
     emailsSentCount: lead.emails_sent_count || 0,
     hasReplied: lead.has_replied || false,
   };

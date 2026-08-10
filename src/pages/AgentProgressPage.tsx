@@ -5,7 +5,6 @@ import { ArrowLeft, Mail, Users, Sparkles } from 'lucide-react';
 import AgentProgressLogs from '../components/AgentProgressLogs';
 import AgentStatusCard from '../components/AgentStatusCard';
 import { AgentBrainVisualization, DataFlowAnimation, AgentThinkingIndicator } from '../components/agent';
-import LoadingSpinner from '../components/LoadingSpinner';
 import toast from 'react-hot-toast';
 
 interface AgentJob {
@@ -68,20 +67,20 @@ export default function AgentProgressPage() {
       const { data: jobData, error: jobError } = await supabase
         .from('agent_jobs')
         .select('*')
-        .eq('id', jobId)
+        .eq('id', jobId!)
         .single();
 
       if (jobError) throw jobError;
-      setJob(jobData);
+      setJob(jobData as unknown as AgentJob);
 
       const { data: logsData, error: logsError } = await supabase
         .from('agent_progress_logs')
         .select('*')
-        .eq('job_id', jobId)
+        .eq('job_id', jobId!)
         .order('timestamp', { ascending: true });
 
       if (logsError) throw logsError;
-      setLogs(logsData || []);
+      setLogs((logsData || []) as unknown as ProgressLog[]);
     } catch (error) {
       console.error('Error loading job data:', error);
       toast.error('Failed to load agent progress');
@@ -163,15 +162,13 @@ export default function AgentProgressPage() {
 
     return stepLabels.map((label, index) => {
       const stepProgress = ((index + 1) / stepLabels.length) * 100;
-      return {
-        label,
-        status:
+      const status: 'pending' | 'in_progress' | 'completed' | 'failed' =
           job.progress_percentage >= 100 ? 'completed' :
           job.progress_percentage >= stepProgress ? 'completed' :
           job.progress_percentage >= stepProgress - (100 / stepLabels.length) ? 'in_progress' :
           job.status === 'failed' && job.progress_percentage >= stepProgress - (100 / stepLabels.length) ? 'failed' :
-          'pending'
-      };
+          'pending';
+      return { label, status };
     });
   };
 

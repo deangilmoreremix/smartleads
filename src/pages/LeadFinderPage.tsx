@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Target, CheckCircle, MapPin, Filter, Mail, TrendingUp, ArrowRight, Zap, ChevronDown } from 'lucide-react';
+import { Target, CheckCircle, Filter, Mail, TrendingUp, ArrowRight, ChevronDown } from 'lucide-react';
 import GoogleMapsBackground from '../components/GoogleMapsBackground';
 import InteractiveMapDemo from '../components/interactive/InteractiveMapDemo';
 import EmailValidator from '../components/interactive/EmailValidator';
@@ -12,7 +12,6 @@ import { ScrollReveal } from '../components/animations/ScrollReveal';
 import { TiltCard } from '../components/animations/TiltCard';
 import { MagneticButton } from '../components/animations/MagneticButton';
 import { ScrollProgress } from '../components/ui/ScrollProgress';
-import { AnimatedBackground } from '../components/ui/AnimatedBackground';
 import { AnimatedProgressRing } from '../components/visualizations/AnimatedProgressRing';
 
 export default function LeadFinderPage() {

@@ -51,7 +51,7 @@ export async function createSequenceForCampaign(
   const stepsToInsert = steps.map((step) => ({
     campaign_id: campaignId,
     step_number: step.step_number,
-    delay_days: step.delay_days,
+    delay_days: String(step.delay_days),
     subject: step.subject.trim(),
     body: step.body.trim(),
     is_active: true,
@@ -59,7 +59,7 @@ export async function createSequenceForCampaign(
 
   const { error: insertError } = await supabase
     .from('email_sequence_steps')
-    .insert(stepsToInsert);
+    .insert(stepsToInsert as never);
 
   if (insertError) {
     return { success: false, message: 'Failed to create sequence steps' };
@@ -175,14 +175,14 @@ export async function initializeLeadSequence(
 
   const firstStep = steps[0];
   const nextSendDate = new Date();
-  nextSendDate.setDate(nextSendDate.getDate() + firstStep.delay_days);
+  nextSendDate.setDate(nextSendDate.getDate() + Number(firstStep.delay_days));
 
   const { error } = await supabase.from('lead_sequence_progress').insert({
     lead_id: leadId,
     current_step: 1,
     next_send_date: nextSendDate.toISOString(),
     is_paused: false,
-  });
+  } as never);
 
   if (error) {
     return { success: false, message: 'Failed to initialize sequence' };
@@ -227,9 +227,30 @@ export async function getLeadsReadyForNextEmail(): Promise<
     return [];
   }
 
-  const result = [];
+  const result: Array<{
+    leadId: string;
+    campaignId: string;
+    currentStep: number;
+    stepDetails: SequenceStep;
+    leadDetails: any;
+  }> = [];
 
-  for (const progress of readyLeads) {
+  const progressRows = readyLeads as unknown as Array<{
+    id: string;
+    lead_id: string;
+    current_step: number | null;
+    next_send_date: string | null;
+    leads: {
+      id: string;
+      campaign_id: string;
+      email: string;
+      business_name: string;
+      has_replied: boolean | null;
+      user_id: string;
+    } | null;
+  }>;
+
+  for (const progress of progressRows) {
     const lead = progress.leads;
     if (!lead || lead.has_replied) continue;
 
@@ -237,7 +258,7 @@ export async function getLeadsReadyForNextEmail(): Promise<
       .from('email_sequence_steps')
       .select('*')
       .eq('campaign_id', lead.campaign_id)
-      .eq('step_number', progress.current_step)
+      .eq('step_number', progress.current_step ?? 0)
       .eq('is_active', true)
       .maybeSingle();
 
@@ -245,8 +266,8 @@ export async function getLeadsReadyForNextEmail(): Promise<
       result.push({
         leadId: progress.lead_id,
         campaignId: lead.campaign_id,
-        currentStep: progress.current_step,
-        stepDetails: step,
+        currentStep: progress.current_step ?? 0,
+        stepDetails: step as unknown as SequenceStep,
         leadDetails: lead,
       });
     }
@@ -269,7 +290,7 @@ export async function advanceLeadToNextStep(
     return { success: false, message: 'Sequence progress not found' };
   }
 
-  const nextStepNumber = progress.current_step + 1;
+  const nextStepNumber = (progress.current_step ?? 0) + 1;
 
   const { data: nextStep } = await supabase
     .from('email_sequence_steps')
@@ -284,21 +305,21 @@ export async function advanceLeadToNextStep(
       .from('lead_sequence_progress')
       .update({
         completed_at: new Date().toISOString(),
-      })
+      } as never)
       .eq('lead_id', leadId);
 
     return { success: true, message: 'Sequence completed', completed: true };
   }
 
   const nextSendDate = new Date();
-  nextSendDate.setDate(nextSendDate.getDate() + nextStep.delay_days);
+  nextSendDate.setDate(nextSendDate.getDate() + Number(nextStep.delay_days));
 
   const { error } = await supabase
     .from('lead_sequence_progress')
     .update({
       current_step: nextStepNumber,
       next_send_date: nextSendDate.toISOString(),
-    })
+    } as never)
     .eq('lead_id', leadId);
 
   if (error) {
@@ -329,7 +350,7 @@ export async function sendSequenceEmail(
         business_name: leadDetails.business_name,
         email: leadDetails.email,
       },
-    })
+    } as never)
     .select()
     .maybeSingle();
 
@@ -342,7 +363,7 @@ export async function sendSequenceEmail(
     .update({
       last_email_sent_at: new Date().toISOString(),
       emails_sent_count: (leadDetails.emails_sent_count || 0) + 1,
-    })
+    } as never)
     .eq('id', leadId);
 
   return { success: true, message: 'Email queued successfully' };
@@ -457,7 +478,7 @@ export async function getSequenceStats(campaignId: string): Promise<{
   const step1 = allProgress?.filter((p) => p.current_step === 1 && !p.completed_at).length || 0;
   const step2 = allProgress?.filter((p) => p.current_step === 2 && !p.completed_at).length || 0;
   const step3Plus =
-    allProgress?.filter((p) => p.current_step >= 3 && !p.completed_at).length || 0;
+    allProgress?.filter((p) => (p.current_step ?? 0) >= 3 && !p.completed_at).length || 0;
 
   return {
     totalLeads,

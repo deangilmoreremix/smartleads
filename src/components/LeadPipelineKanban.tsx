@@ -5,21 +5,15 @@ import {
   GripVertical,
   Star,
   Mail,
-  Phone,
-  Globe,
-  MoreVertical,
-  ChevronRight,
-  Users,
-  Plus,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import LeadQualityBadge from './LeadQualityBadge';
 import LoadingSpinner from './LoadingSpinner';
 
 interface PipelineStage {
-  id: string;
+  id: string | null;
   name: string;
-  color: string;
+  color: string | null;
   position: number;
 }
 
@@ -27,8 +21,8 @@ interface Lead {
   id: string;
   business_name: string;
   email: string;
-  pipeline_stage: string;
-  quality_score: number;
+  pipeline_stage: string | null;
+  quality_score: number | null;
   rating: number | null;
   review_count: number;
   website: string | null;
@@ -112,7 +106,7 @@ export default function LeadPipelineKanban({ campaignId, onLeadClick }: Props) {
         .update({
           pipeline_stage: stageName,
           pipeline_stage_changed_at: new Date().toISOString(),
-        })
+        } as never)
         .eq('id', draggedLead.id);
 
       if (error) throw error;
@@ -173,7 +167,7 @@ export default function LeadPipelineKanban({ campaignId, onLeadClick }: Props) {
                   <div className="flex items-center gap-2">
                     <div
                       className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: stage.color }}
+                      style={{ backgroundColor: stage.color ?? undefined }}
                     />
                     <h3 className="font-semibold text-gray-900 capitalize">
                       {stage.name.replace('_', ' ')}

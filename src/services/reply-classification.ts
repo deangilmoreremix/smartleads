@@ -153,19 +153,19 @@ export async function saveReplyClassification(
       email_id: emailId,
       campaign_id: campaignId,
       classification: result.classification,
-      confidence_score: result.confidence,
+      confidence_score: String(result.confidence),
       reply_subject: replySubject,
       reply_text: replyText,
       ai_analysis: {
         keywords: result.keywords,
         sentiment: result.sentiment,
       },
-    })
+    } as never)
     .select()
     .single();
 
   if (error) throw error;
-  return data;
+  return data as unknown as ClassifiedReply;
 }
 
 export async function getReplyClassifications(
@@ -190,7 +190,7 @@ export async function getReplyClassifications(
   const { data, error } = await query;
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as unknown as ClassifiedReply[];
 }
 
 export async function updateClassification(
@@ -203,7 +203,7 @@ export async function updateClassification(
       classification,
       is_reviewed: true,
       reviewed_at: new Date().toISOString(),
-    })
+    } as never)
     .eq('id', replyId);
 
   if (error) throw error;
@@ -234,7 +234,7 @@ export async function handleReplyReceived(
       replied_at: new Date().toISOString(),
       pipeline_stage: 'replied',
       pipeline_stage_changed_at: new Date().toISOString(),
-    })
+    } as never)
     .eq('id', leadId);
 
   if (emailId) {
@@ -243,7 +243,7 @@ export async function handleReplyReceived(
       .update({
         status: 'replied',
         replied_at: new Date().toISOString(),
-      })
+      } as never)
       .eq('id', emailId);
   }
 
@@ -259,14 +259,18 @@ export async function handleReplyReceived(
         email: lead.email.toLowerCase().trim(),
         campaign_id: campaignId,
         reason: 'reply_requested',
-      });
+      } as never);
     }
   }
 
   if (autoPauseOnReply) {
     await supabase
-      .from('email_sequences')
-      .update({ status: 'paused' })
+      .from('lead_sequence_progress')
+      .update({
+        is_paused: true,
+        pause_reason: 'Lead replied to email',
+        updated_at: new Date().toISOString(),
+      } as never)
       .eq('lead_id', leadId);
   }
 

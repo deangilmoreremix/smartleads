@@ -1,4 +1,8 @@
 import { supabase } from '../lib/supabase';
+import type { Database } from '../types/database';
+
+type GmailAccountUpdate = Database['public']['Tables']['gmail_accounts']['Update'];
+type EmailHealthScoreInsert = Database['public']['Tables']['email_health_scores']['Insert'];
 
 export interface EmailHealthScore {
   gmail_account_id: string;
@@ -105,14 +109,14 @@ export async function calculateHealthScore(gmailAccountId: string): Promise<numb
       gmail_account_id: gmailAccountId,
       user_id: account.user_id,
       health_score: healthScore,
-      deliverability_rate: deliverabilityRate,
-      bounce_rate: bounceRate,
-      open_rate: openRate,
-      reply_rate: replyRate,
+      deliverability_rate: String(deliverabilityRate),
+      bounce_rate: String(bounceRate),
+      open_rate: String(openRate),
+      reply_rate: String(replyRate),
       total_sent: totalSent,
       total_bounced: bounced,
       last_calculated_at: new Date().toISOString(),
-    });
+    } as EmailHealthScoreInsert);
 
   return healthScore;
 }
@@ -133,7 +137,7 @@ export async function recordBounce(gmailAccountId: string): Promise<void> {
       .update({
         bounce_count: newBounceCount,
         reputation_score: newReputationScore,
-      })
+      } as GmailAccountUpdate)
       .eq('id', gmailAccountId);
   }
 }
@@ -154,7 +158,7 @@ export async function recordSpamReport(gmailAccountId: string): Promise<void> {
       .update({
         spam_reports: newSpamReports,
         reputation_score: newReputationScore,
-      })
+      } as GmailAccountUpdate)
       .eq('id', gmailAccountId);
   }
 }
@@ -167,7 +171,7 @@ export async function enableWarmup(gmailAccountId: string, dailyIncrement: numbe
       warmup_start_date: new Date().toISOString().split('T')[0],
       warmup_daily_increment: dailyIncrement,
       daily_limit: 5,
-    })
+    } as GmailAccountUpdate)
     .eq('id', gmailAccountId);
 }
 
@@ -178,7 +182,7 @@ export async function disableWarmup(gmailAccountId: string, finalLimit: number =
       warmup_enabled: false,
       warmup_start_date: null,
       daily_limit: finalLimit,
-    })
+    } as GmailAccountUpdate)
     .eq('id', gmailAccountId);
 }
 
@@ -203,7 +207,7 @@ export async function updateWarmupLimits(userId: string): Promise<void> {
     if (newLimit !== account.daily_limit) {
       await supabase
         .from('gmail_accounts')
-        .update({ daily_limit: newLimit })
+        .update({ daily_limit: newLimit } as GmailAccountUpdate)
         .eq('id', account.id);
     }
 

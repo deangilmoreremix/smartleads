@@ -20,7 +20,7 @@ export default function AnimatedPipelineFlow() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [stageCounts, setStageCounts] = useState([0, 0, 0, 0, 0]);
   const [totalProcessed, setTotalProcessed] = useState(0);
-  const [nextLeadId, setNextLeadId] = useState(0);
+  const [, setNextLeadId] = useState(0);
 
   useEffect(() => {
     if (!isPlaying) return;

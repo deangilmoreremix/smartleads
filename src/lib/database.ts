@@ -2,11 +2,10 @@ import { supabase } from './supabase';
 import type { Database } from '../types/database';
 
 type Tables = Database['public']['Tables'];
-type Campaign = Tables['campaigns']['Row'];
 type Lead = Tables['leads']['Row'];
 type Email = Tables['emails']['Row'];
-type CampaignJob = Tables['campaign_jobs']['Row'];
-type Subscription = Tables['subscriptions']['Row'];
+type LeadUpdate = Tables['leads']['Update'];
+type EmailUpdate = Tables['emails']['Update'];
 
 export interface CampaignStats {
   totalLeads: number;
@@ -131,11 +130,11 @@ export async function getCampaignLeads(campaignId: string, filters?: {
     .order('created_at', { ascending: false });
 
   if (filters?.status) {
-    query = query.eq('status', filters.status);
+    query = query.eq('status', filters.status as Lead['status']);
   }
 
   if (filters?.emailType) {
-    query = query.eq('email_type', filters.emailType);
+    query = query.eq('email_type', filters.emailType as Lead['email_type']);
   }
 
   if (filters?.search) {
@@ -169,7 +168,7 @@ export async function getCampaignEmails(campaignId: string, filters?: {
     .order('created_at', { ascending: false });
 
   if (filters?.status) {
-    query = query.eq('status', filters.status);
+    query = query.eq('status', filters.status as Email['status']);
   }
 
   if (filters?.leadId) {
@@ -200,7 +199,7 @@ export async function getActiveCampaignJobs(campaignId: string) {
 }
 
 export async function updateLeadStatus(leadId: string, status: Lead['status'], notes?: string) {
-  const updates: Partial<Lead> = { status };
+  const updates: LeadUpdate = { status } as LeadUpdate;
   if (notes) updates.notes = notes;
 
   const { data, error } = await supabase
@@ -219,7 +218,7 @@ export async function updateEmailStatus(
   status: Email['status'],
   timestamp?: Date
 ) {
-  const updates: Partial<Email> = { status };
+  const updates: EmailUpdate = { status } as EmailUpdate;
 
   if (status === 'sent' && timestamp) {
     updates.sent_at = timestamp.toISOString();
@@ -266,7 +265,7 @@ export async function bulkUpdateLeadStatus(
 ) {
   const { data, error } = await supabase
     .from('leads')
-    .update({ status })
+    .update({ status } as LeadUpdate)
     .in('id', leadIds)
     .select();
 

@@ -146,7 +146,7 @@ export async function getCampaignComparison(userId: string): Promise<CampaignCom
         openRate: Math.round(openRate * 10) / 10,
         replyRate: Math.round(replyRate * 10) / 10,
         conversionRate: Math.round(conversionRate * 10) / 10,
-        costPerLead: c.cost_per_lead || 0,
+        costPerLead: Number(c.cost_per_lead) || 0,
       };
     })
   );
@@ -222,18 +222,18 @@ export async function updateFunnelMetrics(
 
   if (existing) {
     const updates: any = {};
-    if (metrics.leadsScraped !== undefined) updates.leads_scraped = existing.leads_scraped + metrics.leadsScraped;
-    if (metrics.leadsQualified !== undefined) updates.leads_qualified = existing.leads_qualified + metrics.leadsQualified;
-    if (metrics.emailsSent !== undefined) updates.emails_sent = existing.emails_sent + metrics.emailsSent;
-    if (metrics.emailsOpened !== undefined) updates.emails_opened = existing.emails_opened + metrics.emailsOpened;
-    if (metrics.emailsReplied !== undefined) updates.emails_replied = existing.emails_replied + metrics.emailsReplied;
-    if (metrics.meetingsScheduled !== undefined) updates.meetings_scheduled = existing.meetings_scheduled + metrics.meetingsScheduled;
-    if (metrics.dealsConverted !== undefined) updates.deals_converted = existing.deals_converted + metrics.dealsConverted;
+    if (metrics.leadsScraped !== undefined) updates.leads_scraped = (existing.leads_scraped ?? 0) + metrics.leadsScraped;
+    if (metrics.leadsQualified !== undefined) updates.leads_qualified = (existing.leads_qualified ?? 0) + metrics.leadsQualified;
+    if (metrics.emailsSent !== undefined) updates.emails_sent = (existing.emails_sent ?? 0) + metrics.emailsSent;
+    if (metrics.emailsOpened !== undefined) updates.emails_opened = (existing.emails_opened ?? 0) + metrics.emailsOpened;
+    if (metrics.emailsReplied !== undefined) updates.emails_replied = (existing.emails_replied ?? 0) + metrics.emailsReplied;
+    if (metrics.meetingsScheduled !== undefined) updates.meetings_scheduled = (existing.meetings_scheduled ?? 0) + metrics.meetingsScheduled;
+    if (metrics.dealsConverted !== undefined) updates.deals_converted = (existing.deals_converted ?? 0) + metrics.dealsConverted;
 
     await supabase
       .from('analytics_funnel')
       .update(updates)
-      .eq('id', existing.id);
+      .eq('id', existing.id ?? '');
   } else {
     await supabase.from('analytics_funnel').insert({
       user_id: userId,
@@ -246,7 +246,7 @@ export async function updateFunnelMetrics(
       emails_replied: metrics.emailsReplied || 0,
       meetings_scheduled: metrics.meetingsScheduled || 0,
       deals_converted: metrics.dealsConverted || 0,
-    });
+    } as never);
   }
 }
 
