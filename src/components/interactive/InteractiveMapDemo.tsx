@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MapPin, Search, Loader } from 'lucide-react';
 
 interface Pin {
@@ -9,20 +9,20 @@ interface Pin {
   category: string;
 }
 
+const businessNames = [
+  'The Coffee House', 'Bella\'s Bistro', 'Tech Solutions Inc', 'Green Garden Spa',
+  'Urban Fitness', 'The Book Nook', 'Prime Dental', 'Metro Yoga Studio',
+  'Sunset Restaurant', 'Elite Auto Repair', 'Fresh Bakery', 'Design Studio Pro'
+];
+
+const categories = ['Restaurant', 'Cafe', 'Fitness', 'Retail', 'Professional Services'];
+
 export default function InteractiveMapDemo() {
   const [pins, setPins] = useState<Pin[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [foundCount, setFoundCount] = useState(0);
 
-  const businessNames = [
-    'The Coffee House', 'Bella\'s Bistro', 'Tech Solutions Inc', 'Green Garden Spa',
-    'Urban Fitness', 'The Book Nook', 'Prime Dental', 'Metro Yoga Studio',
-    'Sunset Restaurant', 'Elite Auto Repair', 'Fresh Bakery', 'Design Studio Pro'
-  ];
-
-  const categories = ['Restaurant', 'Cafe', 'Fitness', 'Retail', 'Professional Services'];
-
-  const startScanning = () => {
+  const startScanning = useCallback(() => {
     setIsScanning(true);
     setPins([]);
     setFoundCount(0);
@@ -45,11 +45,11 @@ export default function InteractiveMapDemo() {
         setIsScanning(false);
       }
     }, 400);
-  };
+  }, []);
 
   useEffect(() => {
     startScanning();
-  }, []);
+  }, [startScanning]);
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">

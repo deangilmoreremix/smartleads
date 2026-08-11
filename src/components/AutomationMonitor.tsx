@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -51,6 +51,18 @@ export default function AutomationMonitor({ campaignId, compact = false }: Autom
   });
   const [isLive, setIsLive] = useState(true);
   const eventsContainerRef = useRef<HTMLDivElement>(null);
+
+  const addEvent = useCallback((event: Omit<AutomationEvent, 'id' | 'timestamp'>) => {
+    if (!isLive) return;
+
+    const newEvent: AutomationEvent = {
+      ...event,
+      id: crypto.randomUUID(),
+      timestamp: new Date(),
+    };
+
+    setEvents((prev) => [newEvent, ...prev.slice(0, 99)]);
+  }, [isLive]);
 
   useEffect(() => {
     if (!user) return;
@@ -158,7 +170,7 @@ export default function AutomationMonitor({ campaignId, compact = false }: Autom
       supabase.removeChannel(logsChannel);
       supabase.removeChannel(emailsChannel);
     };
-  }, [user, campaignId]);
+  }, [user, campaignId, addEvent]);
 
   useEffect(() => {
     if (eventsContainerRef.current && isLive) {
@@ -211,18 +223,6 @@ export default function AutomationMonitor({ campaignId, compact = false }: Autom
         activeAutopilots: autopilotResult.data.length,
       }));
     }
-  }
-
-  function addEvent(event: Omit<AutomationEvent, 'id' | 'timestamp'>) {
-    if (!isLive) return;
-
-    const newEvent: AutomationEvent = {
-      ...event,
-      id: crypto.randomUUID(),
-      timestamp: new Date(),
-    };
-
-    setEvents((prev) => [newEvent, ...prev.slice(0, 99)]);
   }
 
   function getEventIcon(type: AutomationEvent['type']) {

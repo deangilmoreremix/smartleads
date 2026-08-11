@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -16,18 +16,7 @@ export function usePermissions() {
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [permissions, setPermissions] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    if (user) {
-      loadPermissions();
-    } else {
-      setLoading(false);
-      setIsAdmin(false);
-      setRoles([]);
-      setPermissions(new Set());
-    }
-  }, [user]);
-
-  const loadPermissions = async () => {
+  const loadPermissions = useCallback(async () => {
     try {
       const profileResult = await supabase
         .from('profiles')
@@ -88,7 +77,18 @@ export function usePermissions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadPermissions();
+    } else {
+      setLoading(false);
+      setIsAdmin(false);
+      setRoles([]);
+      setPermissions(new Set());
+    }
+  }, [user, loadPermissions]);
 
   const hasPermission = (permissionName: string): boolean => {
     if (isAdmin) return true;

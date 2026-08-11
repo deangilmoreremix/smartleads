@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -42,13 +42,7 @@ export default function LeadPipelineKanban({ campaignId, onLeadClick }: Props) {
   const [draggedLead, setDraggedLead] = useState<Lead | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user, campaignId]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       const [stagesResult, leadsResult] = await Promise.all([
         supabase
@@ -82,7 +76,13 @@ export default function LeadPipelineKanban({ campaignId, onLeadClick }: Props) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user, campaignId]);
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, loadData]);
 
   async function handleDrop(stageName: string) {
     if (!draggedLead || draggedLead.pipeline_stage === stageName) {

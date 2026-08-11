@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -71,13 +71,7 @@ export default function AutomationScheduler({ campaignId, onScheduleChange }: Au
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingSchedule, setEditingSchedule] = useState<Partial<Schedule> | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      loadSchedules();
-    }
-  }, [user, campaignId]);
-
-  async function loadSchedules() {
+  const loadSchedules = useCallback(async () => {
     try {
       let query = supabase.from('automation_schedules').select('*').order('created_at', { ascending: false });
 
@@ -94,7 +88,13 @@ export default function AutomationScheduler({ campaignId, onScheduleChange }: Au
     } finally {
       setLoading(false);
     }
-  }
+  }, [campaignId]);
+
+  useEffect(() => {
+    if (user) {
+      loadSchedules();
+    }
+  }, [user, campaignId, loadSchedules]);
 
   async function saveSchedule(schedule: Partial<Schedule>) {
     if (!user) return;

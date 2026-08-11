@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Search, Brain, Globe, TrendingUp, Users, Zap,
   AlertTriangle, CheckCircle, Clock, DollarSign, Building,
@@ -79,11 +79,7 @@ export default function LeadIntelligencePanel({ leadId, businessName, website, o
     starters: true,
   });
 
-  useEffect(() => {
-    loadIntelligenceData();
-  }, [leadId]);
-
-  async function loadIntelligenceData() {
+  const loadIntelligenceData = useCallback(async () => {
     setLoading(true);
     try {
       const [researchRes, healthRes, signalsRes] = await Promise.all([
@@ -100,7 +96,11 @@ export default function LeadIntelligencePanel({ leadId, businessName, website, o
     } finally {
       setLoading(false);
     }
-  }
+  }, [leadId]);
+
+  useEffect(() => {
+    loadIntelligenceData();
+  }, [loadIntelligenceData]);
 
   async function runDeepResearch(depth: 'basic' | 'standard' | 'deep') {
     if (!website) {

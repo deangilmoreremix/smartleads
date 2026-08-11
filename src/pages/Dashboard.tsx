@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, BarChart3, Gift, Mail, Zap, TrendingUp, Users, Send, AlertCircle, RefreshCw } from 'lucide-react';
 import { useOnboarding } from '../contexts/OnboardingContext';
@@ -38,7 +38,7 @@ export default function Dashboard() {
     }
   }, [state.welcome_completed, activeTour, startTour]);
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
@@ -94,11 +94,11 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     loadStats();
-  }, [user]);
+  }, [loadStats]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Shield,
@@ -27,13 +27,7 @@ export default function EmailHealthDisplay() {
   const [loading, setLoading] = useState(true);
   const [calculating, setCalculating] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      loadAccounts();
-    }
-  }, [user]);
-
-  async function loadAccounts() {
+  const loadAccounts = useCallback(async () => {
     try {
       const data = await getEmailHealthScores(user!.id);
       setAccounts(data);
@@ -42,7 +36,13 @@ export default function EmailHealthDisplay() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadAccounts();
+    }
+  }, [user, loadAccounts]);
 
   async function handleRecalculate(accountId: string) {
     setCalculating(accountId);

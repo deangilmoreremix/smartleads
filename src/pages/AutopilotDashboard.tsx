@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -94,13 +94,7 @@ export default function AutopilotDashboard() {
     replyRate: 0,
   });
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       const [campaignsResult, runsResult, analyticsResult] = await Promise.all([
         untypedTable('campaign_autopilot_settings')
@@ -191,7 +185,13 @@ export default function AutopilotDashboard() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, loadData]);
 
   async function triggerAutopilot(campaignId: string) {
     setTriggering(campaignId);

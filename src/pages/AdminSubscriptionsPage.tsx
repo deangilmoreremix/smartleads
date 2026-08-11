@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -57,9 +57,33 @@ export default function AdminSubscriptionsPage() {
     loadSubscriptions();
   }, []);
 
+  const filterSubscriptions = useCallback(() => {
+    let filtered = [...subscriptions];
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (s) =>
+          s.user?.email.toLowerCase().includes(query) ||
+          s.user?.full_name?.toLowerCase().includes(query) ||
+          s.user?.company_name?.toLowerCase().includes(query)
+      );
+    }
+
+    if (filterPlan !== 'all') {
+      filtered = filtered.filter((s) => s.plan_type === filterPlan);
+    }
+
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter((s) => s.status === filterStatus);
+    }
+
+    setFilteredSubs(filtered);
+  }, [subscriptions, searchQuery, filterPlan, filterStatus]);
+
   useEffect(() => {
     filterSubscriptions();
-  }, [subscriptions, searchQuery, filterPlan, filterStatus]);
+  }, [filterSubscriptions]);
 
   const loadSubscriptions = async () => {
     try {
@@ -89,30 +113,6 @@ export default function AdminSubscriptionsPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const filterSubscriptions = () => {
-    let filtered = [...subscriptions];
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (s) =>
-          s.user?.email.toLowerCase().includes(query) ||
-          s.user?.full_name?.toLowerCase().includes(query) ||
-          s.user?.company_name?.toLowerCase().includes(query)
-      );
-    }
-
-    if (filterPlan !== 'all') {
-      filtered = filtered.filter((s) => s.plan_type === filterPlan);
-    }
-
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter((s) => s.status === filterStatus);
-    }
-
-    setFilteredSubs(filtered);
   };
 
   const handleUpdatePlan = async (subId: string, newPlan: string) => {

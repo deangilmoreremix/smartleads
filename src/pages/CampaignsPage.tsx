@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,13 +14,7 @@ export default function CampaignsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
-  useEffect(() => {
-    if (user) {
-      loadCampaigns();
-    }
-  }, [user]);
-
-  const loadCampaigns = async () => {
+  const loadCampaigns = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('campaigns')
@@ -35,7 +29,13 @@ export default function CampaignsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadCampaigns();
+    }
+  }, [user, loadCampaigns]);
 
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

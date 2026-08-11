@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
@@ -68,9 +68,33 @@ export default function AdminUsersPage() {
     }
   }, [isAdmin, hasPermission]);
 
+  const filterUsers = useCallback(() => {
+    let filtered = [...users];
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (u) =>
+          u.email.toLowerCase().includes(query) ||
+          u.full_name?.toLowerCase().includes(query) ||
+          u.company_name?.toLowerCase().includes(query)
+      );
+    }
+
+    if (filterPlan !== 'all') {
+      filtered = filtered.filter((u) => u.subscription?.plan_type === filterPlan);
+    }
+
+    if (filterRole !== 'all') {
+      filtered = filtered.filter((u) => u.roles?.includes(filterRole));
+    }
+
+    setFilteredUsers(filtered);
+  }, [users, searchQuery, filterPlan, filterRole]);
+
   useEffect(() => {
     filterUsers();
-  }, [users, searchQuery, filterPlan, filterRole]);
+  }, [filterUsers]);
 
   const loadRoles = async () => {
     try {
@@ -122,30 +146,6 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const filterUsers = () => {
-    let filtered = [...users];
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (u) =>
-          u.email.toLowerCase().includes(query) ||
-          u.full_name?.toLowerCase().includes(query) ||
-          u.company_name?.toLowerCase().includes(query)
-      );
-    }
-
-    if (filterPlan !== 'all') {
-      filtered = filtered.filter((u) => u.subscription?.plan_type === filterPlan);
-    }
-
-    if (filterRole !== 'all') {
-      filtered = filtered.filter((u) => u.roles?.includes(filterRole));
-    }
-
-    setFilteredUsers(filtered);
   };
 
   const handleToggleAdmin = async (userId: string, currentStatus: boolean) => {

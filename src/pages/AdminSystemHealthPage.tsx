@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import {
   Activity,
@@ -61,16 +61,11 @@ export default function AdminSystemHealthPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [failedJobs, setFailedJobs] = useState<QueueItem[]>([]);
   const [showFailedJobs, setShowFailedJobs] = useState(false);
+  const hasLoadedRef = useRef(false);
 
-  useEffect(() => {
-    loadHealth();
-    const interval = setInterval(loadHealth, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const loadHealth = async () => {
+  const loadHealth = useCallback(async () => {
     try {
-      if (!health) setLoading(true);
+      if (!hasLoadedRef.current) setLoading(true);
       else setRefreshing(true);
 
       const startTime = Date.now();
@@ -160,6 +155,7 @@ export default function AdminSystemHealthPage() {
           lastCheck: new Date().toISOString(),
         },
       });
+      hasLoadedRef.current = true;
     } catch (error) {
       console.error('Error loading health:', error);
       toast.error('Failed to load system health');
@@ -167,7 +163,13 @@ export default function AdminSystemHealthPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadHealth();
+    const interval = setInterval(loadHealth, 30000);
+    return () => clearInterval(interval);
+  }, [loadHealth]);
 
   const retryFailedJobs = async () => {
     try {

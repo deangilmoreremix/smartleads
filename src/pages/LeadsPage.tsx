@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -27,13 +27,7 @@ export default function LeadsPage() {
   const [showIntelligencePanel, setShowIntelligencePanel] = useState(false);
   const [messageModalLead, setMessageModalLead] = useState<Lead | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      loadLeads();
-    }
-  }, [user]);
-
-  const loadLeads = async () => {
+  const loadLeads = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('leads')
@@ -48,7 +42,13 @@ export default function LeadsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadLeads();
+    }
+  }, [user, loadLeads]);
 
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = lead.business_name.toLowerCase().includes(searchTerm.toLowerCase()) ||

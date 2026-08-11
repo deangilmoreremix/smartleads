@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { TrendingUp, AlertCircle, CheckCircle, Info, Zap } from 'lucide-react';
 
 interface AIQualityAnalyzerProps {
@@ -19,11 +19,7 @@ export default function AIQualityAnalyzer({ prompt, tone, goal }: AIQualityAnaly
   const [metrics, setMetrics] = useState<QualityMetric[]>([]);
   const [overallScore, setOverallScore] = useState(0);
 
-  useEffect(() => {
-    analyzePrompt();
-  }, [prompt, tone, goal]);
-
-  const analyzePrompt = () => {
+  const analyzePrompt = useCallback(() => {
     if (!prompt.trim()) {
       setMetrics([]);
       setOverallScore(0);
@@ -175,7 +171,11 @@ export default function AIQualityAnalyzer({ prompt, tone, goal }: AIQualityAnaly
     setMetrics(newMetrics);
     const avgScore = Math.round(newMetrics.reduce((sum, m) => sum + m.score, 0) / newMetrics.length);
     setOverallScore(avgScore);
-  };
+  }, [prompt, tone]);
+
+  useEffect(() => {
+    analyzePrompt();
+  }, [prompt, tone, goal, analyzePrompt]);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600';

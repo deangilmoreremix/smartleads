@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import {
@@ -96,12 +96,7 @@ export function AutopilotSettings({ campaignId, onSettingsChange }: AutopilotSet
   const [newQuery, setNewQuery] = useState({ query: '', location: '' });
   const [gmailAccountCount, setGmailAccountCount] = useState(0);
 
-  useEffect(() => {
-    loadSettings();
-    loadGmailAccounts();
-  }, [campaignId]);
-
-  async function loadSettings() {
+  const loadSettings = useCallback(async () => {
     try {
       const { data, error } = await autopilotTable()
         .select('*')
@@ -122,7 +117,12 @@ export function AutopilotSettings({ campaignId, onSettingsChange }: AutopilotSet
     } finally {
       setLoading(false);
     }
-  }
+  }, [campaignId]);
+
+  useEffect(() => {
+    loadSettings();
+    loadGmailAccounts();
+  }, [campaignId, loadSettings]);
 
   async function loadGmailAccounts() {
     try {

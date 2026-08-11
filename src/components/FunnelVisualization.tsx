@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Users,
@@ -26,13 +26,7 @@ export default function FunnelVisualization({ campaignId, title = 'Conversion Fu
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user, campaignId, dateRange]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       let startDate: Date | undefined;
@@ -57,7 +51,13 @@ export default function FunnelVisualization({ campaignId, title = 'Conversion Fu
     } finally {
       setLoading(false);
     }
-  }
+  }, [user, campaignId, dateRange]);
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, loadData]);
 
   function handleExport() {
     if (!data) return;

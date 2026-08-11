@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Folder,
@@ -39,13 +39,7 @@ export default function CampaignGroupsManager() {
     globalDailyLimit: 100,
   });
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       const [groupsData, ungroupedData] = await Promise.all([
         getCampaignGroups(user!.id),
@@ -58,7 +52,13 @@ export default function CampaignGroupsManager() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, loadData]);
 
   async function handleSubmit() {
     if (!formData.name) {

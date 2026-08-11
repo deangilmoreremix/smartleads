@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, Mail, Users, Sparkles } from 'lucide-react';
@@ -45,24 +45,13 @@ export default function AgentProgressPage() {
   const campaignId = searchParams.get('campaign_id');
 
   useEffect(() => {
-    if (!jobId) {
-      toast.error('Invalid job ID');
-      navigate('/campaigns');
-      return;
-    }
-
-    loadJobData();
-    subscribeToUpdates();
-  }, [jobId]);
-
-  useEffect(() => {
     if (job?.status === 'completed' && !showSuccessBanner) {
       setShowSuccessBanner(true);
       toast.success('AI Agent completed successfully!');
     }
-  }, [job?.status]);
+  }, [job?.status, showSuccessBanner]);
 
-  const loadJobData = async () => {
+  const loadJobData = useCallback(async () => {
     try {
       const { data: jobData, error: jobError } = await supabase
         .from('agent_jobs')
@@ -87,9 +76,9 @@ export default function AgentProgressPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [jobId]);
 
-  const subscribeToUpdates = () => {
+  const subscribeToUpdates = useCallback(() => {
     const jobSubscription = supabase
       .channel(`agent_job_${jobId}`)
       .on(
@@ -126,7 +115,18 @@ export default function AgentProgressPage() {
       jobSubscription.unsubscribe();
       logsSubscription.unsubscribe();
     };
-  };
+  }, [jobId]);
+
+  useEffect(() => {
+    if (!jobId) {
+      toast.error('Invalid job ID');
+      navigate('/campaigns');
+      return;
+    }
+
+    loadJobData();
+    subscribeToUpdates();
+  }, [jobId, loadJobData, subscribeToUpdates, navigate]);
 
   const getSteps = () => {
     if (!job) return [];

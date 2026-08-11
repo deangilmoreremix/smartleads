@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link, useLocation, Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -29,15 +29,7 @@ export default function AdminLayout() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      checkAdminAccess();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
-
-  const checkAdminAccess = async () => {
+  const checkAdminAccess = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -53,7 +45,15 @@ export default function AdminLayout() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      checkAdminAccess();
+    } else {
+      setLoading(false);
+    }
+  }, [user, checkAdminAccess]);
 
   if (loading) {
     return (

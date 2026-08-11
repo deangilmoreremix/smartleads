@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Plus, Mail, CheckCircle, XCircle, Clock, Trash2, Lock, Linkedin, Send } from 'lucide-react';
@@ -56,21 +56,7 @@ export default function AccountsPage() {
   const [loading, setLoading] = useState(true);
   const [showProviderSelect, setShowProviderSelect] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user]);
-
-  const loadData = async () => {
-    try {
-      await Promise.all([loadAccounts(), loadSubscription()]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadAccounts = async () => {
+  const loadAccounts = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('gmail_accounts')
@@ -84,16 +70,30 @@ export default function AccountsPage() {
       console.error('Error loading accounts:', error);
       toast.error('Failed to load accounts');
     }
-  };
+  }, [user]);
 
-  const loadSubscription = async () => {
+  const loadSubscription = useCallback(async () => {
     try {
       const sub = await subscriptionService.getUserSubscription(user!.id);
       setSubscription(sub);
     } catch (error) {
       console.error('Error loading subscription:', error);
     }
-  };
+  }, [user]);
+
+  const loadData = useCallback(async () => {
+    try {
+      await Promise.all([loadAccounts(), loadSubscription()]);
+    } finally {
+      setLoading(false);
+    }
+  }, [loadAccounts, loadSubscription]);
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, loadData]);
 
   const handleConnectProvider = async (providerId: string) => {
     try {

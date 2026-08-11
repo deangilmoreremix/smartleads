@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
@@ -31,11 +31,7 @@ export default function ABTestManager({ sequenceId, campaignId, stepNumber = 1 }
     minSampleSize: 50,
   });
 
-  useEffect(() => {
-    loadTests();
-  }, [sequenceId]);
-
-  async function loadTests() {
+  const loadTests = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('sequence_ab_tests')
@@ -50,7 +46,11 @@ export default function ABTestManager({ sequenceId, campaignId, stepNumber = 1 }
     } finally {
       setLoading(false);
     }
-  }
+  }, [sequenceId]);
+
+  useEffect(() => {
+    loadTests();
+  }, [sequenceId, loadTests]);
 
   async function createTest() {
     if (!formData.variantASubject || !formData.variantBSubject) {

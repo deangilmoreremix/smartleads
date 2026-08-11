@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { TrendingUp, Mail, Eye, Reply, Award } from 'lucide-react';
 import type { Database } from '../types/database';
@@ -13,11 +13,7 @@ export default function VariantPerformanceChart({ templateId }: VariantPerforman
   const [variants, setVariants] = useState<TemplateVariant[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadVariants();
-  }, [templateId]);
-
-  const loadVariants = async () => {
+  const loadVariants = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('template_variants')
@@ -32,7 +28,11 @@ export default function VariantPerformanceChart({ templateId }: VariantPerforman
     } finally {
       setLoading(false);
     }
-  };
+  }, [templateId]);
+
+  useEffect(() => {
+    loadVariants();
+  }, [loadVariants]);
 
   const calculateRate = (numerator: number, denominator: number): number => {
     return denominator > 0 ? (numerator / denominator) * 100 : 0;

@@ -18,7 +18,7 @@ import {
   Shield,
   Inbox,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/database';
 import NotificationBell from './NotificationBell';
@@ -52,14 +52,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: 'Plans', href: '/dashboard/plans', icon: CreditCard },
   ];
 
-  useEffect(() => {
-    if (user) {
-      loadSubscription();
-      checkAdminStatus();
-    }
-  }, [user]);
-
-  const loadSubscription = async () => {
+  const loadSubscription = useCallback(async () => {
     try {
       const { data } = await supabase
         .from('subscriptions')
@@ -73,9 +66,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     } catch (error) {
       console.error('Error loading subscription:', error);
     }
-  };
+  }, [user]);
 
-  const checkAdminStatus = async () => {
+  const checkAdminStatus = useCallback(async () => {
     try {
       const { data } = await supabase
         .from('profiles')
@@ -89,7 +82,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     } catch (error) {
       console.error('Error checking admin status:', error);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadSubscription();
+      checkAdminStatus();
+    }
+  }, [user, loadSubscription, checkAdminStatus]);
 
   const getDaysRemaining = () => {
     if (!subscription?.billing_cycle_end) return 0;

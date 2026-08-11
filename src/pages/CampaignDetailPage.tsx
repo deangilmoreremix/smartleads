@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
@@ -39,11 +39,28 @@ export default function CampaignDetailPage() {
   const [automationStatus, setAutomationStatus] = useState<string>('');
   const [isAutomating, setIsAutomating] = useState(false);
 
+  const loadCampaignDetails = useCallback(async () => {
+    try {
+      const [campaignResult, leadsResult] = await Promise.all([
+        supabase.from('campaigns').select('*').eq('id', id!).eq('user_id', user!.id).maybeSingle(),
+        supabase.from('leads').select('*').eq('campaign_id', id!).eq('user_id', user!.id).limit(10)
+      ]);
+
+      if (campaignResult.data) setCampaign(campaignResult.data);
+      if (leadsResult.data) setLeads(leadsResult.data);
+    } catch (error) {
+      console.error('Error loading campaign details:', error);
+      toast.error('Failed to load campaign details');
+    } finally {
+      setLoading(false);
+    }
+  }, [user, id]);
+
   useEffect(() => {
     if (user && id) {
       loadCampaignDetails();
     }
-  }, [user, id]);
+  }, [user, id, loadCampaignDetails]);
 
   useEffect(() => {
     if (!id) return;
@@ -78,24 +95,7 @@ export default function CampaignDetailPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id]);
-
-  const loadCampaignDetails = async () => {
-    try {
-      const [campaignResult, leadsResult] = await Promise.all([
-        supabase.from('campaigns').select('*').eq('id', id!).eq('user_id', user!.id).maybeSingle(),
-        supabase.from('leads').select('*').eq('campaign_id', id!).eq('user_id', user!.id).limit(10)
-      ]);
-
-      if (campaignResult.data) setCampaign(campaignResult.data);
-      if (leadsResult.data) setLeads(leadsResult.data);
-    } catch (error) {
-      console.error('Error loading campaign details:', error);
-      toast.error('Failed to load campaign details');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [id, loadCampaignDetails]);
 
   const handleDelete = async () => {
     try {

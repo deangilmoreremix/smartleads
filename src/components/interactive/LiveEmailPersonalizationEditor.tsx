@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Sparkles, TrendingUp } from 'lucide-react';
 
 export default function LiveEmailPersonalizationEditor() {
@@ -20,14 +20,7 @@ Would you be interested in learning more about how we can help your business?
 Best regards,
 Sales Team`;
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      generateEmail();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [businessName, reviewSnippet, yourOffer]);
-
-  const generateEmail = () => {
+  const generateEmail = useCallback(() => {
     if (!businessName && !reviewSnippet && !yourOffer) {
       setGeneratedEmail('');
       return;
@@ -57,7 +50,14 @@ Your Name`;
     if (reviewSnippet) words.push(2, 3);
     if (yourOffer) words.push(4, 5);
     setHighlightedWords(words);
-  };
+  }, [businessName, reviewSnippet, yourOffer]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      generateEmail();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [businessName, reviewSnippet, yourOffer, generateEmail]);
 
   const renderEmailWithHighlights = (text: string) => {
     if (!text) return null;

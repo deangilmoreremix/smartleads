@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Target, TrendingUp, Briefcase, DollarSign, Users, Zap,
   Filter, RefreshCw, ExternalLink, CheckCircle, Clock,
@@ -48,11 +48,29 @@ export default function IntentSignalsDashboard() {
     actionable: null,
   });
 
-  useEffect(() => {
-    loadSignals();
+  const calculateStats = useCallback((signalData: IntentSignal[]) => {
+    const byType: Record<string, number> = {};
+    let critical = 0;
+    let high = 0;
+    let actionable = 0;
+
+    for (const signal of signalData) {
+      byType[signal.signal_type] = (byType[signal.signal_type] || 0) + 1;
+      if (signal.signal_strength === 'critical') critical++;
+      if (signal.signal_strength === 'high') high++;
+      if (signal.is_actionable && !signal.action_taken) actionable++;
+    }
+
+    setStats({
+      total: signalData.length,
+      critical,
+      high,
+      actionable,
+      byType,
+    });
   }, []);
 
-  async function loadSignals() {
+  const loadSignals = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -75,29 +93,11 @@ export default function IntentSignalsDashboard() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [calculateStats]);
 
-  function calculateStats(signalData: IntentSignal[]) {
-    const byType: Record<string, number> = {};
-    let critical = 0;
-    let high = 0;
-    let actionable = 0;
-
-    for (const signal of signalData) {
-      byType[signal.signal_type] = (byType[signal.signal_type] || 0) + 1;
-      if (signal.signal_strength === 'critical') critical++;
-      if (signal.signal_strength === 'high') high++;
-      if (signal.is_actionable && !signal.action_taken) actionable++;
-    }
-
-    setStats({
-      total: signalData.length,
-      critical,
-      high,
-      actionable,
-      byType,
-    });
-  }
+  useEffect(() => {
+    loadSignals();
+  }, [loadSignals]);
 
   async function markActionTaken(signalId: string) {
     try {

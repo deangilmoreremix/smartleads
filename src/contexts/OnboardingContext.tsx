@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -65,16 +65,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [showWelcome, setShowWelcome] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      loadOnboardingState();
-    } else {
-      setState(defaultState);
-      setLoading(false);
-    }
-  }, [user]);
-
-  const loadOnboardingState = async () => {
+  const loadOnboardingState = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -116,7 +107,16 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadOnboardingState();
+    } else {
+      setState(defaultState);
+      setLoading(false);
+    }
+  }, [user, loadOnboardingState]);
 
   const startTour = (tour: TourType) => {
     setActiveTour(tour);
@@ -251,6 +251,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- standard context hook exported alongside its Provider
 export function useOnboarding() {
   const context = useContext(OnboardingContext);
   if (!context) {

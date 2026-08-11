@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { rbacService, FeatureFlag } from '../services/rbac-service';
 import {
   Flag,
@@ -35,24 +35,7 @@ export default function AdminFeatureFlagsPage() {
     loadFlags();
   }, []);
 
-  useEffect(() => {
-    filterFlags();
-  }, [flags, searchQuery]);
-
-  const loadFlags = async () => {
-    try {
-      setLoading(true);
-      const data = await rbacService.getAllFeatureFlags();
-      setFlags(data);
-    } catch (error) {
-      console.error('Error loading feature flags:', error);
-      toast.error('Failed to load feature flags');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterFlags = () => {
+  const filterFlags = useCallback(() => {
     if (!searchQuery) {
       setFilteredFlags(flags);
       return;
@@ -65,6 +48,23 @@ export default function AdminFeatureFlagsPage() {
           f.description.toLowerCase().includes(query)
       )
     );
+  }, [flags, searchQuery]);
+
+  useEffect(() => {
+    filterFlags();
+  }, [filterFlags]);
+
+  const loadFlags = async () => {
+    try {
+      setLoading(true);
+      const data = await rbacService.getAllFeatureFlags();
+      setFlags(data);
+    } catch (error) {
+      console.error('Error loading feature flags:', error);
+      toast.error('Failed to load feature flags');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleToggle = async (flag: FeatureFlag) => {

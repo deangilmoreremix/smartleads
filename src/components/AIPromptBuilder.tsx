@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Sparkles, Lightbulb, Target, Users, Building2, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface AIPromptBuilderProps {
@@ -74,13 +74,7 @@ export default function AIPromptBuilder({
   const [emailLength, setEmailLength] = useState('medium');
   const [personalizationLevel, setPersonalizationLevel] = useState('medium');
 
-  useEffect(() => {
-    if (mode === 'simple') {
-      generateSimplePrompt();
-    }
-  }, [selectedTone, selectedGoal, selectedIndustry, selectedAudience, customInstructions, emailLength, personalizationLevel, mode]);
-
-  const generateSimplePrompt = () => {
+  const generateSimplePrompt = useCallback(() => {
     if (mode !== 'simple') return;
 
     const prompt = `Write a ${selectedTone} email for ${selectedGoal.replace('_', ' ')}${selectedIndustry ? ` targeting the ${selectedIndustry} industry` : ''}. The email should be directed at a ${TARGET_AUDIENCES.find(a => a.value === selectedAudience)?.label}.
@@ -94,7 +88,13 @@ ${customInstructions ? `\nAdditional requirements:\n${customInstructions}` : ''}
 - Make it sound natural, not salesy`;
 
     onChange(prompt);
-  };
+  }, [mode, selectedTone, selectedGoal, selectedIndustry, selectedAudience, emailLength, personalizationLevel, customInstructions, onChange]);
+
+  useEffect(() => {
+    if (mode === 'simple') {
+      generateSimplePrompt();
+    }
+  }, [selectedTone, selectedGoal, selectedIndustry, selectedAudience, customInstructions, emailLength, personalizationLevel, mode, generateSimplePrompt]);
 
   const handleToneChange = (tone: string) => {
     setSelectedTone(tone);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { TrendingUp, TrendingDown, Mail, Users, BarChart3, Eye, MessageSquare, Calendar, ArrowUpRight, Target } from 'lucide-react';
@@ -30,13 +30,7 @@ export default function AnalyticsPage() {
   const [campaigns, setCampaigns] = useState<CampaignStats[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadAnalytics();
-    }
-  }, [user, timeRange]);
-
-  const getDateFilter = () => {
+  const getDateFilter = useCallback(() => {
     const now = new Date();
     switch (timeRange) {
       case '7d':
@@ -48,9 +42,9 @@ export default function AnalyticsPage() {
       default:
         return null;
     }
-  };
+  }, [timeRange]);
 
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     setLoading(true);
     try {
       const dateFilter = getDateFilter();
@@ -111,7 +105,13 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, getDateFilter]);
+
+  useEffect(() => {
+    if (user) {
+      loadAnalytics();
+    }
+  }, [user, loadAnalytics]);
 
   const maxEmailsSent = Math.max(...campaigns.map(c => c.emails_sent || 0), 1);
 

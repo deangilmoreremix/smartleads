@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import {
@@ -61,11 +61,7 @@ export default function EmailPreviewPanel({ campaignId, onApprove, onReject }: E
   const [editedBody, setEditedBody] = useState('');
   const [showTokens, setShowTokens] = useState(false);
 
-  useEffect(() => {
-    loadPreviews();
-  }, [campaignId]);
-
-  async function loadPreviews() {
+  const loadPreviews = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('email_previews')
@@ -95,7 +91,11 @@ export default function EmailPreviewPanel({ campaignId, onApprove, onReject }: E
     } finally {
       setLoading(false);
     }
-  }
+  }, [campaignId]);
+
+  useEffect(() => {
+    loadPreviews();
+  }, [campaignId, loadPreviews]);
 
   async function approvePreview() {
     const preview = previews[currentIndex];

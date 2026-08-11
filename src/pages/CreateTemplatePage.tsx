@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -49,13 +49,7 @@ export default function CreateTemplatePage() {
     personalizationLevel: 'medium'
   });
 
-  useEffect(() => {
-    if (user) {
-      loadAccounts();
-    }
-  }, [user]);
-
-  const loadAccounts = async () => {
+  const loadAccounts = useCallback(async () => {
     try {
       const { data } = await supabase
         .from('gmail_accounts')
@@ -67,7 +61,13 @@ export default function CreateTemplatePage() {
     } catch (error) {
       console.error('Error loading accounts:', error);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadAccounts();
+    }
+  }, [user, loadAccounts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

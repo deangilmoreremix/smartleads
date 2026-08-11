@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   MessageSquare,
@@ -34,13 +34,7 @@ export default function ReplyClassificationPanel({ campaignId }: Props) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<ReplyClassification | 'all'>('all');
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user, campaignId, filter]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [repliesData, statsData] = await Promise.all([
@@ -58,7 +52,13 @@ export default function ReplyClassificationPanel({ campaignId }: Props) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user, campaignId, filter]);
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, loadData]);
 
   async function handleUpdateClassification(replyId: string, classification: ReplyClassification) {
     try {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
@@ -10,11 +10,7 @@ export default function UnipileCallbackPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('Connecting your account...');
 
-  useEffect(() => {
-    handleCallback();
-  }, []);
-
-  const handleCallback = async () => {
+  const handleCallback = useCallback(async () => {
     try {
       const code = searchParams.get('code');
       const error = searchParams.get('error');
@@ -59,7 +55,11 @@ export default function UnipileCallbackPage() {
         navigate('/accounts');
       }, 3000);
     }
-  };
+  }, [searchParams, navigate]);
+
+  useEffect(() => {
+    handleCallback();
+  }, [handleCallback]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

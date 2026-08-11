@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Webhook,
@@ -44,13 +44,7 @@ export default function WebhookManager() {
     secret: '',
   });
 
-  useEffect(() => {
-    if (user) {
-      loadWebhooks();
-    }
-  }, [user]);
-
-  async function loadWebhooks() {
+  const loadWebhooks = useCallback(async () => {
     try {
       const data = await getWebhooks(user!.id);
       setWebhooks(data);
@@ -59,7 +53,13 @@ export default function WebhookManager() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadWebhooks();
+    }
+  }, [user, loadWebhooks]);
 
   async function loadDeliveries(webhookId: string) {
     try {

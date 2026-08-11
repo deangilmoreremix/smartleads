@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Store, Search, Star, Copy, Filter, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
@@ -55,15 +55,7 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
     { value: 'Consulting', label: 'Consulting' }
   ];
 
-  useEffect(() => {
-    loadTemplates();
-  }, []);
-
-  useEffect(() => {
-    filterAndSortTemplates();
-  }, [templates, searchQuery, selectedCategory, selectedIndustry, sortBy]);
-
-  const loadTemplates = async () => {
+  const loadTemplates = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('ai_prompt_marketplace')
@@ -82,9 +74,9 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
       console.error('Error loading templates:', error);
       setLoading(false);
     }
-  };
+  }, []);
 
-  const filterAndSortTemplates = () => {
+  const filterAndSortTemplates = useCallback(() => {
     let filtered = [...templates];
 
     if (searchQuery.trim()) {
@@ -117,7 +109,15 @@ export default function AITemplateMarketplace({ onUseTemplate }: AITemplateMarke
     });
 
     setFilteredTemplates(filtered);
-  };
+  }, [templates, searchQuery, selectedCategory, selectedIndustry, sortBy]);
+
+  useEffect(() => {
+    loadTemplates();
+  }, [loadTemplates]);
+
+  useEffect(() => {
+    filterAndSortTemplates();
+  }, [templates, searchQuery, selectedCategory, selectedIndustry, sortBy, filterAndSortTemplates]);
 
   const handleUseTemplate = (template: MarketplaceTemplate) => {
     onUseTemplate(template);

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, Suspense, lazy, Component, ReactNode } from 'react';
+import { useEffect, useState, useRef, useCallback, Suspense, lazy, Component, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ArrowRight, ArrowLeft, Lightbulb, MousePointer2, Keyboard, Check } from 'lucide-react';
 
@@ -124,49 +124,7 @@ export default function TourStep({
     return () => clearTimeout(timer);
   }, [step.target]);
 
-  useEffect(() => {
-    const findTarget = () => {
-      const target = document.querySelector(step.target);
-      if (target) {
-        const rect = target.getBoundingClientRect();
-        setTargetRect(rect);
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        calculatePosition(rect);
-        setCursorPosition({
-          x: rect.left + rect.width / 2,
-          y: rect.top + rect.height / 2,
-          visible: true
-        });
-      }
-    };
-
-    const timer = setTimeout(findTarget, 50);
-    window.addEventListener('resize', findTarget);
-    window.addEventListener('scroll', findTarget);
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', findTarget);
-      window.removeEventListener('scroll', findTarget);
-    };
-  }, [step.target]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight' || e.key === 'Enter') {
-        handleNext();
-      } else if (e.key === 'ArrowLeft') {
-        if (currentStep > 1) onPrev();
-      } else if (e.key === 'Escape') {
-        onSkip();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onPrev, onSkip, currentStep, isLast]);
-
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (isLast) {
       setShowConfetti(true);
       setTimeout(() => {
@@ -175,9 +133,9 @@ export default function TourStep({
     } else {
       onNext();
     }
-  };
+  }, [isLast, onNext]);
 
-  const calculatePosition = (rect: DOMRect) => {
+  const calculatePosition = useCallback((rect: DOMRect) => {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     const tooltipWidth = 380;
@@ -232,7 +190,49 @@ export default function TourStep({
     y = Math.max(12, Math.min(y, viewportHeight - tooltipHeight - 12));
 
     setTooltipPosition({ x, y });
-  };
+  }, [step.samplePreview, step.illustration, step.position]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'Enter') {
+        handleNext();
+      } else if (e.key === 'ArrowLeft') {
+        if (currentStep > 1) onPrev();
+      } else if (e.key === 'Escape') {
+        onSkip();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onPrev, onSkip, currentStep, isLast, handleNext]);
+
+  useEffect(() => {
+    const findTarget = () => {
+      const target = document.querySelector(step.target);
+      if (target) {
+        const rect = target.getBoundingClientRect();
+        setTargetRect(rect);
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        calculatePosition(rect);
+        setCursorPosition({
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+          visible: true
+        });
+      }
+    };
+
+    const timer = setTimeout(findTarget, 50);
+    window.addEventListener('resize', findTarget);
+    window.addEventListener('scroll', findTarget);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', findTarget);
+      window.removeEventListener('scroll', findTarget);
+    };
+  }, [step.target, calculatePosition]);
 
   const getArrowStyle = () => {
     const baseClasses = 'absolute w-3 h-3 bg-white transform rotate-45 border-gray-200';

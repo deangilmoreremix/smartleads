@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -15,21 +15,7 @@ export function useFeatureAccess(featureName?: string) {
   const [hasAccess, setHasAccess] = useState(false);
   const [allFeatures, setAllFeatures] = useState<Map<string, boolean>>(new Map());
 
-  useEffect(() => {
-    if (user) {
-      if (featureName) {
-        checkFeatureAccess(featureName);
-      } else {
-        loadAllFeatures();
-      }
-    } else {
-      setLoading(false);
-      setHasAccess(false);
-      setAllFeatures(new Map());
-    }
-  }, [user, featureName]);
-
-  const checkFeatureAccess = async (name: string) => {
+  const checkFeatureAccess = useCallback(async (name: string) => {
     try {
       const { data, error } = await (supabase as unknown as RpcClient).rpc('has_feature_access', {
         p_user_id: user!.id,
@@ -48,9 +34,9 @@ export function useFeatureAccess(featureName?: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const loadAllFeatures = async () => {
+  const loadAllFeatures = useCallback(async () => {
     try {
       const { data: features } = await supabase
         .from('feature_flags_v2')
@@ -75,7 +61,21 @@ export function useFeatureAccess(featureName?: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      if (featureName) {
+        checkFeatureAccess(featureName);
+      } else {
+        loadAllFeatures();
+      }
+    } else {
+      setLoading(false);
+      setHasAccess(false);
+      setAllFeatures(new Map());
+    }
+  }, [user, featureName, checkFeatureAccess, loadAllFeatures]);
 
   const checkFeature = (name: string): boolean => {
     return allFeatures.get(name) ?? false;

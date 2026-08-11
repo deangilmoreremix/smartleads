@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Check, Crown, Zap, Rocket, Lock, Linkedin, Mail, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -12,11 +12,7 @@ export default function PlansPage() {
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
-  useEffect(() => {
-    loadData();
-  }, [user]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [plansData, subscriptionData] = await Promise.all([
         subscriptionService.getAllPlans(),
@@ -31,7 +27,11 @@ export default function PlansPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const getPlanIcon = (planName: string) => {
     switch (planName.toLowerCase()) {

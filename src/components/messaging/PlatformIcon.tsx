@@ -38,6 +38,7 @@ export default function PlatformIcon({ platform, size = 'md', showBackground = t
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- helper shared with UnifiedInboxPage; not a component
 export function getPlatformLabel(platform: Platform): string {
   return platformConfig[platform]?.label || 'Other';
 }

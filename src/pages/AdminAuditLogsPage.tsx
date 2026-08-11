@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import {
   History,
@@ -44,11 +44,7 @@ export default function AdminAuditLogsPage() {
   const [hasMore, setHasMore] = useState(true);
   const pageSize = 50;
 
-  useEffect(() => {
-    loadLogs();
-  }, [page, filterAction, filterResource]);
-
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     try {
       setLoading(true);
       let query = supabase
@@ -103,7 +99,11 @@ export default function AdminAuditLogsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, filterAction, filterResource]);
+
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
 
   const filteredLogs = logs.filter((log) => {
     if (!searchQuery) return true;

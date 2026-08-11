@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -40,13 +40,7 @@ export default function SettingsPage() {
   const [dailyEmailLimit, setDailyEmailLimit] = useState(50);
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(defaultNotificationPrefs);
 
-  useEffect(() => {
-    if (user) {
-      loadSettings();
-    }
-  }, [user]);
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       const [profileResult, subscriptionResult, settingsResult] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user!.id).maybeSingle(),
@@ -73,7 +67,13 @@ export default function SettingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadSettings();
+    }
+  }, [user, loadSettings]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
