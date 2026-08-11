@@ -1,4 +1,4 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient, SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import { logProgress } from '../_shared/progress-logger.ts';
 
 const corsHeaders = {
@@ -6,6 +6,14 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
 };
+
+interface GmailAccount {
+  id: string;
+  email: string;
+  unipile_account_id?: string;
+  emails_sent_today?: number;
+  daily_limit?: number;
+}
 
 interface SendEmailsRequest {
   campaignId: string;
@@ -18,7 +26,7 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
-  let supabaseClient: any;
+  let supabaseClient: SupabaseClient;
   let jobId: string | undefined;
 
   try {
@@ -209,8 +217,7 @@ Deno.serve(async (req: Request) => {
           email.leads.email,
           email.subject,
           email.body,
-          campaignId,
-          email.id
+          campaignId
         );
 
         if (result.success) {
@@ -259,13 +266,13 @@ Deno.serve(async (req: Request) => {
             });
           }
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error(`Failed to send email ${email.id}:`, error);
         await supabaseClient
           .from('emails')
           .update({
             status: 'failed',
-            error_message: error.message,
+            error_message: (error as Error).message,
           })
           .eq('id', email.id);
 
@@ -337,7 +344,7 @@ Deno.serve(async (req: Request) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Email sending error:', error);
 
     if (supabaseClient && jobId) {
@@ -345,19 +352,19 @@ Deno.serve(async (req: Request) => {
         .from('agent_jobs')
         .update({
           status: 'failed',
-          error_message: error.message || 'Failed to send emails'
+          error_message: (error as Error).message || 'Failed to send emails'
         })
         .eq('id', jobId);
 
       await logProgress(supabaseClient, jobId, {
         level: 'error',
         icon: '❌',
-        message: `Error: ${error.message || 'Failed to send emails'}`
+        message: `Error: ${(error as Error).message || 'Failed to send emails'}`
       });
     }
 
     return new Response(
-      JSON.stringify({ error: error.message || 'Failed to send emails' }),
+      JSON.stringify({ error: (error as Error).message || 'Failed to send emails' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
@@ -365,12 +372,11 @@ Deno.serve(async (req: Request) => {
 
 async function sendEmailViaUnipile(
   apiKey: string,
-  gmailAccount: any,
+  gmailAccount: GmailAccount,
   to: string,
   subject: string,
   body: string,
-  campaignId: string,
-  emailId: string
+  campaignId: string
 ): Promise<{ success: boolean; message_id?: string }> {
   console.log(`Sending email via Unipile from ${gmailAccount.email} to ${to}`);
 
@@ -446,7 +452,7 @@ async function sendEmailViaUnipile(
       success: true,
       message_id: result.id || result.message_id,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error sending email via Unipile:', error);
     throw error;
   }

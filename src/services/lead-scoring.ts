@@ -131,7 +131,7 @@ export async function recalculateLeadScores(campaignId: string): Promise<number>
 export async function getLeadsByQualityTier(
   campaignId: string,
   tier: 'high' | 'medium' | 'low'
-): Promise<any[]> {
+): Promise<Database['public']['Tables']['leads']['Row'][]> {
   let minScore = 0;
   let maxScore = 100;
 

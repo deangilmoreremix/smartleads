@@ -78,7 +78,7 @@ Deno.serve(async (req: Request) => {
       const { data: existingBucket } = await supabaseAdmin.storage.getBucket(bucket.name);
 
       if (!existingBucket) {
-        const { data, error } = await supabaseAdmin.storage.createBucket(bucket.name, {
+        const { error } = await supabaseAdmin.storage.createBucket(bucket.name, {
           public: bucket.public,
           fileSizeLimit: bucket.fileSizeLimit,
           allowedMimeTypes: bucket.allowedMimeTypes,

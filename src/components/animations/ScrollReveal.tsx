@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, type RefObject } from 'react';
 import { useScrollAnimation } from '../../hooks/useScrollAnimation';
 
 interface ScrollRevealProps {
@@ -39,7 +39,7 @@ export function ScrollReveal({
 
   return (
     <div
-      ref={ref as any}
+      ref={ref as RefObject<HTMLDivElement>}
       className={className}
       style={{
         opacity: isVisible ? 1 : 0,

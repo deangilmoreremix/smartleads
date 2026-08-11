@@ -1,4 +1,4 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient, SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,7 +9,7 @@ const corsHeaders = {
 interface WebhookPayload {
   event: string;
   timestamp?: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }
 
 Deno.serve(async (req: Request) => {
@@ -25,7 +25,6 @@ Deno.serve(async (req: Request) => {
 
     const url = new URL(req.url);
     const userId = url.searchParams.get('user_id');
-    const webhookSecret = req.headers.get('X-Webhook-Secret');
 
     if (!userId) {
       return new Response(
@@ -56,7 +55,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    let result: Record<string, any> = {};
+    let result: Record<string, unknown> = {};
 
     switch (payload.event) {
       case 'lead.create': {
@@ -139,7 +138,7 @@ Deno.serve(async (req: Request) => {
         }
 
         const allowedFields = ['pipeline_stage', 'status', 'notes', 'custom_fields', 'phone', 'website'];
-        const sanitizedUpdates: Record<string, any> = {};
+        const sanitizedUpdates: Record<string, unknown> = {};
         for (const key of allowedFields) {
           if (updates[key] !== undefined) {
             sanitizedUpdates[key] = updates[key];
@@ -337,21 +336,21 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({ success: true, ...result }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Webhook error:', error);
 
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
+      JSON.stringify({ error: (error as Error).message || 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
 
 async function triggerOutgoingWebhooks(
-  supabase: any,
+  supabase: SupabaseClient,
   userId: string,
   eventType: string,
-  payload: Record<string, any>
+  payload: Record<string, unknown>
 ) {
   try {
     const { data: webhooks } = await supabase

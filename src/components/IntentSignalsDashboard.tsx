@@ -110,7 +110,7 @@ export default function IntentSignalsDashboard() {
         prev.map(s => (s.id === signalId ? { ...s, action_taken: true } : s))
       );
       toast.success('Signal marked as acted upon');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update signal');
     }
   }

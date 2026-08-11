@@ -32,7 +32,7 @@ export function sanitizeInput(input: string): string {
   return input.trim().replace(/[<>]/g, '');
 }
 
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -66,7 +66,7 @@ export function calculatePercentage(value: number, total: number): number {
   return Math.round((value / total) * 100);
 }
 
-export function exportToCSV(data: any[], filename: string): void {
+export function exportToCSV(data: Record<string, unknown>[], filename: string): void {
   if (data.length === 0) return;
 
   const headers = Object.keys(data[0]);

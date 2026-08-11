@@ -142,8 +142,8 @@ export default function NewCampaignPage() {
 
       setStep('sequence');
       toast.success('Campaign created! Now set up your email sequence.');
-    } catch (err: any) {
-      setError(err.message || 'Failed to create campaign');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create campaign');
     } finally {
       setLoading(false);
     }

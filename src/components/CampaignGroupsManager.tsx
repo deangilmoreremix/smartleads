@@ -23,11 +23,7 @@ import {
   type CampaignInGroup,
 } from '../services/campaign-groups';
 
-interface Props {
-  onSelectGroup?: (groupId: string | null) => void;
-}
-
-export default function CampaignGroupsManager({ onSelectGroup: _onSelectGroup }: Props) {
+export default function CampaignGroupsManager() {
   const { user } = useAuth();
   const [groups, setGroups] = useState<CampaignGroup[]>([]);
   const [ungrouped, setUngrouped] = useState<CampaignInGroup[]>([]);
@@ -93,7 +89,7 @@ export default function CampaignGroupsManager({ onSelectGroup: _onSelectGroup }:
 
       resetForm();
       loadData();
-    } catch (error) {
+    } catch {
       toast.error('Failed to save group');
     }
   }
@@ -105,7 +101,7 @@ export default function CampaignGroupsManager({ onSelectGroup: _onSelectGroup }:
       await deleteCampaignGroup(groupId);
       toast.success('Group deleted');
       loadData();
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete group');
     }
   }
@@ -115,7 +111,7 @@ export default function CampaignGroupsManager({ onSelectGroup: _onSelectGroup }:
       await assignCampaignToGroup(campaignId, groupId);
       toast.success(groupId ? 'Campaign added to group' : 'Campaign removed from group');
       loadData();
-    } catch (error) {
+    } catch {
       toast.error('Failed to update campaign');
     }
   }

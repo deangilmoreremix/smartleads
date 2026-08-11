@@ -105,7 +105,7 @@ export default function ABTestManager({ sequenceId, campaignId, stepNumber = 1 }
       if (error) throw error;
       toast.success(isActive ? 'Test paused' : 'Test activated');
       loadTests();
-    } catch (error) {
+    } catch {
       toast.error('Failed to update test');
     }
   }
@@ -122,7 +122,7 @@ export default function ABTestManager({ sequenceId, campaignId, stepNumber = 1 }
       if (error) throw error;
       toast.success('Test deleted');
       loadTests();
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete test');
     }
   }

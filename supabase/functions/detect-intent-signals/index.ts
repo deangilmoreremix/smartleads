@@ -74,7 +74,7 @@ Deno.serve(async (req: Request) => {
     const { leadId, companyName, campaignId } = await req.json();
 
     let targetCompany = companyName;
-    let targetLeadId = leadId;
+    const targetLeadId = leadId;
     let targetCampaignId = campaignId;
 
     if (leadId) {

@@ -60,10 +60,10 @@ export default function ApiKeysStatus() {
       } else {
         toast.error('Some API keys are not configured');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error verifying API keys:', err);
-      setError(err.message);
-      toast.error(err.message);
+      setError((err as Error).message);
+      toast.error((err as Error).message);
     } finally {
       setLoading(false);
     }

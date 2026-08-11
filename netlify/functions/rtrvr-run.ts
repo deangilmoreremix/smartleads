@@ -1,4 +1,4 @@
-import type { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
+import type { Handler, HandlerEvent } from '@netlify/functions';
 
 const RTRVR_API_URL = 'https://api.rtrvr.ai/agent';
 const REQUEST_TIMEOUT_MS = 300000;
@@ -93,7 +93,7 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: nu
   }
 }
 
-const handler: Handler = async (event: HandlerEvent, _context: HandlerContext) => {
+const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod === 'OPTIONS') {
     return createResponse(200, {});
   }

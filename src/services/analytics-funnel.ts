@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import type { Database } from '../types/database';
 
 export interface FunnelData {
   leadsScraped: number;
@@ -221,7 +222,7 @@ export async function updateFunnelMetrics(
     .maybeSingle();
 
   if (existing) {
-    const updates: any = {};
+    const updates: Record<string, number> = {};
     if (metrics.leadsScraped !== undefined) updates.leads_scraped = (existing.leads_scraped ?? 0) + metrics.leadsScraped;
     if (metrics.leadsQualified !== undefined) updates.leads_qualified = (existing.leads_qualified ?? 0) + metrics.leadsQualified;
     if (metrics.emailsSent !== undefined) updates.emails_sent = (existing.emails_sent ?? 0) + metrics.emailsSent;
@@ -232,7 +233,7 @@ export async function updateFunnelMetrics(
 
     await supabase
       .from('analytics_funnel')
-      .update(updates)
+      .update(updates as unknown as Database['public']['Tables']['analytics_funnel']['Update'])
       .eq('id', existing.id ?? '');
   } else {
     await supabase.from('analytics_funnel').insert({

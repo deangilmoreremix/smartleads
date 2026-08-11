@@ -13,8 +13,20 @@ import { extractVariables } from '../lib/ai-utils';
 import type { Database } from '../types/database';
 
 type GmailAccount = Database['public']['Tables']['gmail_accounts']['Row'];
+type EmailTemplateInsert = Database['public']['Tables']['email_templates']['Insert'];
 
 type TabType = 'builder' | 'preview' | 'assistant' | 'marketplace' | 'analytics';
+
+interface MarketplaceTemplate {
+  name: string;
+  prompt_text: string;
+  tone: string;
+  category: string;
+  industry?: string;
+}
+
+const getErrorMessage = (error: unknown, fallback: string): string =>
+  error instanceof Error ? error.message : fallback;
 
 export default function CreateTemplatePage() {
   const navigate = useNavigate();
@@ -95,7 +107,7 @@ export default function CreateTemplatePage() {
         }
       }
 
-      const templateData: any = {
+      const templateData: EmailTemplateInsert = {
         user_id: user!.id,
         name: formData.name,
         template_type: emailType,
@@ -105,7 +117,9 @@ export default function CreateTemplatePage() {
         industry: formData.industry || null,
         target_audience: formData.targetAudience,
         personalization_level: formData.personalizationLevel,
-        variables: variables
+        variables,
+        subject: '',
+        body: ''
       };
 
       if (emailType === 'manual') {
@@ -113,8 +127,6 @@ export default function CreateTemplatePage() {
         templateData.body = formData.body;
       } else {
         templateData.ai_prompt = formData.aiPrompt;
-        templateData.subject = '';
-        templateData.body = '';
       }
 
       const { error } = await supabase
@@ -125,15 +137,15 @@ export default function CreateTemplatePage() {
 
       toast.success('Template created successfully');
       navigate('/dashboard/templates');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating template:', error);
-      toast.error(error.message || 'Failed to create template');
+      toast.error(getErrorMessage(error, 'Failed to create template'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleMarketplaceTemplateUse = (template: any) => {
+  const handleMarketplaceTemplateUse = (template: MarketplaceTemplate) => {
     setFormData({
       ...formData,
       name: template.name,

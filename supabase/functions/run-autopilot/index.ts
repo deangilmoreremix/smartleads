@@ -147,7 +147,7 @@ async function generatePersonalizedEmailWithIntelligence(openai: OpenAI, lead: {
   const response = await openai.responses.create({ model: 'gpt-5-mini', instructions: systemPrompt, input: userPrompt, reasoning: { effort: 'low' }, text: { format: { type: 'json_object' } } });
   const outputText = response.output?.[0]?.content?.[0]?.text || '{}';
   let parsed: { subject?: string; body?: string };
-  try { parsed = JSON.parse(outputText); } catch { const subjectMatch = outputText.match(/"subject"\s*:\s*"([^"]+)"/); const bodyMatch = outputText.match(/"body"\s*:\s*"([\s\S]*?)(?:"\s*,|\"\s*\})/); parsed = { subject: subjectMatch?.[1] || `Quick question about ${businessName}`, body: bodyMatch?.[1]?.replace(/\\n/g, '\n') || outputText }; }
+  try { parsed = JSON.parse(outputText); } catch { const subjectMatch = outputText.match(/"subject"\s*:\s*"([^"]+)"/); const bodyMatch = outputText.match(/"body"\s*:\s*"([\s\S]*?)(?:"\s*,|"\s*\})/); parsed = { subject: subjectMatch?.[1] || `Quick question about ${businessName}`, body: bodyMatch?.[1]?.replace(/\\n/g, '\n') || outputText }; }
   return { subject: parsed.subject || `Quick question about ${businessName}`, body: parsed.body || '', tokens };
 }
 

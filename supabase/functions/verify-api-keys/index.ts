@@ -36,8 +36,8 @@ async function verifyRtrvrKey(apiKey: string): Promise<{ valid: boolean; message
     } else {
       return { valid: false, message: 'Unable to verify API key', error: `HTTP ${response.status}` };
     }
-  } catch (error: any) {
-    return { valid: false, message: 'Connection failed', error: error.message };
+  } catch (error) {
+    return { valid: false, message: 'Connection failed', error: (error as Error).message };
   }
 }
 
@@ -55,8 +55,8 @@ async function verifyOpenAIKey(apiKey: string): Promise<{ valid: boolean; messag
     } else {
       return { valid: false, message: 'Unable to verify API key', error: `HTTP ${response.status}` };
     }
-  } catch (error: any) {
-    return { valid: false, message: 'Connection failed', error: error.message };
+  } catch (error) {
+    return { valid: false, message: 'Connection failed', error: (error as Error).message };
   }
 }
 
@@ -74,8 +74,8 @@ async function verifyUnipileKey(apiKey: string): Promise<{ valid: boolean; messa
     } else {
       return { valid: false, message: 'Unable to verify API key', error: `HTTP ${response.status}` };
     }
-  } catch (error: any) {
-    return { valid: false, message: 'Connection failed', error: error.message };
+  } catch (error) {
+    return { valid: false, message: 'Connection failed', error: (error as Error).message };
   }
 }
 
@@ -181,10 +181,10 @@ Deno.serve(async (req: Request) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error verifying API keys:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

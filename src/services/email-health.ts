@@ -19,6 +19,22 @@ export interface EmailHealthScore {
   last_calculated_at: string;
 }
 
+interface GmailAccountRow {
+  id: string;
+  email: string;
+  warmup_enabled: boolean | null;
+  warmup_start_date: string | null;
+  warmup_daily_increment: number | null;
+  daily_limit: number | null;
+  emails_sent_today: number | null;
+  reputation_score: number | null;
+  email_health_scores: EmailHealthScore[] | null;
+}
+
+interface EmailRow {
+  status: string | null;
+}
+
 export interface GmailAccountHealth {
   id: string;
   email: string;
@@ -49,7 +65,9 @@ export async function getEmailHealthScores(userId: string): Promise<GmailAccount
 
   if (error) throw error;
 
-  return (accounts || []).map((account: any) => {
+  const rows = (accounts || []) as unknown as GmailAccountRow[];
+
+  return rows.map((account) => {
     const warmupDay = account.warmup_start_date
       ? Math.floor((Date.now() - new Date(account.warmup_start_date).getTime()) / (1000 * 60 * 60 * 24))
       : 0;
@@ -58,10 +76,10 @@ export async function getEmailHealthScores(userId: string): Promise<GmailAccount
       id: account.id,
       email: account.email,
       healthScore: account.email_health_scores?.[0] || null,
-      warmupEnabled: account.warmup_enabled,
+      warmupEnabled: account.warmup_enabled ?? false,
       warmupDay,
-      dailyLimit: account.daily_limit,
-      emailsSentToday: account.emails_sent_today,
+      dailyLimit: account.daily_limit ?? 0,
+      emailsSentToday: account.emails_sent_today ?? 0,
       reputationScore: account.reputation_score || 100,
     };
   });
@@ -85,11 +103,11 @@ export async function calculateHealthScore(gmailAccountId: string): Promise<numb
     .gte('created_at', thirtyDaysAgo)
     .in('status', ['sent', 'opened', 'replied', 'bounced']);
 
-  const allEmails = emails || [];
+  const allEmails = (emails || []) as EmailRow[];
   const totalSent = allEmails.length;
-  const bounced = allEmails.filter((e: any) => e.status === 'bounced').length;
-  const opened = allEmails.filter((e: any) => e.status === 'opened').length;
-  const replied = allEmails.filter((e: any) => e.status === 'replied').length;
+  const bounced = allEmails.filter((e) => e.status === 'bounced').length;
+  const opened = allEmails.filter((e) => e.status === 'opened').length;
+  const replied = allEmails.filter((e) => e.status === 'replied').length;
 
   const bounceRate = totalSent > 0 ? (bounced / totalSent) * 100 : 0;
   const openRate = totalSent > 0 ? (opened / totalSent) * 100 : 0;

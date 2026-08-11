@@ -132,9 +132,9 @@ Write the email body only, no subject line.`;
       setPreviews(generatedPreviews);
       setSelectedPreview(0);
       toast.success(`Generated ${generatedPreviews.length} preview emails`);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Preview generation error:', error);
-      toast.error(error.message || 'Failed to generate previews');
+      toast.error((error as Error).message || 'Failed to generate previews');
     } finally {
       setIsGenerating(false);
     }
@@ -216,9 +216,9 @@ Write the email body only, no subject line. Make it unique from previous version
       };
       setPreviews(newPreviews);
       toast.success('Preview regenerated');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Regeneration error:', error);
-      toast.error(error.message || 'Failed to regenerate preview');
+      toast.error((error as Error).message || 'Failed to regenerate preview');
     } finally {
       setIsGenerating(false);
     }

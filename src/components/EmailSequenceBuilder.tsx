@@ -50,7 +50,7 @@ export default function EmailSequenceBuilder({
     setSteps(updatedSteps);
   };
 
-  const updateStep = (stepNumber: number, field: keyof SequenceStep, value: any) => {
+  const updateStep = (stepNumber: number, field: keyof SequenceStep, value: SequenceStep[keyof SequenceStep]) => {
     setSteps(
       steps.map((s) =>
         s.step_number === stepNumber ? { ...s, [field]: value } : s

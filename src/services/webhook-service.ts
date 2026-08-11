@@ -18,7 +18,7 @@ export interface WebhookDelivery {
   webhook_id: string;
   user_id: string;
   event_type: string;
-  payload: Record<string, any>;
+  payload: Record<string, unknown>;
   status_code: number | null;
   response_body: string | null;
   error_message: string | null;
@@ -159,18 +159,19 @@ export async function testWebhook(webhookId: string): Promise<{
       success: response.ok,
       statusCode: response.status,
     };
-  } catch (err: any) {
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
     await supabase.from('webhook_deliveries').insert({
       webhook_id: webhookId,
       user_id: webhook.user_id,
       event_type: 'test',
       payload: testPayload,
-      error_message: err.message,
+      error_message: errorMessage,
     } as never);
 
     return {
       success: false,
-      error: err.message,
+      error: errorMessage,
     };
   }
 }
@@ -193,7 +194,7 @@ export async function getWebhookDeliveries(
 export async function triggerWebhooks(
   userId: string,
   eventType: WebhookEventType,
-  payload: Record<string, any>
+  payload: Record<string, unknown>
 ): Promise<void> {
   const { data: webhooks } = await supabase
     .from('webhook_configurations')

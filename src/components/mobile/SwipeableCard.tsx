@@ -31,7 +31,7 @@ export function SwipeableCard({
       }}
       onTouchMove={(e) => {
         const touch = e.touches[0];
-        const startX = (e.currentTarget as any).touchStartX || 0;
+        const startX = (e.currentTarget as HTMLDivElement & { touchStartX?: number }).touchStartX || 0;
         setOffset(touch.clientX - startX);
         swipeHandlers.onTouchMove(e);
       }}

@@ -51,10 +51,10 @@ export default function AIWritingAssistant({
         type: activeTab,
         content,
       });
-    } catch (err: any) {
+    } catch (err) {
       console.error('Generation error:', err);
-      setError(err.message || 'Failed to generate content. Please try again.');
-      toast.error(err.message || 'Failed to generate content');
+      setError((err as Error).message || 'Failed to generate content. Please try again.');
+      toast.error((err as Error).message || 'Failed to generate content');
     } finally {
       setIsGenerating(false);
     }

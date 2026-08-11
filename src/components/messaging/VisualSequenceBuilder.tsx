@@ -123,7 +123,7 @@ export default function VisualSequenceBuilder({
     toast.success('Step duplicated');
   };
 
-  const updateStep = (stepId: string, field: keyof SequenceStep, value: any) => {
+  const updateStep = (stepId: string, field: keyof SequenceStep, value: SequenceStep[keyof SequenceStep]) => {
     updateSteps(
       steps.map((s) =>
         s.id === stepId ? { ...s, [field]: value } : s

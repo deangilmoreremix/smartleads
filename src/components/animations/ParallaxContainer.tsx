@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, type RefObject } from 'react';
 import { useParallax } from '../../hooks/useScrollAnimation';
 
 interface ParallaxContainerProps {
@@ -16,7 +16,7 @@ export function ParallaxContainer({
 
   return (
     <div
-      ref={ref as any}
+      ref={ref as RefObject<HTMLDivElement>}
       className={className}
       style={{
         transform: `translateY(${offset}px)`,

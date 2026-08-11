@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
 import { useScrollAnimation } from '../../hooks/useScrollAnimation';
 
 interface AnimatedProgressRingProps {
@@ -43,7 +43,7 @@ export function AnimatedProgressRing({
   }, [isVisible, percentage]);
 
   return (
-    <div ref={ref as any} className="flex flex-col items-center">
+    <div ref={ref as RefObject<HTMLDivElement>} className="flex flex-col items-center">
       <svg width={size} height={size} className="transform -rotate-90">
         <circle
           cx={size / 2}

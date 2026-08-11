@@ -83,7 +83,7 @@ export default function PlansPage() {
     };
 
     return Object.entries(features)
-      .filter(([_, enabled]) => enabled)
+      .filter((entry) => entry[1])
       .map(([key]) => ({
         key,
         label: featureMap[key] || subscriptionService.getFeatureLabel(key),

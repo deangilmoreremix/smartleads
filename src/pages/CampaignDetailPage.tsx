@@ -20,9 +20,13 @@ import { startAutomatedCampaign, scrapeGoogleMapsLeads, generateAIEmails, sendEm
 import ConfirmDialog from '../components/ConfirmDialog';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { VisualSequenceBuilder } from '../components/messaging';
+import { RtrvrSettings } from '../components/RtrvrScrapingSettings';
 
 type Campaign = Database['public']['Tables']['campaigns']['Row'];
 type Lead = Database['public']['Tables']['leads']['Row'];
+
+const getErrorMessage = (error: unknown, fallback: string): string =>
+  error instanceof Error ? error.message : fallback;
 
 export default function CampaignDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -116,7 +120,7 @@ export default function CampaignDetailPage() {
         campaignId: campaign.id,
         niche: campaign.niche,
         location: campaign.location,
-        rtrvrSettings: (campaign as any).rtrvr_settings || undefined,
+        rtrvrSettings: (campaign.rtrvr_settings as unknown as RtrvrSettings) || undefined,
       });
 
       if (result.jobId) {
@@ -125,9 +129,9 @@ export default function CampaignDetailPage() {
           navigate(`/agent/progress/${result.jobId}?campaign_id=${campaign.id}`);
         }, 500);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Scraping error:', error);
-      toast.error(error.message || 'Failed to start lead scraping');
+      toast.error(getErrorMessage(error, 'Failed to start lead scraping'));
       setIsAutomating(false);
       setAutomationStatus('');
     }
@@ -150,9 +154,9 @@ export default function CampaignDetailPage() {
           navigate(`/agent/progress/${result.jobId}?campaign_id=${campaign.id}`);
         }, 500);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Email generation error:', error);
-      toast.error(error.message || 'Failed to start email generation');
+      toast.error(getErrorMessage(error, 'Failed to start email generation'));
       setIsAutomating(false);
       setAutomationStatus('');
     }
@@ -176,9 +180,9 @@ export default function CampaignDetailPage() {
           navigate(`/agent/progress/${result.jobId}?campaign_id=${campaign.id}`);
         }, 500);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Email sending error:', error);
-      toast.error(error.message || 'Failed to start sending emails');
+      toast.error(getErrorMessage(error, 'Failed to start sending emails'));
       setIsAutomating(false);
       setAutomationStatus('');
     }
@@ -194,9 +198,9 @@ export default function CampaignDetailPage() {
       await startAutomatedCampaign(campaign.id, campaign.niche, campaign.location);
       toast.success('Automated campaign started successfully!');
       await loadCampaignDetails();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Automation error:', error);
-      toast.error(error.message || 'Failed to start automation');
+      toast.error(getErrorMessage(error, 'Failed to start automation'));
     } finally {
       setIsAutomating(false);
       setAutomationStatus('');

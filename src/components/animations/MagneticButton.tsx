@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, type RefObject } from 'react';
 import { useMagneticEffect } from '../../hooks/useMagneticEffect';
 
 interface MagneticButtonProps {
@@ -18,7 +18,7 @@ export function MagneticButton({
 
   return (
     <button
-      ref={ref as any}
+      ref={ref as RefObject<HTMLButtonElement>}
       onClick={onClick}
       className={`relative ${className}`}
       style={magneticStyle}

@@ -7,14 +7,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-interface SequenceStep {
-  id: string;
-  campaign_id: string;
-  step_number: number;
-  delay_days: number;
-  subject: string;
-  body: string;
-  is_active: boolean;
+interface LeadDetails {
+  business_name?: string;
+  email?: string;
+  decision_maker_name?: string;
+  website?: string;
+  phone?: string;
 }
 
 Deno.serve(async (req: Request) => {
@@ -233,7 +231,7 @@ function sanitizeValue(value: string): string {
     .trim();
 }
 
-function personalizeContent(content: string, leadDetails: any): string {
+function personalizeContent(content: string, leadDetails: LeadDetails): string {
   let personalized = content;
   const businessName = sanitizeValue(leadDetails.business_name || "");
   const email = sanitizeValue(leadDetails.email || "");

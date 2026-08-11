@@ -5,6 +5,9 @@ import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { validateEmail } from '../lib/utils';
 
+const getErrorMessage = (error: unknown, fallback: string): string =>
+  error instanceof Error ? error.message : fallback;
+
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,8 +28,8 @@ export default function ForgotPasswordPage() {
       await resetPassword(email);
       setSent(true);
       toast.success('Password reset link sent to your email');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to send reset link');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Failed to send reset link'));
     } finally {
       setLoading(false);
     }

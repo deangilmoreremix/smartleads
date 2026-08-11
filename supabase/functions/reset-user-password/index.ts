@@ -42,7 +42,7 @@ Deno.serve(async (req: Request) => {
       .select('role_id, roles!inner(name)')
       .eq('user_id', user.id);
 
-    const isAdmin = userRoles.data?.some((ur: any) => ur.roles.name === 'admin');
+    const isAdmin = userRoles.data?.some((ur: { roles: { name: string } }) => ur.roles.name === 'admin');
 
     if (!isAdmin) {
       throw new Error("Only admins can reset passwords");
@@ -66,7 +66,7 @@ Deno.serve(async (req: Request) => {
       throw new Error("User not found");
     }
 
-    const { data, error: updateError } = await supabase.auth.admin.updateUserById(
+    const { error: updateError } = await supabase.auth.admin.updateUserById(
       userToUpdate.id,
       { password: newPassword }
     );

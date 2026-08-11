@@ -65,7 +65,7 @@ export default function ReplyClassificationPanel({ campaignId }: Props) {
       await updateClassification(replyId, classification);
       toast.success('Classification updated');
       loadData();
-    } catch (error) {
+    } catch {
       toast.error('Failed to update');
     }
   }
@@ -148,7 +148,7 @@ export default function ReplyClassificationPanel({ campaignId }: Props) {
         <Filter className="w-4 h-4 text-gray-400" />
         <select
           value={filter}
-          onChange={(e) => setFilter(e.target.value as any)}
+          onChange={(e) => setFilter(e.target.value as ReplyClassification | 'all')}
           className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20"
         >
           <option value="all">All Replies</option>

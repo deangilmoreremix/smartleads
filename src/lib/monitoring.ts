@@ -23,7 +23,7 @@ interface LogEntry {
   level: LogLevel;
   category: LogCategory;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   userId?: string;
   campaignId?: string;
   leadId?: string;
@@ -82,7 +82,7 @@ export class Logger {
   public info(
     category: LogCategory,
     message: string,
-    details?: Record<string, any>,
+    details?: Record<string, unknown>,
     metadata?: { userId?: string; campaignId?: string; leadId?: string }
   ): void {
     this.log({
@@ -97,7 +97,7 @@ export class Logger {
   public warning(
     category: LogCategory,
     message: string,
-    details?: Record<string, any>,
+    details?: Record<string, unknown>,
     metadata?: { userId?: string; campaignId?: string; leadId?: string }
   ): void {
     this.log({
@@ -113,7 +113,7 @@ export class Logger {
     category: LogCategory,
     message: string,
     error?: Error,
-    details?: Record<string, any>,
+    details?: Record<string, unknown>,
     metadata?: { userId?: string; campaignId?: string; leadId?: string }
   ): void {
     this.log({
@@ -130,7 +130,7 @@ export class Logger {
     category: LogCategory,
     message: string,
     error?: Error,
-    details?: Record<string, any>,
+    details?: Record<string, unknown>,
     metadata?: { userId?: string; campaignId?: string; leadId?: string }
   ): void {
     this.log({
@@ -249,7 +249,7 @@ export const metrics = MetricsCollector.getInstance();
 export async function trackEmailVerification(
   status: 'success' | 'failed',
   userId: string,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ): Promise<void> {
   metrics.increment(`email_verification.${status}`, 1, { userId });
 

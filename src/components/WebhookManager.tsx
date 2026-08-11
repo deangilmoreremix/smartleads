@@ -103,7 +103,7 @@ export default function WebhookManager() {
 
       resetForm();
       loadWebhooks();
-    } catch (error) {
+    } catch {
       toast.error('Failed to save webhook');
     }
   }
@@ -115,7 +115,7 @@ export default function WebhookManager() {
       await deleteWebhook(webhookId);
       toast.success('Webhook deleted');
       loadWebhooks();
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete webhook');
     }
   }
@@ -130,7 +130,7 @@ export default function WebhookManager() {
         toast.error(result.error || 'Test failed');
       }
       loadDeliveries(webhookId);
-    } catch (error) {
+    } catch {
       toast.error('Test failed');
     } finally {
       setTesting(null);

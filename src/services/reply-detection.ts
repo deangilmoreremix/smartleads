@@ -9,6 +9,16 @@ export interface ReplyInfo {
   sentiment?: 'positive' | 'negative' | 'neutral';
 }
 
+interface PausedSequenceRow {
+  lead_id: string;
+  pause_reason: string | null;
+  updated_at: string | null;
+  leads: {
+    business_name: string | null;
+    campaigns: { name: string | null } | null;
+  } | null;
+}
+
 export async function handleReplyDetected(replyInfo: ReplyInfo): Promise<void> {
   const { leadId, campaignId, repliedAt } = replyInfo;
 
@@ -157,8 +167,15 @@ export async function bulkPauseSequences(
   return { successCount, failCount };
 }
 
-export async function detectReplyFromUnipileWebhook(webhookData: any): Promise<ReplyInfo | null> {
-  const { type, object } = webhookData;
+export async function detectReplyFromUnipileWebhook(webhookData: Record<string, unknown>): Promise<ReplyInfo | null> {
+  const type = webhookData.type as string | undefined;
+  const object = webhookData.object as {
+    is_from_me?: boolean;
+    in_reply_to?: string;
+    thread_id?: string;
+    body?: { text?: string; html?: string };
+    created_at?: string;
+  } | undefined;
 
   if (type !== 'MESSAGING.MESSAGE.CREATED') {
     return null;
@@ -166,11 +183,19 @@ export async function detectReplyFromUnipileWebhook(webhookData: any): Promise<R
 
   const message = object;
 
-  if (!message.is_from_me) {
-    const { data: sentEmail } = await supabase
-      .from('emails')
-      .select(
-        `
+  if (!message || message.is_from_me) {
+    return null;
+  }
+
+  const threadRef = message.in_reply_to || message.thread_id;
+  if (!threadRef) {
+    return null;
+  }
+
+  const { data: sentEmail } = await supabase
+    .from('emails')
+    .select(
+      `
         id,
         lead_id,
         campaign_id,
@@ -179,21 +204,21 @@ export async function detectReplyFromUnipileWebhook(webhookData: any): Promise<R
           email
         )
       `
-      )
-      .eq('unipile_message_id', message.in_reply_to || message.thread_id)
-      .maybeSingle();
+    )
+    .eq('unipile_message_id', threadRef)
+    .maybeSingle();
 
     if (sentEmail) {
+      const bodyText = message.body?.text || message.body?.html || '';
       return {
         emailId: sentEmail.id,
         leadId: sentEmail.lead_id,
         campaignId: sentEmail.campaign_id,
-        replyText: message.body?.text || message.body?.html || '',
+        replyText: bodyText,
         repliedAt: message.created_at || new Date().toISOString(),
-        sentiment: analyzeSentiment(message.body?.text || message.body?.html || ''),
+        sentiment: analyzeSentiment(bodyText),
       };
     }
-  }
 
   return null;
 }
@@ -240,7 +265,7 @@ function analyzeSentiment(text: string): 'positive' | 'negative' | 'neutral' {
   return 'neutral';
 }
 
-export async function getPausedSequences(_userId: string): Promise<Array<{
+export async function getPausedSequences(): Promise<Array<{
   leadId: string;
   businessName: string;
   campaignName: string;
@@ -271,11 +296,11 @@ export async function getPausedSequences(_userId: string): Promise<Array<{
     return [];
   }
 
-  return data.map((item: any) => ({
+  return (data as unknown as PausedSequenceRow[]).map((item) => ({
     leadId: item.lead_id,
     businessName: item.leads?.business_name || 'Unknown',
     campaignName: item.leads?.campaigns?.name || 'Unknown',
     pauseReason: item.pause_reason || 'No reason provided',
-    pausedAt: item.updated_at,
+    pausedAt: item.updated_at ?? '',
   }));
 }

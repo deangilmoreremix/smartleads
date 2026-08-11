@@ -37,12 +37,60 @@ interface GenerateEmailsRequest {
   templateId?: string;
 }
 
+interface EmailTemplate {
+  id?: string;
+  template_type?: string;
+  subject?: string;
+  body?: string;
+  ai_prompt?: string;
+  pitch?: string;
+  tone?: string;
+  industry?: string;
+  target_audience?: string;
+  email_goal?: string;
+}
+
+interface TemplateVariant {
+  id: string;
+  sent_count: number;
+  subject?: string;
+  body?: string;
+  ai_prompt?: string;
+  pitch?: string;
+}
+
+interface UserPrefs {
+  brand_voice?: string;
+  avoid_phrases?: string[];
+  custom_instructions?: string;
+}
+
+interface Lead {
+  id: string;
+  business_name?: string;
+  scraped_data?: { reviews?: Array<{ text?: string }> };
+  rating?: number;
+  review_count?: number;
+  address?: string;
+  website?: string;
+  phone?: string;
+  decision_maker_name?: string;
+  email?: string;
+}
+
+interface Campaign {
+  id?: string;
+  name?: string;
+  location?: string;
+  niche?: string;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
-  let supabaseClient: any;
+  let supabaseClient: SupabaseClient;
   let jobId: string | undefined;
 
   try {
@@ -89,8 +137,8 @@ Deno.serve(async (req: Request) => {
       .eq('user_id', user.id)
       .maybeSingle();
 
-    let emailTemplate = null;
-    let templateVariants: any[] = [];
+    let emailTemplate: EmailTemplate | null = null;
+    let templateVariants: TemplateVariant[] = [];
     if (templateId) {
       const { data: template, error: templateError } = await supabaseClient
         .from('email_templates')
@@ -103,7 +151,7 @@ Deno.serve(async (req: Request) => {
         throw new Error('Template not found or access denied');
       }
 
-      emailTemplate = template;
+      emailTemplate = template as EmailTemplate;
 
       const { data: variants } = await supabaseClient
         .from('template_variants')
@@ -250,7 +298,7 @@ Deno.serve(async (req: Request) => {
             message: `Generated ${i + 1} of ${leads.length} emails...`
           });
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error(`Failed to generate email for lead ${lead.id}:`, error);
 
         await logProgress(supabaseClient, jobId, {
@@ -311,7 +359,7 @@ Deno.serve(async (req: Request) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Email generation error:', error);
 
     if (supabaseClient && jobId) {
@@ -319,26 +367,26 @@ Deno.serve(async (req: Request) => {
         .from('agent_jobs')
         .update({
           status: 'failed',
-          error_message: error.message || 'Failed to generate emails'
+          error_message: (error as Error).message || 'Failed to generate emails'
         })
         .eq('id', jobId);
 
       await logProgress(supabaseClient, jobId, {
         level: 'error',
         icon: '❌',
-        message: `Error: ${error.message || 'Failed to generate emails'}`
+        message: `Error: ${(error as Error).message || 'Failed to generate emails'}`
       });
     }
 
     return new Response(
-      JSON.stringify({ error: error.message || 'Failed to generate emails' }),
+      JSON.stringify({ error: (error as Error).message || 'Failed to generate emails' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
 
 async function getLeadIntelligence(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient,
   leadId: string
 ): Promise<{
   services: string[];
@@ -467,14 +515,14 @@ function buildIntentBasedApproach(
 }
 
 async function generatePersonalizedEmail(
-  lead: any,
-  campaign: any,
-  template: any | null,
-  variant: any | null,
-  userPrefs: any | null,
+  lead: Lead,
+  campaign: Campaign,
+  template: EmailTemplate | null,
+  variant: TemplateVariant | null,
+  userPrefs: UserPrefs | null,
   openai: OpenAI,
-  supabaseClient?: any
-): Promise<{ subject: string; body: string; prompt: string; tokens: any; qualityScore?: number; intelligence?: any }> {
+  supabaseClient?: SupabaseClient
+): Promise<{ subject: string; body: string; prompt: string; tokens: Record<string, string>; qualityScore?: number; intelligence?: Record<string, unknown> }> {
   const businessName = lead.business_name || 'your business';
   const reviews = lead.scraped_data?.reviews || [];
   const rating = lead.rating || 0;
@@ -504,7 +552,7 @@ async function generatePersonalizedEmail(
     ? reviews[0].text.substring(0, 100)
     : null;
 
-  const tokens: any = {
+  const tokens: Record<string, string> = {
     business_name: businessName,
     decision_maker_name: capitalizedName,
     first_name: capitalizedName,
@@ -679,7 +727,7 @@ Write a personalized email that offers value specifically relevant to their situ
       parsed = JSON.parse(outputText);
     } catch {
       const subjectMatch = outputText.match(/"subject"\s*:\s*"([^"]+)"/);
-      const bodyMatch = outputText.match(/"body"\s*:\s*"([\s\S]*?)(?:"\s*,|\"\s*\})/);
+      const bodyMatch = outputText.match(/"body"\s*:\s*"([\s\S]*?)(?:"\s*,|"\s*\})/);
       const scoreMatch = outputText.match(/"quality_score"\s*:\s*(\d+)/);
       parsed = {
         subject: subjectMatch?.[1] || `Quick question about ${businessName}`,
@@ -702,17 +750,19 @@ Write a personalized email that offers value specifically relevant to their situ
         approachUsed: intentApproach?.approach || 'standard',
       } : null,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('OpenAI API error:', error);
 
-    if (error.status === 429) {
+    const err = error as { status?: number; message?: string };
+
+    if (err.status === 429) {
       throw new Error('Rate limit reached. Please try again in a moment.');
     }
 
-    if (error.status === 401) {
+    if (err.status === 401) {
       throw new Error('OpenAI API key is invalid');
     }
 
-    throw new Error(`AI generation failed: ${error.message}`);
+    throw new Error(`AI generation failed: ${err.message}`);
   }
 }

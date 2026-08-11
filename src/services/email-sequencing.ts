@@ -20,6 +20,19 @@ export interface SequenceProgress {
   completed_at: string | null;
 }
 
+export interface LeadDetails {
+  id?: string;
+  campaign_id?: string;
+  email: string;
+  business_name?: string;
+  decision_maker_name?: string;
+  website?: string;
+  phone?: string;
+  user_id?: string;
+  emails_sent_count?: number;
+  [key: string]: unknown;
+}
+
 export async function createSequenceForCampaign(
   campaignId: string,
   steps: Array<{
@@ -197,7 +210,7 @@ export async function getLeadsReadyForNextEmail(): Promise<
     campaignId: string;
     currentStep: number;
     stepDetails: SequenceStep;
-    leadDetails: any;
+    leadDetails: LeadDetails;
   }>
 > {
   const { data: readyLeads, error } = await supabase
@@ -232,7 +245,7 @@ export async function getLeadsReadyForNextEmail(): Promise<
     campaignId: string;
     currentStep: number;
     stepDetails: SequenceStep;
-    leadDetails: any;
+    leadDetails: LeadDetails;
   }> = [];
 
   const progressRows = readyLeads as unknown as Array<{
@@ -332,7 +345,7 @@ export async function advanceLeadToNextStep(
 export async function sendSequenceEmail(
   leadId: string,
   stepDetails: SequenceStep,
-  leadDetails: any
+  leadDetails: LeadDetails
 ): Promise<{ success: boolean; message: string }> {
   const personalizedSubject = personalizeContent(stepDetails.subject, leadDetails);
   const personalizedBody = personalizeContent(stepDetails.body, leadDetails);
@@ -380,7 +393,7 @@ function sanitizeValue(value: string): string {
     .trim();
 }
 
-function personalizeContent(content: string, leadDetails: any): string {
+function personalizeContent(content: string, leadDetails: LeadDetails): string {
   let personalized = content;
 
   // Sanitize all values before replacement

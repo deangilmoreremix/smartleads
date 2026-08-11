@@ -57,7 +57,7 @@ Deno.serve(async (req: Request) => {
       throw new Error("Template not found or access denied");
     }
 
-    const { data: userPrefs } = await supabase
+    await supabase
       .from("user_ai_preferences")
       .select("*")
       .eq("user_id", user.id)
@@ -70,7 +70,7 @@ Deno.serve(async (req: Request) => {
 
     for (let i = 0; i < Math.min(variantCount, 6); i++) {
       try {
-        let systemPrompt = `You are an expert at A/B testing cold emails. Generate a variant of the given email that tests different approaches while maintaining the core value proposition.`;
+        const systemPrompt = `You are an expert at A/B testing cold emails. Generate a variant of the given email that tests different approaches while maintaining the core value proposition.`;
         let userPrompt = '';
 
         if (variationType === 'subject') {
@@ -122,7 +122,7 @@ Deno.serve(async (req: Request) => {
           }
         } catch {
           const subjectMatch = generatedContent.match(/"subject"\s*:\s*"([^"]+)"/);
-          const bodyMatch = generatedContent.match(/"body"\s*:\s*"([\s\S]*?)(?:"\s*,|\"\s*\})/);
+          const bodyMatch = generatedContent.match(/"body"\s*:\s*"([\s\S]*?)(?:"\s*,|"\s*\})/);
           if (variationType === 'subject') {
             variantSubject = subjectMatch?.[1] || template.subject;
           } else if (variationType === 'body') {

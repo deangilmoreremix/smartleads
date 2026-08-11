@@ -410,7 +410,7 @@ export function getDefaultRunConfig(): RunConfig {
   };
 }
 
-function validateGeoConfig(input: unknown, _errors: string[]): GeoConfig {
+function validateGeoConfig(input: unknown): GeoConfig {
   const defaults = getDefaultGeoConfig();
   if (!isObject(input)) return defaults;
 
@@ -435,7 +435,7 @@ function validateGeoConfig(input: unknown, _errors: string[]): GeoConfig {
   };
 }
 
-function validateSearchConfig(input: unknown, _errors: string[]): SearchConfig {
+function validateSearchConfig(input: unknown): SearchConfig {
   const defaults = getDefaultSearchConfig();
   if (!isObject(input)) return defaults;
 
@@ -455,7 +455,7 @@ function validateSearchConfig(input: unknown, _errors: string[]): SearchConfig {
   };
 }
 
-function validateExtractionConfig(input: unknown, _errors: string[]): ExtractionConfig {
+function validateExtractionConfig(input: unknown): ExtractionConfig {
   const defaults = getDefaultExtractionConfig();
   if (!isObject(input)) return defaults;
 
@@ -478,7 +478,7 @@ function validateExtractionConfig(input: unknown, _errors: string[]): Extraction
   };
 }
 
-function validateReviewsConfig(input: unknown, _errors: string[]): ReviewsConfig {
+function validateReviewsConfig(input: unknown): ReviewsConfig {
   const defaults = getDefaultReviewsConfig();
   if (!isObject(input)) return defaults;
 
@@ -499,7 +499,7 @@ function validateReviewsConfig(input: unknown, _errors: string[]): ReviewsConfig
   };
 }
 
-function validateImagesConfig(input: unknown, _errors: string[]): ImagesConfig {
+function validateImagesConfig(input: unknown): ImagesConfig {
   const defaults = getDefaultImagesConfig();
   if (!isObject(input)) return defaults;
 
@@ -530,7 +530,7 @@ function validateSocialsEnabled(input: unknown): SocialsEnabled {
   };
 }
 
-function validateContactsConfig(input: unknown, _errors: string[]): ContactsConfig {
+function validateContactsConfig(input: unknown): ContactsConfig {
   const defaults = getDefaultContactsConfig();
   if (!isObject(input)) return defaults;
 
@@ -562,7 +562,7 @@ function validateEnrichmentFields(input: unknown): EnrichmentFields {
   };
 }
 
-function validateEnrichmentConfig(input: unknown, _errors: string[]): EnrichmentConfig {
+function validateEnrichmentConfig(input: unknown): EnrichmentConfig {
   const defaults = getDefaultEnrichmentConfig();
   if (!isObject(input)) return defaults;
 
@@ -576,7 +576,7 @@ function validateEnrichmentConfig(input: unknown, _errors: string[]): Enrichment
   };
 }
 
-function validateQualityFiltersConfig(input: unknown, _errors: string[]): QualityFiltersConfig {
+function validateQualityFiltersConfig(input: unknown): QualityFiltersConfig {
   const defaults = getDefaultQualityFiltersConfig();
   if (!isObject(input)) return defaults;
 
@@ -599,7 +599,7 @@ function validateQualityFiltersConfig(input: unknown, _errors: string[]): Qualit
   };
 }
 
-function validateOutputConfig(input: unknown, _errors: string[]): OutputConfig {
+function validateOutputConfig(input: unknown): OutputConfig {
   const defaults = getDefaultOutputConfig();
   if (!isObject(input)) return defaults;
 
@@ -617,7 +617,7 @@ function validateOutputConfig(input: unknown, _errors: string[]): OutputConfig {
   };
 }
 
-function validateAutomationConfig(input: unknown, _errors: string[]): AutomationConfig {
+function validateAutomationConfig(input: unknown): AutomationConfig {
   const defaults = getDefaultAutomationConfig();
   if (!isObject(input)) return defaults;
 
@@ -666,7 +666,7 @@ function validateAutomationConfig(input: unknown, _errors: string[]): Automation
   };
 }
 
-function validateComplianceConfig(input: unknown, _errors: string[]): ComplianceConfig {
+function validateComplianceConfig(input: unknown): ComplianceConfig {
   const defaults = getDefaultComplianceConfig();
   if (!isObject(input)) return defaults;
 
@@ -694,17 +694,17 @@ export function validateRunConfig(input: unknown): ValidationResult {
   }
 
   const config: RunConfig = {
-    geo: validateGeoConfig(input.geo, errors),
-    search: validateSearchConfig(input.search, errors),
-    extraction: validateExtractionConfig(input.extraction, errors),
-    reviews: validateReviewsConfig(input.reviews, errors),
-    images: validateImagesConfig(input.images, errors),
-    contacts: validateContactsConfig(input.contacts, errors),
-    enrichment: validateEnrichmentConfig(input.enrichment, errors),
-    qualityFilters: validateQualityFiltersConfig(input.qualityFilters, errors),
-    output: validateOutputConfig(input.output, errors),
-    automation: validateAutomationConfig(input.automation, errors),
-    compliance: validateComplianceConfig(input.compliance, errors)
+    geo: validateGeoConfig(input.geo),
+    search: validateSearchConfig(input.search),
+    extraction: validateExtractionConfig(input.extraction),
+    reviews: validateReviewsConfig(input.reviews),
+    images: validateImagesConfig(input.images),
+    contacts: validateContactsConfig(input.contacts),
+    enrichment: validateEnrichmentConfig(input.enrichment),
+    qualityFilters: validateQualityFiltersConfig(input.qualityFilters),
+    output: validateOutputConfig(input.output),
+    automation: validateAutomationConfig(input.automation),
+    compliance: validateComplianceConfig(input.compliance)
   };
 
   if (config.search.searchTerms.length === 0 && config.geo.geoMode !== 'placeUrls' && config.geo.geoMode !== 'placeIds') {

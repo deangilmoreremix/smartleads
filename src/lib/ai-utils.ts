@@ -64,7 +64,7 @@ export async function generateAIContent(options: AIGenerationOptions): Promise<s
 
     const result = await response.json();
     return result.content;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('AI generation error:', error);
     throw error;
   }
@@ -81,8 +81,7 @@ export interface QualityMetrics {
 }
 
 export async function analyzeEmailQuality(
-  prompt: string,
-  _context: { tone?: string; emailGoal?: string; industry?: string }
+  prompt: string
 ): Promise<QualityMetrics> {
   const variables = extractVariables(prompt);
   const wordCount = prompt.split(/\s+/).length;
@@ -207,7 +206,7 @@ Keep it concise (100-150 words), conversational, and include a clear CTA.`;
       subject: result.subject || `Question about ${lead.business_name}`,
       body: result.body || result.content,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Preview generation error:', error);
     throw error;
   }

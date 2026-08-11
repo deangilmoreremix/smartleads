@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import type { Database } from '../types/database';
 
 export interface DuplicateLeadInfo {
   isDuplicate: boolean;
@@ -240,7 +241,7 @@ export async function mergeDuplicateLeadData(
     }
 
     // Build update object with data from mergeLead
-    const updatedData: any = {};
+    const updatedData: Record<string, string | number | null> = {};
 
     if (!keepLead.phone && mergeLead.phone) {
       updatedData.phone = mergeLead.phone;
@@ -260,7 +261,7 @@ export async function mergeDuplicateLeadData(
     if (Object.keys(updatedData).length > 0) {
       const { error: updateError } = await supabase
         .from('leads')
-        .update(updatedData)
+        .update(updatedData as unknown as Database['public']['Tables']['leads']['Update'])
         .eq('id', keepLeadId);
 
       if (updateError) {

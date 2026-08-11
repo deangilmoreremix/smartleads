@@ -184,7 +184,7 @@ export async function updateSendingScheduleSettings(
   userId: string,
   window: Partial<SendingWindow>
 ): Promise<void> {
-  const updates: any = {};
+  const updates: Record<string, string | boolean> = {};
 
   if (window.startHour !== undefined) {
     updates.send_window_start = `${window.startHour.toString().padStart(2, '0')}:00:00`;
@@ -201,7 +201,7 @@ export async function updateSendingScheduleSettings(
 
   await supabase
     .from('user_settings')
-    .update(updates)
+    .update(updates as unknown as Database['public']['Tables']['user_settings']['Update'])
     .eq('user_id', userId);
 }
 

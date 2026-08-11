@@ -106,7 +106,7 @@ export default function FunnelVisualization({ campaignId, title = 'Conversion Fu
         <div className="flex items-center gap-2">
           <select
             value={dateRange}
-            onChange={(e) => setDateRange(e.target.value as any)}
+            onChange={(e) => setDateRange(e.target.value as '7d' | '30d' | '90d' | 'all')}
             className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20"
           >
             <option value="7d">Last 7 days</option>

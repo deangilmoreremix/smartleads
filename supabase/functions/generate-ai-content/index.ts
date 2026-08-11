@@ -64,7 +64,7 @@ Deno.serve(async (req: Request) => {
         parsed = JSON.parse(outputText);
       } catch {
         const subjectMatch = outputText.match(/"subject"\s*:\s*"([^"]+)"/);
-        const bodyMatch = outputText.match(/"body"\s*:\s*"([\s\S]*?)(?:"\s*,|\"\s*\})/);
+        const bodyMatch = outputText.match(/"body"\s*:\s*"([\s\S]*?)(?:"\s*,|"\s*\})/);
         parsed = {
           subject: subjectMatch?.[1] || 'Quick question',
           body: bodyMatch?.[1]?.replace(/\\n/g, '\n') || outputText,
@@ -91,20 +91,21 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({ content: contentArray, raw: content }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('AI content generation error:', error);
 
+    const err = error as { status?: number; message?: string };
     let statusCode = 500;
     let errorMessage = 'Failed to generate content';
 
-    if (error.status === 429) {
+    if (err.status === 429) {
       statusCode = 429;
       errorMessage = 'Rate limit reached. Please try again in a moment.';
-    } else if (error.status === 401) {
+    } else if (err.status === 401) {
       statusCode = 401;
       errorMessage = 'OpenAI API key is invalid';
-    } else if (error.message) {
-      errorMessage = error.message;
+    } else if (err.message) {
+      errorMessage = err.message;
     }
 
     return new Response(

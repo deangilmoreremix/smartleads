@@ -112,7 +112,7 @@ Deno.serve(async (req: Request) => {
       .eq("email", accountData.email)
       .maybeSingle();
 
-    const accountUpdate: Record<string, any> = {
+    const accountUpdate: Record<string, unknown> = {
       unipile_account_id: accountData.account_id,
       unipile_provider: provider,
       unipile_connected_at: new Date().toISOString(),

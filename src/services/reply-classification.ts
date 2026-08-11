@@ -19,7 +19,7 @@ export interface ClassifiedReply {
   confidence_score: number;
   reply_text: string | null;
   reply_subject: string | null;
-  ai_analysis: Record<string, any>;
+  ai_analysis: Record<string, unknown>;
   is_reviewed: boolean;
   reviewed_at: string | null;
   created_at: string;

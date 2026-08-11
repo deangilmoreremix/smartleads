@@ -50,7 +50,7 @@ export default function EmailHealthDisplay() {
       await calculateHealthScore(accountId);
       await loadAccounts();
       toast.success('Health score updated');
-    } catch (error) {
+    } catch {
       toast.error('Failed to calculate score');
     } finally {
       setCalculating(null);
@@ -67,7 +67,7 @@ export default function EmailHealthDisplay() {
         toast.success('Warmup enabled');
       }
       loadAccounts();
-    } catch (error) {
+    } catch {
       toast.error('Failed to update warmup');
     }
   }

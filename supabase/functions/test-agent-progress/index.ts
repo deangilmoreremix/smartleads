@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,7 +55,7 @@ Deno.serve(async (req: Request) => {
   }
 });
 
-async function simulateAgentWork(supabase: any, jobId: string, campaignName: string) {
+async function simulateAgentWork(supabase: SupabaseClient, jobId: string, campaignName: string) {
   const log = async (message: string, level = 'info', icon = '💡') => {
     await supabase.from('agent_progress_logs').insert({
       job_id: jobId, log_level: level, icon, message
