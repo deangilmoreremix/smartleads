@@ -8,7 +8,18 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "supabase:login": "supabase login",
+    "supabase:link": "supabase link",
+    "supabase:start": "supabase start",
+    "supabase:status": "supabase status",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:lint": "supabase db lint",
+    "functions:deploy": "supabase functions deploy",
+    "functions:deploy:all": "supabase functions deploy --no-verify-jwt",
+    "secrets:set": "supabase secrets set",
+    "types:gen": "supabase gen types typescript --linked --schema public > src/types/database.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
@@ -31,6 +42,7 @@
     "eslint-plugin-react-refresh": "^0.4.11",
     "globals": "^15.9.0",
     "postcss": "^8.4.35",
+    "supabase": "^2.113.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.3.0",
